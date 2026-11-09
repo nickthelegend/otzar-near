@@ -41,18 +41,20 @@ pub struct BtcState {
 
 fn key(id: &str) -> Vec<u8> { format!("hako:btc:{}",id).into_bytes() }
 fn read(id: &str) -> Option<BtcState> { env::storage_read(&key(id)).map(|x|BtcState::try_from_slice(&x).expect("Bitcoin state decode")) }
+pub(super) fn btc_state_for_call(id:&str)->Option<BtcState>{read(id)}
 fn write(id: &str, s: &BtcState) { env::storage_write(&key(id),&borsh::to_vec(s).expect("Bitcoin state encode")); }
 pub fn btc_pending(id: &str) -> bool { read(id).map(|s|s.requests.iter().any(|r|r.state=="pending"||r.state=="signing")).unwrap_or(false) }
 pub fn btc_guardian_pending(id: &str) -> bool { read(id).map(|s|s.requests.iter().any(|r|r.guardian_recovery&&r.state=="pending")).unwrap_or(false) }
 pub fn void_pending(id: &str) {if let Some(mut s)=read(id){for r in s.requests.iter_mut().filter(|r|r.state=="pending"){r.state="cancelled".into();}write(id,&s);}}
 pub fn clear(id: &str) { env::storage_remove(&key(id)); }
 fn script(pk: &str) -> Vec<u8> { let k=hex_decode(pk);require!(k.len()==33&&(k[0]==2||k[0]==3),"compressed Bitcoin public key required");let hash=Ripemd160::digest(env::sha256(&k));let mut script=vec![0,20];script.extend_from_slice(&hash);script }
+pub(super) fn script_for_call(pk:&str)->Vec<u8>{script(pk)}
 fn check_script(s: &str) -> Vec<u8> { let bytes=hex_decode(s);require!(bytes.len()==22&&bytes[0]==0&&bytes[1]==20,"P2WPKH script required");bytes }
 
-struct ParsedTx {version:[u8;4],outpoint:[u8;36],sequence:[u8;4],outputs:Vec<(u64,Vec<u8>)>,outputs_raw:Vec<u8>,locktime:[u8;4]}
+pub(super) struct ParsedTx {version:[u8;4],pub outpoint:[u8;36],sequence:[u8;4],pub outputs:Vec<(u64,Vec<u8>)>,outputs_raw:Vec<u8>,locktime:[u8;4]}
 fn take<'a>(b:&'a [u8],at:&mut usize,n:usize)->&'a [u8]{require!(b.len().saturating_sub(*at)>=n,"truncated Bitcoin transaction");let start=*at;*at+=n;&b[start..start+n]}
 fn small_varint(b:&[u8],at:&mut usize)->usize{let n=take(b,at,1)[0];require!(n<0xfd,"Bitcoin varint too large");n as usize}
-fn tx(raw:&str)->ParsedTx{
+pub(super) fn tx(raw:&str)->ParsedTx{
     let b=hex_decode(raw);require!(b.len()<=4000,"Bitcoin transaction too large");let mut at=0;
     let version:[u8;4]=take(&b,&mut at,4).try_into().unwrap();
     require!(small_varint(&b,&mut at)==1,"one input required");
@@ -67,7 +69,7 @@ fn tx(raw:&str)->ParsedTx{
     ParsedTx{version,outpoint,sequence,outputs,outputs_raw,locktime}
 }
 fn sha256d(b:&[u8])->Vec<u8>{env::sha256(&env::sha256(b))}
-fn inspect(s: &BtcState, raw: &str, prevout_sats: u64, now: u64, recovery: bool) -> (u64,String,u64) {
+pub(super) fn inspect(s: &BtcState, raw: &str, prevout_sats: u64, now: u64, recovery: bool) -> (u64,String,u64) {
     let t=tx(raw);
     let current=script(&s.current_pubkey_hex);
     let next=script(&s.next_pubkey_hex);
@@ -103,6 +105,7 @@ impl Hako {
     pub fn btc_state(&self, token_id: String) -> Option<BtcState> { read(&token_id) }
 
     pub fn register_btc(&mut self, token_id: String, current_pubkey_hex: String, next_pubkey_hex: String, policy: BtcPolicy, nonce: u64, signature: Base64VecU8) {
+        require!(!super::calls::locked(&token_id), "covered call encumbers box");
         require!(policy.daily_cap_sats.0>0 && policy.allow_scripts.len()<=32,"invalid Bitcoin policy");
         check_script(&policy.recovery_script);
         for a in &policy.allow_scripts {check_script(a);}
@@ -120,6 +123,7 @@ impl Hako {
     }
 
     pub fn request_btc_spend(&mut self, token_id: String, raw_unsigned_hex: String, prevout_sats: U64, nonce: u64, signature: Base64VecU8) -> BtcSpend {
+        require!(!super::calls::locked(&token_id), "covered call encumbers box");
         require!(!super::inheritance_claimable(&token_id), "heir claim window reached");
         let mut s=read(&token_id).expect("Setup required: register_btc");
         require!(!btc_pending(&token_id),"pending Bitcoin spend exists");

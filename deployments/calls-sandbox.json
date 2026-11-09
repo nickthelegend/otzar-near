@@ -1,0 +1,76 @@
+{
+  "network": "near sandbox + Bitcoin Core regtest",
+  "steps": [
+    {
+      "name": "create hako-calls",
+      "txHash": "4MQE4xNSR6wcjrnLT9D1uWbdqp4VMZfLyB5uXamAXd5u",
+      "rejected": false
+    },
+    {
+      "name": "create calls-owner",
+      "txHash": "2qMGTvFQbKSpXnbAYhoHWgbQb3fxnBdGjTB7rqTtrfed",
+      "rejected": false
+    },
+    {
+      "name": "create calls-buyer",
+      "txHash": "EKJpWfME7ns65oHrQq9p3WqRYvLf3UB8Ljd4thYL5P9J",
+      "rejected": false
+    },
+    {
+      "name": "deploy covered-call contract",
+      "txHash": "G9qLZ9VMbqNhJ2L2gjuoRWnLBkU7ridWPZ4ZRQ2Tq1hR",
+      "rejected": false
+    },
+    {
+      "name": "initialize covered-call contract",
+      "txHash": "us2dCCmH2s29vnDB9pLkJysAVB881SmyhYoqRnJaUbG",
+      "rejected": false
+    },
+    {
+      "name": "mint earn box",
+      "txHash": "4jaxxa9aPXAEDYChHuD8AyKtkhkCYJgDKqRX7WLfox1D",
+      "rejected": false
+    },
+    {
+      "name": "register call writer ML-DSA key",
+      "txHash": "FLNCJ3b1htej9gUwZVkPLBsnNkkM2WjVfo2jWQsWR3av",
+      "rejected": false
+    },
+    {
+      "name": "register real Bitcoin key",
+      "txHash": "G9VvNKjyB9FUjdxt2rbSgfvb5Qs8dJjf4SVic13eeVPB",
+      "rejected": false
+    },
+    {
+      "name": "write ML-DSA authorized covered call",
+      "txHash": "Fsq2aUJPrzFjKVmE8Me99D3ZsEgRuY3Dob7qB3iUfZHP",
+      "rejected": false
+    },
+    {
+      "name": "encumbered BTC spend rejected",
+      "txHash": "6eGa6zc9mQpWBZCJ8rrwmcTJqrgr6rFofnpA895ewGEn",
+      "rejected": true
+    },
+    {
+      "name": "encumbered box transfer rejected",
+      "txHash": "E58EhNxmrLc7jPVztT6fDdkSZ96WyV8mACPTdY4urhk",
+      "rejected": true
+    },
+    {
+      "name": "encumbered box listing rejected",
+      "txHash": "8rmfhuPAdmX1KFteEGyGA7jx1kpPuxRoYWuWqrZ98L5",
+      "rejected": true
+    },
+    {
+      "name": "premature auction close rejected",
+      "txHash": "DkoDKYvMGLVE4neuzPcWNEREVdnqPmyvEVSue8JpNTVz",
+      "rejected": true
+    }
+  ],
+  "bitcoin": {
+    "fundingTx": "2587ca96cd67f15432f9b503eeabef5d4bf873ff1031c532d993fa94f97134e5",
+    "boxAddress": "bcrt1qurfkmdry5jnr84938tng60gql6y5gv2kz2xtl7",
+    "collateralSats": "10000000",
+    "outpoint": "e53471f994fa93d932c53110ff73f84b5defabee03b5f93254f167cd96ca872501000000"
+  }
+}

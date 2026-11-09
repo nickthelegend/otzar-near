@@ -2,6 +2,7 @@ use near_sdk::json_types::{Base64VecU8, U128};
 use near_sdk::{env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise};
 use std::collections::BTreeMap;
 mod btc;
+mod calls;
 
 const NS_SEC: u64 = 1_000_000_000;
 const MPC_GAS: Gas = Gas::from_tgas(40);
@@ -202,6 +203,7 @@ impl Hako {
     }
 
     pub fn list(&mut self, token_id: String, price: U128) {
+        require!(!calls::locked(&token_id), "covered call encumbers box");
         require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(price.0 > 0, "price must be positive");
         require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
@@ -221,6 +223,7 @@ impl Hako {
 
     #[payable]
     pub fn buy(&mut self, token_id: String) -> Promise {
+        require!(!calls::locked(&token_id), "covered call encumbers box");
         require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
         require!(!btc::btc_pending(&token_id), "pending Bitcoin spend exists");
@@ -245,6 +248,7 @@ impl Hako {
 
     #[payable]
     pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
+        require!(!calls::locked(&token_id), "covered call encumbers box");
         require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(env::attached_deposit().as_yoctonear() == 1, "one yocto required");
         require!(!self.spends.values().any(|s|s.token_id==token_id && s.clawback && s.state=="pending"),"guardian recovery active");
@@ -434,6 +438,7 @@ impl Hako {
     }
 
     pub fn claim_inheritance(&mut self, token_id: String) {
+        require!(!calls::locked(&token_id), "covered call encumbers box");
         let inheritance: Inheritance = stored(&extension_key("inheritance", &token_id)).expect("inheritance not configured");
         require!(inheritance.heir == env::predecessor_account_id(), "heir only");
         require!(env::block_timestamp() >= inheritance.deadline_ns + inheritance.delay_sec * NS_SEC, "inheritance delay active");
