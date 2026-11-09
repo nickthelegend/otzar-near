@@ -3,74 +3,74 @@
   "steps": [
     {
       "name": "create hako-calls",
-      "txHash": "4MQE4xNSR6wcjrnLT9D1uWbdqp4VMZfLyB5uXamAXd5u",
+      "txHash": "GBup5ZsCAQWwp6bSUzVzYVEpomYCAmMa2FJSnJMSWucD",
       "rejected": false
     },
     {
       "name": "create calls-owner",
-      "txHash": "2qMGTvFQbKSpXnbAYhoHWgbQb3fxnBdGjTB7rqTtrfed",
+      "txHash": "2jh8gEwLcw9NV8nqWVxjAX1GCEbrTZgTZmdL7BwatarW",
       "rejected": false
     },
     {
       "name": "create calls-buyer",
-      "txHash": "EKJpWfME7ns65oHrQq9p3WqRYvLf3UB8Ljd4thYL5P9J",
+      "txHash": "A9F2MokqPCy2HqPwMXoqomHaBp7i4ZfjQ95EZ7vrBziu",
       "rejected": false
     },
     {
       "name": "deploy covered-call contract",
-      "txHash": "G9qLZ9VMbqNhJ2L2gjuoRWnLBkU7ridWPZ4ZRQ2Tq1hR",
+      "txHash": "Dx98pjoMgSurvW3TbT8ndajyFuxTKysGwEZo49hEYHCV",
       "rejected": false
     },
     {
       "name": "initialize covered-call contract",
-      "txHash": "us2dCCmH2s29vnDB9pLkJysAVB881SmyhYoqRnJaUbG",
+      "txHash": "EUEPp67qh1FbZix2thTVUo2ZSVint972Kfj2kKyLU5Se",
       "rejected": false
     },
     {
       "name": "mint earn box",
-      "txHash": "4jaxxa9aPXAEDYChHuD8AyKtkhkCYJgDKqRX7WLfox1D",
+      "txHash": "eMTaSpQ6YdBndxMGkKzwU8cKzUxPDSgCzTbF29rN1Kx",
       "rejected": false
     },
     {
       "name": "register call writer ML-DSA key",
-      "txHash": "FLNCJ3b1htej9gUwZVkPLBsnNkkM2WjVfo2jWQsWR3av",
+      "txHash": "A2AXQRP52xbBf26F8znZZivL3RWxR9QS4uQCGU8FVWJx",
       "rejected": false
     },
     {
       "name": "register real Bitcoin key",
-      "txHash": "G9VvNKjyB9FUjdxt2rbSgfvb5Qs8dJjf4SVic13eeVPB",
+      "txHash": "BEvsKQX5nHzugZZe6tvicAfkdNdpd8X4zvoPAFGgdkyR",
       "rejected": false
     },
     {
       "name": "write ML-DSA authorized covered call",
-      "txHash": "Fsq2aUJPrzFjKVmE8Me99D3ZsEgRuY3Dob7qB3iUfZHP",
+      "txHash": "1qmWFfza91Vk2BSXauFE38yQ5PJNrcbtxS2z4Ntndba",
       "rejected": false
     },
     {
       "name": "encumbered BTC spend rejected",
-      "txHash": "6eGa6zc9mQpWBZCJ8rrwmcTJqrgr6rFofnpA895ewGEn",
+      "txHash": "3H4Uwhnx5VC8MdVcSodFiLB9jLwyLh4zDVP2HEtn9Ew9",
       "rejected": true
     },
     {
       "name": "encumbered box transfer rejected",
-      "txHash": "E58EhNxmrLc7jPVztT6fDdkSZ96WyV8mACPTdY4urhk",
+      "txHash": "74ZDMQVq9BpzFoZCrtYZkxkhKJBTEXqsKBPMfp2iBtAp",
       "rejected": true
     },
     {
       "name": "encumbered box listing rejected",
-      "txHash": "8rmfhuPAdmX1KFteEGyGA7jx1kpPuxRoYWuWqrZ98L5",
+      "txHash": "66XekbxNBFZbjgez8zu2fW6jAi4jLKdCAvCvoLAjgTuf",
       "rejected": true
     },
     {
       "name": "premature auction close rejected",
-      "txHash": "DkoDKYvMGLVE4neuzPcWNEREVdnqPmyvEVSue8JpNTVz",
+      "txHash": "BrMN43PMe2Ndki7dAYdVRxbkih857SBtY225m5gpSSDm",
       "rejected": true
     }
   ],
   "bitcoin": {
-    "fundingTx": "2587ca96cd67f15432f9b503eeabef5d4bf873ff1031c532d993fa94f97134e5",
+    "fundingTx": "f96876f81a42c67cc33f578e8a80000ec6e2f60cfdd366ba469b78bd2a4f778c",
     "boxAddress": "bcrt1qurfkmdry5jnr84938tng60gql6y5gv2kz2xtl7",
     "collateralSats": "10000000",
-    "outpoint": "e53471f994fa93d932c53110ff73f84b5defabee03b5f93254f167cd96ca872501000000"
+    "outpoint": "8c774f2abd789b46ba66d3fd0cf6e2c60e00808a8e573fc37cc6421af87668f900000000"
   }
 }

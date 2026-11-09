@@ -1,0 +1,58 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+import {Account,KeyPair,KeyPairSigner,JsonRpcProvider,actions,teraToGas,nearToYocto} from 'near-api-js';
+import {deriveAddresses,bitcoinScriptHex,newQuantumKey,signAuthorization,unsignedBitcoinSpend,signedBitcoinTransaction,rpcQuery} from '@hako/sdk';
+
+const rpc='https://test.rpc.fastnear.com';const provider=new JsonRpcProvider({url:rpc});
+const USDC='usdc.tidepool-sandbox.testnet';const stamp=new Date().toISOString().slice(0,10);
+const file=resolve(`deployments/calls-testnet-${stamp}.json`);const record={date:stamp,network:'NEAR testnet + Bitcoin Core regtest',status:'running',steps:[],bitcoin:{},oracle:{contract:'pyth-oracle.testnet',feedId:'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43'}};
+const save=()=>writeFileSync(file,JSON.stringify(record,null,2)+'\n');
+function account(label){const {id,key}=JSON.parse(readFileSync(resolve(`.near-credentials/${label}.json`),'utf8'));return new Account(id,provider,new KeyPairSigner(KeyPair.fromString(key)));}
+async function send(actor,receiver,action,name,rejected=false){const r=await actor.signAndSendTransaction({receiverId:receiver,actions:[action],throwOnFailure:false,waitUntil:'FINAL'});const failed=!!r.status?.Failure;if(failed!==rejected)throw new Error(`${name}: ${failed?JSON.stringify(r.status.Failure):'attack accepted'}`);record.steps.push({name,txHash:r.transaction.hash,explorer:`https://testnet.nearblocks.io/txns/${r.transaction.hash}`,rejected});save();console.log(`${name}: ${failed?'rejected':'ok'} ${r.transaction.hash}`);return r;}
+const call=(method,args,gas=120,deposit=0n)=>actions.functionCall(method,args,teraToGas(gas),deposit);
+async function btc(method,params=[],wallet=false){const cookie=readFileSync('.demo/bitcoin/regtest/.cookie','utf8').trim();const r=await fetch(`http://127.0.0.1:18443/${wallet?'wallet/hako-miner':''}`,{method:'POST',headers:{'content-type':'application/json',authorization:`Basic ${Buffer.from(cookie).toString('base64')}`},body:JSON.stringify({jsonrpc:'1.0',id:'calls-demo',method,params})});const j=await r.json();if(!r.ok||j.error)throw new Error(`Bitcoin Core ${method}: ${JSON.stringify(j.error)}`);return j.result;}
+async function main(){
+  const contract=account('contract'),owner=account('seller'),buyer=account('buyer'),newHolder=account('guardian');record.accounts={contract:contract.accountId,owner:owner.accountId,buyer:buyer.accountId,newHolder:newHolder.accountId};save();
+  const initialUsdc=BigInt(await rpcQuery(USDC,'ft_balance_of',{account_id:buyer.accountId}));
+  if(initialUsdc<51_000_000n)throw new Error(`Setup required: fund ${buyer.accountId} with at least 51 testnet USDC at https://app.usetidepool.tech/faucet`);
+  const wasm=readFileSync('packages/contract/target/near/hako_contract.wasm');await send(contract,contract.accountId,actions.deployContract(wasm),'upgrade covered-call contract');
+  const codeResponse=await fetch(rpc,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:'code',method:'query',params:{request_type:'view_code',finality:'final',account_id:contract.accountId}})});const code=await codeResponse.json();if(code.error)throw new Error(JSON.stringify(code.error));const localHash=createHash('sha256').update(wasm).digest('hex');const remoteHash=createHash('sha256').update(Buffer.from(code.result.code_base64,'base64')).digest('hex');if(localHash!==remoteHash)throw new Error('deployed wasm hash mismatch');record.deployedWasmSha256=localHash;record.rpcCodeHashVerifiedAtBlock=code.result.block_height;save();
+  const tokenId=`call-${Date.now().toString(36)}`;record.tokenId=tokenId;const addresses=await deriveAddresses(contract.accountId,tokenId);record.bitcoin.boxAddress=addresses.bitcoin;save();
+  const policy={daily_eth_wei:'10000000000000000',delay_sec:120,allow_eth:[],guardian:newHolder.accountId,recovery_eth:'0x2222222222222222222222222222222222222222',emergency_migration:null};
+  await send(owner,contract.accountId,call('mint',{token_id:tokenId,policy}),'mint call box');
+  const pq=newQuantumKey();writeFileSync(resolve(`.near-credentials/${tokenId}-pq.json`),JSON.stringify({publicKey:Buffer.from(pq.publicKey).toString('base64'),secretKey:Buffer.from(pq.secretKey).toString('base64')}),{mode:0o600});
+  await send(owner,contract.accountId,call('register_pq_key',{token_id:tokenId,key:Buffer.from(pq.publicKey).toString('base64')}),'register PQ call writer');
+  const next=await deriveAddresses(contract.accountId,tokenId,1);const wallets=await btc('listwallets');if(!wallets.includes('hako-miner')){try{await btc('loadwallet',['hako-miner']);}catch{await btc('createwallet',['hako-miner']);}}
+  const miner=await btc('getnewaddress',['miner','bech32'],true),destination=await btc('getnewaddress',['buyer','bech32'],true);const height=await btc('getblockcount');if(height<101)await btc('generatetoaddress',[101-height,miner]);
+  const script=bitcoinScriptHex(destination);const btcPolicy={daily_cap_sats:'10000000',allow_scripts:[script],recovery_script:script};const reg=Buffer.from(JSON.stringify([addresses.bitcoinPublicKey,next.bitcoinPublicKey,btcPolicy]));
+  await send(owner,contract.accountId,call('register_btc',{token_id:tokenId,current_pubkey_hex:addresses.bitcoinPublicKey,next_pubkey_hex:next.bitcoinPublicKey,policy:btcPolicy,nonce:0,signature:Buffer.from(signAuthorization(pq.secretKey,tokenId,0,reg)).toString('base64')}),'register Bitcoin policy');
+  const funding=await btc('sendtoaddress',[addresses.bitcoin,0.1],true);await btc('generatetoaddress',[1,miner]);const raw=await btc('getrawtransaction',[funding,true]);const vout=raw.vout.find(v=>v.scriptPubKey.address===addresses.bitcoin);if(!vout)throw new Error('funding output absent');const sats=BigInt(Math.round(vout.value*1e8));const outpoint=Buffer.concat([Buffer.from(funding,'hex').reverse(),Buffer.alloc(4)]);outpoint.writeUInt32LE(vout.n,32);record.bitcoin={...record.bitcoin,fundingTx:funding,collateralSats:sats.toString(),outpoint:outpoint.toString('hex')};save();
+  const expiry=Math.floor(Date.now()/1000)+150;const terms={token_id:tokenId,strike_usd_e6:'50000000000',expiry_sec:expiry,size_sats:'100000',opening_premium_usdc:'1000000',minimum_premium_usdc:'200000',collateral_outpoint_hex:outpoint.toString('hex'),collateral_sats:sats.toString(),nonce:1};const payload=Buffer.from(JSON.stringify([terms.strike_usd_e6,terms.expiry_sec,terms.size_sats,terms.opening_premium_usdc,terms.minimum_premium_usdc,terms.collateral_outpoint_hex,terms.collateral_sats]));
+  await send(owner,contract.accountId,call('write_call',{...terms,signature:Buffer.from(signAuthorization(pq.secretKey,tokenId,1,payload)).toString('base64')}),'write covered call');
+  const spend=unsignedBitcoinSpend({txid:funding,vout:vout.n,prevoutSats:sats,destination,amountSats:sats-1000n,feeSats:1000n});const spendPayload=Buffer.concat([Buffer.from(spend.rawHex,'hex'),Buffer.alloc(8)]);spendPayload.writeBigUInt64LE(sats,spendPayload.length-8);
+  await send(owner,contract.accountId,call('request_btc_spend',{token_id:tokenId,raw_unsigned_hex:spend.rawHex,prevout_sats:sats.toString(),nonce:2,signature:Buffer.from(signAuthorization(pq.secretKey,tokenId,2,spendPayload)).toString('base64')}),'owner front-run spend rejected',true);
+  for(const id of [contract.accountId,owner.accountId,buyer.accountId,newHolder.accountId])await send(owner,USDC,call('storage_deposit',{account_id:id,registration_only:true},60,nearToYocto('0.01')),`register ${id} for testnet USDC`);
+  const before=BigInt(await rpcQuery(USDC,'ft_balance_of',{account_id:owner.accountId}));const asking=BigInt(await rpcQuery(contract.accountId,'auction_price',{token_id:tokenId}));await send(buyer,USDC,call('ft_transfer_call',{receiver_id:contract.accountId,amount:asking.toString(),memo:'Hako call purchase',msg:`buy:${tokenId}`},150,1n),'pay premium in testnet USDC');
+  const option=await rpcQuery(contract.accountId,'call_state',{token_id:tokenId});const after=BigInt(await rpcQuery(USDC,'ft_balance_of',{account_id:owner.accountId}));if(option.state!=='sold'||option.holder!==buyer.accountId||after-before!==asking)throw new Error('premium not delivered to writer or option not sold');record.premiumUsdc=asking.toString();save();
+  await send(buyer,contract.accountId,call('option_transfer',{token_id:tokenId,receiver_id:newHolder.accountId},80,1n),'transfer option to new holder');const transferred=await rpcQuery(contract.accountId,'call_state',{token_id:tokenId});if(transferred.holder!==newHolder.accountId)throw new Error('option transfer did not change holder');
+  await send(buyer,USDC,call('ft_transfer',{receiver_id:newHolder.accountId,amount:'50000000',memo:'fund call exercise on testnet'},80,1n),'fund new holder testnet USDC');
+  await send(owner,contract.accountId,call('request_btc_spend',{token_id:tokenId,raw_unsigned_hex:spend.rawHex,prevout_sats:sats.toString(),nonce:2,signature:Buffer.from(signAuthorization(pq.secretKey,tokenId,2,spendPayload)).toString('base64')}),'sold-call owner spend rejected',true);
+  const wait=Math.max(0,expiry*1000-Date.now()+2000);if(wait)await new Promise(done=>setTimeout(done,wait));
+  await send(newHolder,contract.accountId,call('settle_call',{token_id:tokenId}),'settle through Pyth testnet receiver');const settled=await rpcQuery(contract.accountId,'call_state',{token_id:tokenId});record.oracle.result=settled.oracle_price_usd_e6;record.oracle.state=settled.state;save();
+  if(settled.state==='itm'){
+    const due=(BigInt(terms.strike_usd_e6)*BigInt(terms.size_sats)+99_999_999n)/100_000_000n;
+    const ownerBefore=BigInt(await rpcQuery(USDC,'ft_balance_of',{account_id:owner.accountId}));
+    await send(newHolder,USDC,call('ft_transfer_call',{receiver_id:contract.accountId,amount:due.toString(),memo:'Hako strike payment',msg:`exercise:${tokenId}:${script}`},150,1n),'pay strike in testnet USDC');
+    const paid=await rpcQuery(contract.accountId,'call_state',{token_id:tokenId});const ownerAfter=BigInt(await rpcQuery(USDC,'ft_balance_of',{account_id:owner.accountId}));if(paid.state!=='paid'||ownerAfter-ownerBefore!==due)throw new Error('strike payment not delivered');
+    const exercise=unsignedBitcoinSpend({txid:funding,vout:vout.n,prevoutSats:sats,destination,amountSats:BigInt(terms.size_sats),feeSats:1000n,changeAddress:next.bitcoin});
+    await send(newHolder,contract.accountId,call('exercise_btc',{token_id:tokenId,raw_unsigned_hex:exercise.rawHex},160),'MPC signs buyer Bitcoin exercise');
+    const signed=await rpcQuery(contract.accountId,'call_state',{token_id:tokenId});if(signed.state!=='signed'||!signed.exercise_signature_json)throw new Error('MPC signature absent');
+    const bitcoinRaw=signedBitcoinTransaction(exercise.rawHex,signed.exercise_signature_json,addresses.bitcoinPublicKey);
+    const txid=await btc('sendrawtransaction',[bitcoinRaw]);await btc('generatetoaddress',[1,miner]);const received=await btc('scantxoutset',['start',[`addr(${destination})`]]);if(!received.unspents.some(u=>u.txid===txid&&Math.round(u.amount*1e8)===Number(terms.size_sats)))throw new Error('buyer regtest receipt absent');
+    record.bitcoin.exerciseTx=txid;record.bitcoin.buyerAddress=destination;record.status='ITM exercise confirmed on NEAR testnet and Bitcoin Core regtest';
+  }else if(settled.state==='sold'){record.status='BLOCKED: Pyth testnet BTC/USD feed has no fresh update';}
+  else{record.status=`Pyth settlement ${settled.state}`;}
+  console.log(record.status);save();
+}
+main().catch(e=>{record.status=`BLOCKED: ${e.message}`;save();console.error(e.message);process.exitCode=1;});

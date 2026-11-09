@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-09",
+  "network": "NEAR testnet + Bitcoin Core regtest",
+  "status": "BLOCKED: Tidepool faucet HTTP 403: {\"message\":\"The faucet is not available via the API. Claim test tokens manually on the site faucet page: https://app.usetidepool.tech/faucet\",\"reason\":\"site_only\",\"faucetUrl\":\"https://app.usetidepool.tech/faucet\"}",
+  "steps": [
+    {
+      "name": "upgrade covered-call contract",
+      "txHash": "Guoc3TTSeGr78FhtQXR6rbc32jNCirryoNfeDV3R9xRA",
+      "explorer": "https://testnet.nearblocks.io/txns/Guoc3TTSeGr78FhtQXR6rbc32jNCirryoNfeDV3R9xRA",
+      "rejected": false
+    },
+    {
+      "name": "mint call box",
+      "txHash": "8NZiTqJXbM3LXAj6RFcxEmhGkh7Dy7wJDBz6wDPf2txQ",
+      "explorer": "https://testnet.nearblocks.io/txns/8NZiTqJXbM3LXAj6RFcxEmhGkh7Dy7wJDBz6wDPf2txQ",
+      "rejected": false
+    },
+    {
+      "name": "register PQ call writer",
+      "txHash": "4Rr3XhV1LjMeuuXWmbQ9N1mTnwxTuBVkkG1FT34HYA7n",
+      "explorer": "https://testnet.nearblocks.io/txns/4Rr3XhV1LjMeuuXWmbQ9N1mTnwxTuBVkkG1FT34HYA7n",
+      "rejected": false
+    },
+    {
+      "name": "register Bitcoin policy",
+      "txHash": "Ev5yXju7TsDUEfXSYXLGkpra3XUwDm4rhpusbeUZFVPU",
+      "explorer": "https://testnet.nearblocks.io/txns/Ev5yXju7TsDUEfXSYXLGkpra3XUwDm4rhpusbeUZFVPU",
+      "rejected": false
+    },
+    {
+      "name": "write covered call",
+      "txHash": "AgzrR5H6Jw3WdAiojPbZ1Dd6vDzY9GE9aCkswJZtyQjL",
+      "explorer": "https://testnet.nearblocks.io/txns/AgzrR5H6Jw3WdAiojPbZ1Dd6vDzY9GE9aCkswJZtyQjL",
+      "rejected": false
+    },
+    {
+      "name": "owner front-run spend rejected",
+      "txHash": "ApokgoGr5fF2VJ1UhAApVwcTaUBwMRpfpzmzRzYMDrWY",
+      "explorer": "https://testnet.nearblocks.io/txns/ApokgoGr5fF2VJ1UhAApVwcTaUBwMRpfpzmzRzYMDrWY",
+      "rejected": true
+    },
+    {
+      "name": "register hako-contract-mw984kpp.testnet for testnet USDC",
+      "txHash": "G1MSqAPmSd5EpYcQfK7em91CzCQ5X9qPqnwC9QRTfSbW",
+      "explorer": "https://testnet.nearblocks.io/txns/G1MSqAPmSd5EpYcQfK7em91CzCQ5X9qPqnwC9QRTfSbW",
+      "rejected": false
+    },
+    {
+      "name": "register hako-seller-mw984kqa.testnet for testnet USDC",
+      "txHash": "3wm3VZFHE2AsxKPTRdvJKKjRXEj2eBkCEz4vyHSLKqRG",
+      "explorer": "https://testnet.nearblocks.io/txns/3wm3VZFHE2AsxKPTRdvJKKjRXEj2eBkCEz4vyHSLKqRG",
+      "rejected": false
+    },
+    {
+      "name": "register hako-buyer-mw984kqb.testnet for testnet USDC",
+      "txHash": "HZdvx3R9RbBu6zQGhbWG2geZ4r1CFJsC9c3cgbDNRniC",
+      "explorer": "https://testnet.nearblocks.io/txns/HZdvx3R9RbBu6zQGhbWG2geZ4r1CFJsC9c3cgbDNRniC",
+      "rejected": false
+    }
+  ],
+  "bitcoin": {
+    "boxAddress": "bcrt1qkxmukn88lw8jc40lxhel28cx84p956r8kk64me",
+    "fundingTx": "57d5c9a0b4b340cdc277e2a14da4aca84f6c8d3575fe0b23d306774afbfb1e59",
+    "collateralSats": "10000000",
+    "outpoint": "591efbfb4a7706d3230bfe75358d6c4fa8aca44da1e277c2cd40b3b4a0c9d55701000000"
+  },
+  "oracle": {
+    "contract": "pyth-oracle.testnet",
+    "feedId": "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43"
+  },
+  "accounts": {
+    "contract": "hako-contract-mw984kpp.testnet",
+    "owner": "hako-seller-mw984kqa.testnet",
+    "buyer": "hako-buyer-mw984kqb.testnet",
+    "newHolder": "hako-guardian-mw984kqc.testnet"
+  },
+  "tokenId": "call-mw9c9f1x",
+  "deployedWasmSha256": "37981d11c94d04403deefecfad38399fff9f96ba99808c13fb77fde0acb6e541",
+  "rpcCodeHashVerifiedAtBlock": 276931160
+}
