@@ -5,9 +5,11 @@ import EarnPanel from './EarnPanel';
 import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
-import { annualisedPct, anvilUrl, contractId, earnedSummary, esploraUrl, formatEth, loadBoxes, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, ZERO_ETH, type Box, type Spend } from './lib';
+import { anvilUrl, btcFromSats, contractId, e6, earnedSummary, esploraUrl, formatEth, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, utcTime, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Glow, Icon, Link, State, Timeline } from './ui';
-import { useNow, useRounds } from './data';
+import { useNow, useRelayer, useRounds } from './data';
+import { PhasePill, RoundBars, StrikeSpot } from './cards';
+import { RoundSheet } from './RoundSheet';
 import { Loop, pct } from './rounds';
 import type { Wallet } from './wallet';
 
@@ -94,39 +96,101 @@ export default function VaultPage({ id, wallet }: Props) {
   const latest = boxRounds[0];
   const earned = earnedSummary(boxRounds);
 
+  const relayer = useRelayer();
+  const [side, setSide] = useState<'deposit' | 'withdraw'>('deposit');
+  const [sheet, setSheet] = useState<Round | null>(null);
+  const goManage = (t: Tab) => { setTab(t); requestAnimationFrame(() => document.getElementById('manage')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })); };
+
   if (!box) return <div className="page vault">
-    <Link to="/vaults" className="back"><Icon name="back" size={16} /> The wall</Link>
+    <Link to="/app" className="back"><Icon name="back" size={16} /> Vaults</Link>
     {error ? <State kind="error" title="Could not read this vault">{error}</State>
-      : loaded ? <State kind="empty" title={`No vault called ${id}`} action={<Link to="/vaults" className="pill pill-ghost pill-sm">Back to the wall</Link>}>The contract has no NFT with this ID.</State>
-      : <div className="vault-hero skeleton" aria-busy="true" />}
+      : loaded ? <State kind="empty" title={`No vault called ${id}`} action={<Link to="/app" className="pill pill-ghost pill-sm">Back to vaults</Link>}>The contract has no NFT with this ID.</State>
+      : <div className="v-hero skeleton" aria-busy="true" />}
   </div>;
 
+  const ph = latest ? roundPhase(latest, now) : null;
+  const locked = !!latest && ['auction', 'purchasing', 'sold', 'settling', 'itm', 'paying', 'paid', 'signing'].includes(latest.state) && !(latest.state === 'auction' && ph?.phase === 'unfilled');
+  const live = ph?.phase === 'live';
+  const spot = latest?.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null;
+  const apy = earned.blended;
+
   return <div className="page vault">
-    <Link to="/vaults" className="back"><Icon name="back" size={16} /> The wall</Link>
-    <header className="vault-hero">
-      <Glow name="box" className="vh-glow" />
-      <div className="vh-copy">
-        <p className="lbl">Vault NFT · epoch {box.epoch} · nonce {box.nonce}</p>
+    <Link to="/app" className="back"><Icon name="back" size={16} /> Vaults</Link>
+    <header className="v-hero">
+      <div className="v-hero-copy">
+        <div className="v-tags"><span className="vtag vtag-ice">Covered call</span><span className="vtag">Native BTC · regtest</span><span className="vtag">{box.pq_key?.length ? 'ML-DSA-65 sealed' : 'No quantum key'}</span>{mine && <span className="vtag vtag-gold">Your vault</span>}</div>
         <h1>{box.token_id}</h1>
-        <p className="vh-owner">Owned by <a href={`https://testnet.nearblocks.io/address/${box.owner_id}`} target="_blank" rel="noreferrer" className="mono">{box.owner_id}</a>{mine && <span className="you-tag">You</span>}</p>
-        <div className="tumblers">
-          <div className={box.pq_key?.length ? 'on' : ''}><Icon name="key" size={18} /><b>{box.pq_key?.length ? 'ML-DSA-65' : 'No key'}</b><span>authority</span></div>
-          <div className={policyActive ? 'on' : ''}><Icon name="clock" size={18} /><b>{policyActive ? `${box.policy.delay_sec}s delay` : 'Not set'}</b><span>spending rules</span></div>
-          <div className={box.policy.guardian ? 'on' : ''}><Icon name="shield" size={18} /><b>{box.policy.guardian ? short(box.policy.guardian, 10, 6) : 'None'}</b><span>guardian</span></div>
-          <div className={box.ever_signed ? 'on' : ''}><Icon name="spark" size={18} /><b>{box.ever_signed ? 'Signed' : 'Never'}</b><span>MPC signature</span></div>
-        </div>
+        <p className="v-owner">Vault NFT on NEAR · owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 18, 10)}</a></p>
+        <dl className="v-stats">
+          <div><dt>Realised APY</dt><dd className="ice">{pct(apy, 2)}</dd></div>
+          <div><dt>Premium earned</dt><dd>{rounds.data ? <Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> : '…'}</dd></div>
+          <div><dt>Rounds</dt><dd>{rounds.data ? boxRounds.length : '…'}</dd></div>
+          <div><dt>Current round</dt><dd>{latest ? <PhasePill c={latest} now={now} /> : <span className="dim">None</span>}</dd></div>
+        </dl>
       </div>
-      <aside className="vh-earn">
-        <p className="lbl">Premium this box earned</p>
-        <p className="vh-big">{rounds.data ? <Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> : '…'}</p>
-        <p className="vh-sub">{latest ? <>{boxRounds.length} {boxRounds.length === 1 ? 'round' : 'rounds'} · latest #{latest.id} {roundPhase(latest, now).label.toLowerCase()} · {pct(annualisedPct(latest))} annualised</> : rounds.data ? 'No covered call written on this box yet.' : 'Reading rounds…'}</p>
-        {latest && <Loop c={latest} now={now} compact />}
-      </aside>
+      <Glow name="box" className="v-hero-art" />
     </header>
+
+    <div className="v-grid">
+      <div className="v-main">
+        <section className="card" aria-label="Current round">
+          <div className="card-title"><div><h2>{latest ? `Current round · #${latest.id}` : 'Current round'}</h2><p>{latest ? ph!.label : 'This vault has not written a covered call yet.'}</p></div>{latest && <button className="pill pill-ghost pill-sm" onClick={() => setSheet(latest)}>Round details <Icon name="arrow" size={14} /></button>}</div>
+          {latest ? <>
+            <dl className="cr-grid">
+              <div><dt>Strike</dt><dd>${e6(latest.strike_usd_e6, 0)}</dd></div>
+              <div><dt>{latest.expiry_ns / 1e6 > now ? 'Expires' : 'Expired'}</dt><dd>{utcTime(latest.expiry_ns)} <small>UTC · {utcDay(latest.expiry_ns)}</small></dd></div>
+              <div><dt>Premium</dt><dd>{latest.premium_paid_usdc ? <Amount e6={latest.premium_paid_usdc} unit={TUSDC_SYMBOL} /> : <span className="dim">none paid</span>}</dd></div>
+              <div><dt>Size</dt><dd>{btcFromSats(latest.size_sats)} <small>BTC</small></dd></div>
+            </dl>
+            <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'Settled at' : 'BTC now (relayer)'} />
+            <div className="cr-loop"><Loop c={latest} now={now} horizontal /></div>
+          </> : <State kind="empty" title="No round yet" action={mine ? <button className="pill pill-ice pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from the Earn tab below, signed with the vault's ML-DSA key.</State>}
+        </section>
+
+        <section className="card" aria-label="Vault performance">
+          <div className="card-title"><div><h2>Vault performance</h2><p>Annualised yield of every Hako round; this vault's latest is highlighted.</p></div></div>
+          {rounds.data?.length ? <RoundBars rounds={rounds.data} selected={latest ? `${latest.token_id}#${latest.id}` : undefined} onPick={k => setSheet(rounds.data!.find(r => `${r.token_id}#${r.id}` === k) || null)} /> : <p className="dim small">{rounds.error || 'Reading rounds…'}</p>}
+        </section>
+
+        <section className="card strat" aria-label="Vault strategy">
+          <div className="card-title"><div><h2>Vault strategy</h2><p>Covered call on native Bitcoin.</p></div></div>
+          <div className="strat-grid">
+            <div className="strat-copy">
+              <p>The owner sells a call on this vault's BTC: a buyer pays a premium in {TUSDC_SYMBOL} for the right to buy a fixed number of sats at the strike before expiry. The premium is kept either way.</p>
+              <ol className="strat-steps">
+                <li><b>Write</b><span>Strike, size, expiry and a falling premium range, signed with the ML-DSA key. The contract blocks BTC spends while it runs.</span></li>
+                <li><b>Auction</b><span>A Dutch auction lowers the premium until a buyer pays with <code>ft_transfer_call</code>.</span></li>
+                <li><b>Settle</b><span>A Coinbase BTC-USD print signed by the relayer key settles it. Above the strike the buyer pays the strike and NEAR MPC signs the sats over; below it the collateral is released.</span></li>
+              </ol>
+            </div>
+            <figure className="payoff">
+              <svg viewBox="0 0 320 180" role="img" aria-label="Covered call payoff: rises with BTC until the strike, then flat">
+                <line x1="20" y1="160" x2="310" y2="160" className="axis" /><line x1="20" y1="14" x2="20" y2="160" className="axis" />
+                <line x1="180" y1="14" x2="180" y2="160" className="strike" />
+                <path d="M20 146 L180 56 L310 56" className="pay" /><path d="M20 158 L180 70 L310 0" className="hold" />
+                <text x="186" y="28">strike</text><text x="226" y="50">covered call</text><text x="226" y="92" className="dim">BTC alone</text><text x="250" y="176">BTC price →</text>
+              </svg>
+              <figcaption>Shape of the payoff, not a forecast. The lift on the left is the premium; the cap on the right is the upside given up.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section className="card" aria-label="Security">
+          <div className="card-title"><div><h2>Security</h2><p>Every lock below is enforced by the NEAR contract before it asks the signer network for a signature.</p></div><Link to="/you#safety" className="mini-link">In plain words <Icon name="arrow" size={13} /></Link></div>
+          <div className="tumblers">
+            <div className={box.pq_key?.length ? 'on' : ''}><Icon name="key" size={18} /><b>{box.pq_key?.length ? 'ML-DSA-65' : 'No key'}</b><span>authority</span></div>
+            <div className={policyActive ? 'on' : ''}><Icon name="clock" size={18} /><b>{policyActive ? `${box.policy.delay_sec}s delay` : 'Not set'}</b><span>spending rules</span></div>
+            <div className={box.policy.guardian ? 'on' : ''}><Icon name="shield" size={18} /><b>{box.policy.guardian ? short(box.policy.guardian, 10, 6) : 'None'}</b><span>guardian</span></div>
+            <div className={box.ever_signed ? 'on' : ''}><Icon name="spark" size={18} /><b>{box.ever_signed ? 'Signed' : 'Never'}</b><span>MPC signature</span></div>
+          </div>
+        </section>
+
+        <section className="manage" id="manage" aria-label="Manage vault">
+          <div className="card-title"><div><h2>Manage vault</h2><p>Addresses, rules, spends, rounds, recovery and sale. Signed with your wallet and the vault's ML-DSA key.</p></div></div>
     {!account && <div className="readonly"><Icon name="lock" /><span>Read-only view of live contract state. Connect a NEAR testnet wallet to sign and spend.</span><button className="pill pill-ghost pill-sm" onClick={connect}>Connect</button></div>}
     <div className="keyslot">
       <Icon name="key" />
-      <span>{keyFile ? <>Key loaded <code>{short(keyFile.name, 14, 8)}</code></> : box.pq_key?.length ? 'Load your ML-DSA key file to sign actions on this box' : 'This box has no ML-DSA key yet'}</span>
+      <span>{keyFile ? <>Key loaded <code>{short(keyFile.name, 14, 8)}</code></> : box.pq_key?.length ? 'Load your ML-DSA key file to sign actions on this vault' : 'This vault has no ML-DSA key yet'}</span>
       {box.pq_key?.length ? <label className="pill pill-ghost pill-sm file-btn">{keyFile ? 'Change' : 'Load key'}<input type="file" accept=".json" onChange={e => setKeyFile(e.target.files?.[0] || null)} /></label> : mine && <button className="pill pill-ice pill-sm" onClick={registerKey} disabled={busy}>Generate and register</button>}
     </div>
         <nav className="vtabs" role="tablist" aria-label="Vault sections">
@@ -216,11 +280,59 @@ export default function VaultPage({ id, wallet }: Props) {
         </div>
 
 
+        </section>
+      </div>
+
+      <aside className="v-side" aria-label="Deposit and withdraw">
+        <div className="panel">
+          <div className="panel-apy">
+            <span>Realised APY</span>
+            <b>{pct(apy, 2)}</b>
+            <p>{rounds.data ? <><Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> premium over {earned.paid.length} paid {earned.paid.length === 1 ? 'round' : 'rounds'}</> : 'Reading rounds…'}</p>
+            <Glow name="vault" className="panel-art" />
+          </div>
+          <div className="seg2" role="tablist" aria-label="Deposit or withdraw">
+            <button role="tab" aria-selected={side === 'deposit'} className={side === 'deposit' ? 'on' : ''} onClick={() => setSide('deposit')}>Deposit</button>
+            <button role="tab" aria-selected={side === 'withdraw'} className={side === 'withdraw' ? 'on' : ''} onClick={() => setSide('withdraw')}>Withdraw</button>
+          </div>
+          {side === 'deposit' ? <div className="panel-body">
+            <p className="panel-k">Asset</p>
+            <div className="asset-pick"><span className="coin">BTC</span><div><b>Native Bitcoin</b><small>Bitcoin Core regtest · no wrapping</small></div></div>
+            <p className="panel-k">Vault deposit address</p>
+            <Copyable value={addresses?.bitcoin || ''} label="Bitcoin deposit address" />
+            <dl className="panel-kv">
+              <div><dt>Vault balance</dt><dd>{btc.v ? `${btc.v} BTC` : <span className="warn">{btc.err || '…'}</span>}</dd></div>
+              <div><dt>Strategy</dt><dd>Covered call, owner-written</dd></div>
+              <div><dt>Premium token</dt><dd>{TUSDC_SYMBOL} (test, no value)</dd></div>
+              <div><dt>Current round</dt><dd>{ph ? ph.label : 'None'}</dd></div>
+            </dl>
+            {live && latest ? <button className="pill pill-gold pill-block" onClick={() => setSheet(latest)}>Buy this round's call</button>
+              : mine ? <button className="pill pill-ice pill-block" onClick={() => goManage('earn')}>Write a covered call</button>
+              : <button className="pill pill-ice pill-block" disabled>{account ? 'Only the owner writes rounds' : 'Read-only'}</button>}
+            <button className="link-btn" onClick={() => goManage('earn')}>Deposit from ETH, SOL or USDC · 1Click dry quote <Icon name="arrow" size={13} /></button>
+            <p className="panel-note">Addresses are derived live from the NEAR signer for <code>hako/{box.token_id}/{box.epoch}</code>. Anyone can send BTC here; only the vault's quantum key can move it.</p>
+          </div> : <div className="panel-body">
+            <div className={`lock-state ${locked ? 'is-locked' : ''}`}><Icon name={locked ? 'lock' : 'check'} size={18} /><div><b>{locked ? `Locked by round #${latest!.id}` : 'Collateral not locked'}</b><span>{locked ? 'BTC spends, listing and transfer wait until the round settles or is released.' : latest?.state === 'signed' ? 'The last round was exercised; its sats went to the buyer.' : 'No open round encumbers this vault.'}</span></div></div>
+            <dl className="panel-kv">
+              <div><dt>Authority</dt><dd>{box.pq_key?.length ? 'ML-DSA-65 signature' : 'No key set'}</dd></div>
+              <div><dt>Delay</dt><dd>{box.policy.delay_sec}s outside the allowlist</dd></div>
+              <div><dt>Guardian</dt><dd className="mono">{short(box.policy.guardian, 12, 8)}</dd></div>
+              <div><dt>Pending spends</dt><dd>{pending.length}</dd></div>
+            </dl>
+            {mine ? <button className="pill pill-ice pill-block" onClick={() => goManage('send')} disabled={locked}>{locked ? 'Withdrawals queued until settlement' : 'Withdraw (ML-DSA signed)'}</button>
+              : <button className="pill pill-ice pill-block" disabled>{account ? 'Only the owner can withdraw' : 'Read-only'}</button>}
+            <p className="panel-note">A withdrawal is a spend request signed with the vault's quantum key. It waits out the delay, and the guardian can claw it back to the recovery address during it.</p>
+          </div>}
+        </div>
+      </aside>
+    </div>
+
     {(status || error) && <div className={`toast ${error ? 'toast-bad' : ''}`} role={error ? 'alert' : 'status'}>
       <span>{error || status}</span>
       {txHash && !error && <a href={nearblocksTx(txHash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={14} /></a>}
       <button className="toast-x" onClick={() => { setError(''); setStatus(''); }} aria-label="Dismiss">×</button>
     </div>}
 
+    {sheet && <RoundSheet r={sheet} wallet={wallet} onClose={() => setSheet(null)} />}
   </div>;
 }

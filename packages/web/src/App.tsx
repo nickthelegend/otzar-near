@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import Landing from './Landing';
-import Earn from './Earn';
-import Vaults from './Vaults';
+import Dashboard from './Dashboard';
 import VaultPage from './VaultPage';
-import You from './You';
-import LiveTape from './tape';
+import Portfolio from './Portfolio';
 import { contractId, nearblocksAccount, short } from './lib';
 import { Icon, Link, Wordmark } from './ui';
 import { useWallet, type Wallet } from './wallet';
@@ -15,11 +13,10 @@ function usePath() {
   return path;
 }
 
-type Page = 'home' | 'earn' | 'vaults' | 'vault' | 'you';
+type Page = 'home' | 'vaults' | 'vault' | 'you';
 const NAV: { page: Page; to: string; label: string }[] = [
-  { page: 'earn', to: '/app', label: 'Earn' },
-  { page: 'vaults', to: '/vaults', label: 'Vaults' },
-  { page: 'you', to: '/you', label: 'You' },
+  { page: 'vaults', to: '/app', label: 'Vaults' },
+  { page: 'you', to: '/you', label: 'Portfolio' },
 ];
 
 function AppBar({ page, wallet }: { page: Page; wallet: Wallet }) {
@@ -29,6 +26,7 @@ function AppBar({ page, wallet }: { page: Page; wallet: Wallet }) {
       <Link to="/" className="bar-logo" aria-label="Hako home"><Wordmark /></Link>
       <nav className="seg-nav" aria-label="App">
         {NAV.map(n => <Link key={n.page} to={n.to} aria-current={on(n.page)}>{n.label}</Link>)}
+        <Link to="/#how">Learn</Link>
       </nav>
       <div className="bar-end">
         <span className="net"><i />Testnet</span>
@@ -44,9 +42,9 @@ export default function App() {
   const path = usePath();
   const wallet = useWallet();
   const vaultId = path.match(/^\/vault\/([^/]+)/)?.[1];
-  const page: Page = vaultId ? 'vault' : path.startsWith('/app') ? 'earn' : path.startsWith('/vaults') ? 'vaults' : path.startsWith('/you') ? 'you' : 'home';
+  const page: Page = vaultId ? 'vault' : path.startsWith('/app') || path.startsWith('/vaults') ? 'vaults' : path.startsWith('/you') ? 'you' : 'home';
   useEffect(() => {
-    const t: Record<Page, string> = { home: 'Hako · Quantum-safe Bitcoin that earns', earn: 'Hako · Earn', vaults: 'Hako · Vaults', vault: `Hako · ${vaultId}`, you: 'Hako · You' };
+    const t: Record<Page, string> = { home: 'Hako · Quantum-safe Bitcoin that earns', vaults: 'Hako · Vaults', vault: `Hako · ${vaultId}`, you: 'Hako · Portfolio' };
     document.title = t[page];
   }, [page, vaultId]);
 
@@ -56,13 +54,11 @@ export default function App() {
   return <div className="app">
     <a className="skip" href="#main">Skip to content</a>
     <AppBar page={page} wallet={wallet} />
-    <LiveTape />
     {banner}
     <main id="main" className="app-main">
-      {page === 'earn' && <Earn wallet={wallet} />}
-      {page === 'vaults' && <Vaults wallet={wallet} />}
+      {page === 'vaults' && <Dashboard wallet={wallet} />}
       {page === 'vault' && <VaultPage id={decodeURIComponent(vaultId!)} wallet={wallet} />}
-      {page === 'you' && <You wallet={wallet} />}
+      {page === 'you' && <Portfolio wallet={wallet} />}
     </main>
     <footer className="app-foot">
       <span>Hako · NEAR testnet and local chains · MIT · © 2026 Nivesh Gajengi</span>

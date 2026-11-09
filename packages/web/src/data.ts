@@ -86,7 +86,7 @@ export const useRounds = () => useLive<Round[]>('rounds', loadRounds, 60000);
 
 export const useRelayer = () => useLive<RelayerPrice | null>('relayer', () => view<RelayerPrice | null>(need(), 'relayer_price', {}), 60000);
 export const useCallConfig = () => useLive<CallConfig | null>('cfg', () => view<CallConfig | null>(need(), 'call_config', {}), 300000);
-export const useTxns = () => useLive<ChainTx[]>('txns', () => recentContractTxns(8), 45000);
+export const useTxns = () => useLive<ChainTx[]>('txns', () => recentContractTxns(12), 45000);
 
 /** The connected account's tUSDC (Hako test token) balance, in 6-decimal units. */
 export function useTusdc(account: string) {

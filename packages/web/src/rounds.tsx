@@ -26,33 +26,6 @@ export function AprRange({ c, compact = false }: { c: CoveredCall; compact?: boo
   </div>;
 }
 
-/** A covered-call round as a perforated ticket: the body carries the terms, the stub carries the verdict. */
-export function Ticket({ c, now, onOpen, lead = false }: { c: Round; now: number; onOpen?: () => void; lead?: boolean }) {
-  const ph = roundPhase(c, now);
-  const paid = annualisedPct(c);
-  const expired = c.expiry_ns / 1e6 <= now;
-  return <article className={`ticket tk-${ph.phase} ${lead ? 'ticket-lead' : ''}`}><div className="tk-paper">
-    <div className="tk-body">
-      <header className="tk-top">
-        <span className="tk-kind">Covered call <b>#{c.id}</b></span>
-        <Link to={`/vault/${c.token_id}`} className="tk-box">{short(c.token_id, 12, 6)}</Link>
-      </header>
-      <div className="tk-strike"><small>Strike</small><b>${e6(c.strike_usd_e6, 0)}</b></div>
-      <dl className="tk-cells">
-        <div><dt>Size</dt><dd>{btcFromSats(c.size_sats)} <small>BTC</small></dd></div>
-        <div><dt>Premium</dt><dd>{c.premium_paid_usdc ? <Amount e6={c.premium_paid_usdc} unit={TUSDC_SYMBOL} /> : <span className="dim">none yet</span>}</dd></div>
-        <div><dt>{expired ? 'Expired' : 'Expires'}</dt><dd>{utcTime(c.expiry_ns)} <small>UTC<span className="tk-when"> · {utcDay(c.expiry_ns)}</span></small></dd></div>
-      </dl>
-      <AprRange c={c} compact />
-    </div>
-    <div className="tk-stub">
-      <span className={`stamp stamp-${ph.phase}`}>{ph.short}</span>
-      <div className="tk-apr"><b>{paid === null ? '—' : paid.toFixed(1)}<small>{paid === null ? '' : '%'}</small></b><span>{paid === null ? ph.label : 'annualised'}</span></div>
-      {onOpen && <button className="tk-open" onClick={onOpen}>Round <Icon name="arrow" size={15} /></button>}
-    </div>
-  </div></article>;
-}
-
 type Step = { k: string; title: string; value: ReactNode; when?: string; done: boolean; bad?: boolean; tx?: string | null };
 export function loopSteps(c: CoveredCall, now: number): Step[] {
   const ev = evidenceFor(c);
@@ -81,26 +54,3 @@ export function Loop({ c, now, horizontal = false, compact = false }: { c: Cover
   </li>)}</ol>;
 }
 
-/** Concentric vault-door dial; the bright arc is the value on a 0–`max` scale. */
-export function Dial({ value, max = 25, label, sub }: { value: number | null; max?: number; label: ReactNode; sub: ReactNode }) {
-  const r = 78, c = 2 * Math.PI * r, f = value === null ? 0 : Math.min(1, value / max);
-  return <div className="dial">
-    <svg viewBox="0 0 200 200" aria-hidden="true">
-      <circle cx="100" cy="100" r="96" className="dial-rim" />
-      {Array.from({ length: 60 }, (_, i) => { const a = (i / 60) * Math.PI * 2; const long = i % 12 === 0; const r1 = long ? 84 : 88; return <line key={i} x1={100 + Math.sin(a) * r1} y1={100 - Math.cos(a) * r1} x2={100 + Math.sin(a) * 92} y2={100 - Math.cos(a) * 92} className={long ? 'dial-tick dial-tick-l' : 'dial-tick'} />; })}
-      <circle cx="100" cy="100" r={r} className="dial-track" />
-      <circle cx="100" cy="100" r={r} className="dial-arc" strokeDasharray={`${c * f} ${c}`} transform="rotate(-90 100 100)" />
-      <circle cx="100" cy="100" r="58" className="dial-face" />
-      <circle cx="100" cy="100" r="44" className="dial-inner" />
-    </svg>
-    <div className="dial-read"><b>{label}</b><span>{sub}</span></div>
-  </div>;
-}
-
-export type TickerItem = { k: string; v: ReactNode; tone?: 'ice' | 'gold' | 'dim' };
-/** A slow tape of live facts. Duplicated once so the loop is seamless; static when motion is reduced. */
-export function Ticker({ items }: { items: TickerItem[] }) {
-  if (!items.length) return <div className="ticker ticker-empty"><span className="tick-item"><i className="pulse" /> Reading NEAR testnet…</span></div>;
-  const row = (dup: boolean) => items.map((t, i) => <span key={`${dup}-${i}`} className={`tick-item tick-${t.tone || 'ice'}`} aria-hidden={dup || undefined}><em>{t.k}</em>{t.v}</span>);
-  return <div className="ticker" role="marquee" aria-label="Live from NEAR testnet"><div className="ticker-track" style={{ animationDuration: `${Math.max(30, items.length * 7)}s` }}>{row(false)}{row(true)}</div></div>;
-}
