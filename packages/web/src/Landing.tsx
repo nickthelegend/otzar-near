@@ -6,7 +6,7 @@ import { useBoxes, useLive, useNow, useRelayer, useRounds, useTxns } from './dat
 import { ago, annualisedPct, anvilUrl, btcFromSats, contractId, e6, earnedSummary, esploraUrl, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, utcTime } from './lib';
 import { evidenceMeta, pct } from './rounds';
 import { Amount, Icon, Link } from './ui';
-import { Art, CountUp, Sticker, Wordmark } from './art';
+import { Art, artSrc, CountUp, Sticker, Wordmark } from './art';
 import LiveTape, { ApyChip } from './tape';
 
 export default function Landing() {
@@ -29,14 +29,14 @@ export default function Landing() {
     </header>
 
     <main id="main">
-      <section className="hero">
+      <section className="hero sunburst">
         <div className="stickers" aria-hidden="true">
           <Sticker name="vault" rot={-9} className="st st-1" />
           <Sticker name="coins" rot={7} className="st st-2" />
-          <Sticker name="key" rot={-14} className="st st-3" />
+          <Sticker name="bell" rot={-14} className="st st-3" />
           <Sticker name="hourglass" rot={10} className="st st-4" />
-          <Sticker name="shield" rot={-6} className="st st-5" />
-          <Sticker name="chart" rot={8} className="st st-6" />
+          <Sticker name="gem" rot={-6} className="st st-5" />
+          <Sticker name="star" rot={8} className="st st-6" />
         </div>
         <div className="hero-copy">
           <p className="hero-lbl"><span className="dot-jade" />Quantum-safe Bitcoin yield · NEAR testnet</p>
@@ -51,35 +51,38 @@ export default function Landing() {
             <a href="#how" className="pill pill-line pill-lg">How it works</a>
           </div>
         </div>
+        {artSrc('otzar-hero') && <img className="hero-img" src={artSrc('otzar-hero')!} alt="A carved jade treasury vault with gold coins" loading="eager" />}
       </section>
       <LiveTape />
 
       <dl className="kpis" aria-label="Live from NEAR testnet">
-        <div><dt>Premium paid</dt><dd>{dash(sum, rounds.error) ?? <Amount e6={sum!.earned} unit={TUSDC_SYMBOL} />}</dd></div>
-        <div><dt>Realised APY</dt><dd>{dash(sum, rounds.error) ?? pct(sum!.blended, 2)}</dd></div>
-        <div><dt>Vault NFTs</dt><dd>{dash(boxes.data, boxes.error) ?? boxes.data!.length}<small>{sealed !== undefined ? ` · ${sealed} sealed` : ''}</small></dd></div>
-        <div><dt>BTC-USD · relayer price (testnet)</dt><dd>{relayer.data ? `$${e6(relayer.data.price_usd_e6, 0)}` : dash(relayer.data, relayer.error)}</dd></div>
+        <div className="k-gold"><dt>Premium paid</dt><dd>{dash(sum, rounds.error) ?? <Amount e6={sum!.earned} unit={TUSDC_SYMBOL} />}</dd></div>
+        <div className="k-jade"><dt>Realised APY</dt><dd>{dash(sum, rounds.error) ?? pct(sum!.blended, 2)}</dd></div>
+        <div className="k-forest"><dt>Vault NFTs</dt><dd>{dash(boxes.data, boxes.error) ?? boxes.data!.length}<small>{sealed !== undefined ? ` · ${sealed} sealed` : ''}</small></dd></div>
+        <div className="k-blush"><dt>BTC-USD · relayer price (testnet)</dt><dd>{relayer.data ? `$${e6(relayer.data.price_usd_e6, 0)}` : dash(relayer.data, relayer.error)}</dd></div>
       </dl>
 
-      <section className="l-sec" id="vaults">
+      <div className="band band-blush"><section className="l-sec" id="vaults">
         <header className="l-head center"><Sticker name="vault" rot={-8} className="head-st" /><p className="lbl">Vaults</p><h2>One strategy, three ways in.</h2></header>
         <div className="products">
-          <article className="product product-hi">
-            <Art name="otzar-hero" className="product-art" />
+          <article className="product p-call">
+            <Art name="otzar2-card-call" className="product-art" fallback={['coins', 'chart']} />
             <div className="product-top"><span className="vtag vtag-jade">Covered call</span><span className="status"><i className="live-dot" />Live · testnet</span></div>
             <h3>BTC Covered Call</h3>
             <p>Your vault sells calls on its native BTC. Buyers pay a premium up front; you keep it whether or not they exercise.</p>
             <div className="product-apy"><b>{sum ? pct(sum.blended, 1) : '…'}</b><span>realised APY · {sum ? `${sum.paid.length} paid rounds` : 'reading'}</span></div>
-            <Link to="/app" className="pill pill-jade pill-block">Open vaults <Icon name="arrow" size={15} /></Link>
+            <Link to="/app" className="pill pill-ink pill-block">Open vaults <Icon name="arrow" size={15} /></Link>
           </article>
-          <article className="product">
+          <article className="product p-qsafe">
+            <Art name="otzar2-card-qsafe" className="product-art" fallback={['lock', 'key']} />
             <div className="product-top"><span className="vtag">Custody</span><span className="status"><i className="ok-dot" />Live · testnet</span></div>
             <h3>Quantum-safe vault</h3>
             <p>A NEAR NFT that owns its own Bitcoin, Ethereum and Solana addresses. Spends need an ML-DSA-65 signature, wait out a delay and can be clawed back.</p>
             <div className="product-apy"><b>{sealed ?? '…'}</b><span>vaults sealed with ML-DSA-65</span></div>
             <Link to="/app" className="pill pill-line pill-block">Mint a vault</Link>
           </article>
-          <article className="product">
+          <article className="product p-any">
+            <Art name="otzar2-card-anychain" className="product-art" fallback={['arrow', 'btc']} />
             <div className="product-top"><span className="vtag">NEAR Intents</span><span className="status"><i className="warn-dot" />Quotes only</span></div>
             <h3>Deposit from any chain</h3>
             <p>Live 1Click quotes from ETH, SOL or USDC into a vault's native Bitcoin address. Executing a swap needs a funded mainnet account.</p>
@@ -87,14 +90,14 @@ export default function Landing() {
             <Link to="/app" className="pill pill-line pill-block">Get a dry quote</Link>
           </article>
         </div>
-      </section>
+      </section></div>
 
-      <section className="l-sec" id="how">
+      <div className="band band-forest"><section className="l-sec" id="how">
         <header className="l-head center"><Sticker name="chart" rot={7} className="head-st" /><p className="lbl">How it works</p><h2>Seal it. Sell the upside. Keep the premium.</h2></header>
         <ol className="steps3">
-          <li><div className="step-art"><Sticker name="key" rot={-8} /></div><span className="step-n">01</span><h3>Seal the vault</h3><p>Mint a vault NFT; NEAR Chain Signatures give it a native Bitcoin address. Register an ML-DSA-65 key and nothing moves without it.</p></li>
-          <li><div className="step-art"><Sticker name="coins" rot={6} /></div><span className="step-n">02</span><h3>Sell a round</h3><p>Write a covered call: strike, size, expiry. A Dutch auction lowers the premium until a buyer pays it in {TUSDC_SYMBOL}.</p></li>
-          <li><div className="step-art"><Sticker name="hourglass" rot={-5} /></div><span className="step-n">03</span><h3>Settle and keep it</h3><p>A signed Coinbase BTC-USD print settles the round. Below the strike your sats come back; above it the buyer pays the strike. The premium is yours.</p></li>
+          <li><div className="step-art sa-gold"><Art name="otzar2-step-seal" fallback={['key']} /></div><span className="step-n">01</span><h3>Seal the vault</h3><p>Mint a vault NFT; NEAR Chain Signatures give it a native Bitcoin address. Register an ML-DSA-65 key and nothing moves without it.</p></li>
+          <li><div className="step-art sa-blush"><Art name="otzar2-step-sell" fallback={['ticket']} /></div><span className="step-n">02</span><h3>Sell a round</h3><p>Write a covered call: strike, size, expiry. A Dutch auction lowers the premium until a buyer pays it in {TUSDC_SYMBOL}.</p></li>
+          <li><div className="step-art sa-jade"><Art name="otzar2-step-settle" fallback={['clock']} /></div><span className="step-n">03</span><h3>Settle and keep it</h3><p>A signed Coinbase BTC-USD print settles the round. Below the strike your sats come back; above it the buyer pays the strike. The premium is yours.</p></li>
         </ol>
         {lead && <div className="snapshot card">
           <div className="card-title"><div><p className="lbl">Latest round · #{lead.id} · {short(lead.token_id, 12, 6)}</p><h3>Strike ${e6(lead.strike_usd_e6, 0)} on {btcFromSats(lead.size_sats)} BTC</h3></div><PhasePill c={lead} now={now} /></div>
@@ -107,17 +110,17 @@ export default function Landing() {
           <StrikeSpot c={lead} spotE6={lead.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null} spotLabel={lead.oracle_price_usd_e6 ? 'Settled at' : 'BTC now'} />
           <p className="fine">The trade-off is real: above the strike you give up the upside. The recorded rounds ran for about four minutes on a test token, so these are demo terms, not a forecast.</p>
         </div>}
-      </section>
+      </section></div>
 
-      <section className="l-sec sec-dark" id="security">
-        <header className="l-head center"><Sticker name="shield" rot={-6} className="head-st" /><p className="lbl">Security</p><h2>Security you can check yourself.</h2><p className="l-lede">Bitcoin cannot enforce a spending cap, a delay, a guardian or an heir. The Otzar contract on NEAR does, before it asks the signer network for a signature.</p></header>
+      <div className="band band-gold"><section className="l-sec" id="security">
+        <header className="l-head center"><Art name="otzar2-security" className="sec-art" fallback={['shield', 'lock']} /><p className="lbl">Security</p><h2>Security you can check yourself.</h2><p className="l-lede">Bitcoin cannot enforce a spending cap, a delay, a guardian or an heir. The Otzar contract on NEAR does, before it asks the signer network for a signature.</p></header>
         <Safety />
         <div className="sec-links">
           {contractId && <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer" className="pill pill-line pill-sm">Contract on NearBlocks <Icon name="external" size={13} /></a>}
           {evidenceMeta.priceTx && <a href={nearblocksTx(evidenceMeta.priceTx)} target="_blank" rel="noreferrer" className="pill pill-line pill-sm">Settlement price tx <Icon name="external" size={13} /></a>}
           <a href="#scan" className="pill pill-line pill-sm">Scan an address for exposure</a>
         </div>
-      </section>
+      </section></div>
 
       <section className="l-sec" id="record">
         <header className="l-head l-head-row"><div><p className="lbl">The record</p><h2>Every transaction, on NEAR testnet.</h2></div><Link to="/app" className="mini-link">Open the app <Icon name="arrow" size={14} /></Link></header>
@@ -141,9 +144,9 @@ export default function Landing() {
       </section>
 
       <section className="cta-band">
-        <Sticker name="btc" rot={-10} className="cta-st cta-st-1" /><Sticker name="vault" rot={8} className="cta-st cta-st-2" />
+        <Art name="otzar2-cta" className="cta-art" fallback={['bag', 'sprout']} />
         <div><h2>Keep your Bitcoin in the treasury.</h2><p>Open the app, pick a vault and see its current round, strategy and deposit address.</p></div>
-        <Link to="/app" className="pill pill-gold pill-lg">Launch app <Icon name="arrow" size={17} /></Link>
+        <Link to="/app" className="pill pill-ink pill-lg">Launch app <Icon name="arrow" size={17} /></Link>
       </section>
     </main>
 

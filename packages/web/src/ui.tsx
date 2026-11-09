@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 export { Mark, Wordmark } from './art';
+import { artSrc } from './art';
 import { countdown, navigate } from './lib';
 
 export type IconName = 'key' | 'lock' | 'clock' | 'coin' | 'shield' | 'arrow' | 'copy' | 'check' | 'external' | 'send' | 'heir' | 'tag' | 'scan' | 'plus' | 'box' | 'spark' | 'x' | 'back' | 'user' | 'grid' | 'wave' | 'refresh' | 'wallet';
@@ -134,8 +135,9 @@ export function Sheet({ label, onClose, children }: { label: string; onClose: ()
 }
 
 export function State({ kind, title, children, action }: { kind: 'loading' | 'empty' | 'error' | 'setup'; title: string; children?: ReactNode; action?: ReactNode }) {
-  return <div className={`state state-${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
-    <span className="state-mark" aria-hidden="true">{kind === 'loading' ? <i className="pulse" /> : kind === 'error' ? '!' : kind === 'setup' ? '◇' : <Icon name="box" size={18} />}</span>
+  const empty = (kind === 'empty' || kind === 'setup') && artSrc('otzar2-empty');
+  return <div className={`state state-${kind} ${empty ? 'state-art' : ''}`} role={kind === 'error' ? 'alert' : 'status'}>
+    {empty ? <img className="state-img" src={empty} alt="" /> : <span className="state-mark" aria-hidden="true">{kind === 'loading' ? <i className="pulse" /> : kind === 'error' ? '!' : kind === 'setup' ? '◇' : <Icon name="box" size={18} />}</span>}
     <div><strong>{title}</strong>{children && <p>{children}</p>}{action}</div>
   </div>;
 }

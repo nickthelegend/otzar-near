@@ -9,7 +9,7 @@ import { anvilUrl, btcFromSats, contractId, e6, earnedSummary, esploraUrl, forma
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Timeline } from './ui';
 import { CountUp, Sticker } from './art';
 import { useNow, useRelayer, useRounds } from './data';
-import { PhasePill, RoundBars, StrikeSpot } from './cards';
+import { PhasePill, RoundBars, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
 import { RoundSheet } from './RoundSheet';
 import { Loop, pct } from './rounds';
 import type { Wallet } from './wallet';
@@ -117,9 +117,9 @@ export default function VaultPage({ id, wallet }: Props) {
 
   return <div className="page vault">
     <Link to="/app" className="back"><Icon name="back" size={16} /> Vaults</Link>
-    <header className="v-hero">
+    <header className={`v-hero vh-${vaultType(box.token_id, boxRounds.length > 0)}`}>
       <div className="v-hero-copy">
-        <div className="v-tags"><span className="vtag vtag-jade">Covered call</span><span className="vtag">Native BTC · regtest</span><span className="vtag">{box.pq_key?.length ? 'ML-DSA-65 sealed' : 'No quantum key'}</span>{mine && <span className="vtag vtag-gold">Your vault</span>}</div>
+        <div className="v-tags"><span className="vtag vtag-ink">{TYPE_LABEL[vaultType(box.token_id, boxRounds.length > 0)]}</span><span className="vtag">Native BTC · regtest</span><span className="vtag">{box.pq_key?.length ? 'ML-DSA-65 sealed' : 'No quantum key'}</span>{mine && <span className="vtag vtag-gold">Your vault</span>}</div>
         <h1>{box.token_id}</h1>
         <p className="v-owner">Vault NFT on NEAR · owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 18, 10)}</a></p>
         <dl className="v-stats">
@@ -129,7 +129,7 @@ export default function VaultPage({ id, wallet }: Props) {
           <div><dt>Current round</dt><dd>{latest ? <PhasePill c={latest} now={now} /> : <span className="dim">None</span>}</dd></div>
         </dl>
       </div>
-      <div className="v-hero-st" aria-hidden="true"><Sticker name="vault" rot={-8} className="st-a" /><Sticker name="btc" rot={10} className="st-b" /><Sticker name="key" rot={-14} className="st-c" /></div>
+      <div className="v-hero-st" aria-hidden="true"><Sticker name="vault" rot={-8} className="st-a" /><Sticker name="gem" rot={10} className="st-b" /><Sticker name="lock" rot={-14} className="st-c" /></div>
     </header>
 
     <div className="v-grid">
