@@ -1,10 +1,31 @@
-# Hako (箱) — Your Bitcoin dies on Q-day. Hako doesn't.
+# Hako (箱) — quantum-safe Bitcoin that earns
+
+**Quantum-safe Bitcoin that earns. Your BTC never leaves Bitcoin, never gets wrapped, and only a post-quantum key on NEAR can move it.**
 
 Hako is one wallet for BTC, ETH, and SOL. A vault NFT on NEAR controls addresses on Bitcoin Core regtest, Anvil, and a local Solana validator through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
 
-The problem: a classical public key revealed on Bitcoin or Ethereum is a future quantum target. Bitcoin script cannot enforce a daily cap, delay, guardian recovery, or inheritance on these outputs. Hako checks authority and policy on NEAR before asking MPC to sign. The scanner shows exposure using live chain data. The foreign-chain signatures and MPC root remain classical; see [Security boundaries](#limits-and-security-boundaries).
+The problem: a classical public key revealed on Bitcoin or Ethereum is a future quantum target. Bitcoin script cannot enforce a daily cap, delay, guardian recovery, or inheritance on these outputs. Hako checks authority and policy on NEAR before asking MPC to sign. The scanner shows exposure using live chain data. The foreign-chain signatures and MPC root remain classical, so “quantum-safe” refers to NEAR authorization, not Bitcoin consensus or the MPC root; see [Security boundaries](#limits-and-security-boundaries).
 
 This is a **testnet and local-chain prototype**, not a mainnet vault. The NFT implements NEP-171 ownership and enumeration views used here; approval, metadata events, and full marketplace interoperability are not implemented. See [Limits](#limits-and-security-boundaries).
+
+## Covered calls and where the yield comes from
+
+A Hako owner can sell a covered call on a native-BTC box. A buyer pays a USDC premium for the right to buy a fixed number of sats at a USD strike by expiry. The owner keeps the premium even if BTC finishes below the strike. If BTC finishes above it and the buyer exercises, the owner receives the strike payment and gives up those sats. **The owner's BTC upside above the strike is capped.** The premium is payment for that trade-off; it is not guaranteed investment yield.
+
+The writer signs the strike, sats, expiry, premium range, and Bitcoin UTXO assertion with ML-DSA-65. The contract runs a Dutch auction whose asking USDC premium falls from the opening price toward the minimum over up to seven days. While active, the call blocks owner Bitcoin spend requests, box listing, and box transfer on NEAR. A testnet NEP-141 USDC `ft_transfer_call` pays the buyer's premium to the writer; the receiver callback records a sale only after the token transfer succeeds. The holder can transfer the option claim through `option_transfer` before expiry. The Earn panel reads actual call state and paid premiums; annualized yield uses paid premium divided by strike notional, multiplied by 365 days / the actual term. It shows “No auctions yet” when none exist.
+
+**Current verification boundary:** the signed UTXO assertion is checked against Bitcoin Core in the demo and against the live Bitcoin UTXO service in the browser, but the NEAR contract cannot independently prove Bitcoin ownership or balance. The option claim uses a custom transfer method and is **not yet a complete NEP-171 NFT**. [Pyth's testnet receiver](https://github.com/pyth-network/pyth-crosschain/blob/main/apps/price_pusher/README.md) and [BTC/USD feed ID](https://docs.pyth.network/pro/use-prices-on-blockchain/solana) were checked, but its fresh price query returned `null` on 2026-11-09; settlement refuses a missing or stale update. An ITM exercise and MPC-signed BTC delivery have not been verified. Mainnet USDC-to-BTC compounding and any-chain funding remain dry [1Click quote](https://docs.near-intents.org/integration/distribution-channels/1click-api/quickstart/making-a-request) previews only. Do not treat this prototype as a collateralized production option. See [BLOCKED.md](BLOCKED.md).
+
+The “Deposit anything” panel gets supported ETH, SOL, and USDC origins from 1Click's live token list and requests `dry: true` quotes into the box's next-epoch native Bitcoin address. A dry quote returns pricing only: it issues no deposit address and sends no asset. `ONECLICK_JWT` is optional; unauthenticated quotes use the published fee schedule. Mainnet execution requires `NEAR_MAINNET_ACCOUNT` and funded assets and is not run by Hako.
+
+| Covered-call evidence (2026-11-09) | Result |
+| --- | --- |
+| [Final tested contract upgrade](https://testnet.nearblocks.io/txns/2aDHEvai52YJyE5HXJBRAWGoBuFw15KbKVe8mTwozmA1) | Live NEAR testnet code SHA-256 matched the passing test build: `badb2268140fb213af9056a6aa626596020353466f08e0fed41694fdc8519171`. [RPC evidence](deployments/calls-upgrade-2026-11-09.json). |
+| [Write ML-DSA-authorized call](https://testnet.nearblocks.io/txns/AgzrR5H6Jw3WdAiojPbZ1Dd6vDzY9GE9aCkswJZtyQjL) | `call-mw9c9f1x` was backed by a Bitcoin Core regtest funding transaction recorded in [call evidence](deployments/calls-testnet-2026-11-09.json). The contract stores the writer's signed UTXO assertion. |
+| [Owner front-run spend](https://testnet.nearblocks.io/txns/ApokgoGr5fF2VJ1UhAApVwcTaUBwMRpfpzmzRzYMDrWY) | Rejected on NEAR testnet while the call was open. The sandbox also rejected an encumbered spend, box transfer, listing, and early auction close in the [real NEAR sandbox and regtest run](deployments/calls-sandbox.json). |
+| [Testnet USDC registration](https://testnet.nearblocks.io/txns/HZdvx3R9RbBu6zQGhbWG2geZ4r1CFJsC9c3cgbDNRniC) | Buyer account registered; balance remains zero. The premium purchase is [blocked](BLOCKED.md) until it receives site-faucet USDC. |
+| [1Click dry quote](deployments/oneclick-dry-2026-11-09.json) | Real ETH→native BTC response with correlation ID, amount, and provider signature; no deposit address or swap. The service also returned intermittent HTTP 500 timeouts in testing. |
+| [Pyth testnet read](deployments/pyth-testnet-2026-11-09.json) | Official receiver `pyth-oracle.testnet` returned `null` for a 60-second-fresh BTC/USD feed at block 276930856; Hermes returned HTTP 401 without `PYTH_HERMES_API_KEY`. No expiry settlement is claimed. |
 
 ## Judge walkthrough
 
@@ -16,9 +37,10 @@ corepack pnpm test
 scripts/demo.sh
 scripts/demo-solana.sh
 node scripts/demo-recovery.mjs
+scripts/demo-calls.sh
 ```
 
-`pnpm test` builds the four packages, runs unit and live signer/MCP/scanner checks, then starts and stops a real NEAR sandbox. `scripts/demo.sh` starts Bitcoin Core regtest and Anvil, performs the NFT sale, rejects attack spends, then broadcasts MPC-signed Bitcoin and Ethereum withdrawals. `scripts/demo-solana.sh` starts and stops a local Solana validator, upgrades the same NEAR testnet contract, and broadcasts a real Ed25519 MPC-signed SOL transfer. `node scripts/demo-recovery.mjs` proves a 2-of-3 ML-DSA key rotation after its two-minute timelock on NEAR testnet. It waits for the full timelock. The scripts use ignored `.near-credentials/` testnet keys; `demo.sh` creates them first.
+`pnpm test` builds the four packages, runs unit and live signer/MCP/scanner checks, then starts and stops a real NEAR sandbox. `scripts/demo.sh` starts Bitcoin Core regtest and Anvil, performs the NFT sale, rejects attack spends, then broadcasts MPC-signed Bitcoin and Ethereum withdrawals. `scripts/demo-solana.sh` starts and stops a local Solana validator, upgrades the same NEAR testnet contract, and broadcasts a real Ed25519 MPC-signed SOL transfer. `node scripts/demo-recovery.mjs` proves a 2-of-3 ML-DSA key rotation after its two-minute timelock on NEAR testnet. It waits for the full timelock. The scripts use ignored `.near-credentials/` testnet keys; `demo.sh` creates them first. `demo-calls.sh` first checks that the existing buyer testnet account has at least 51 testnet USDC. With funds, it creates a new regtest-funded box, writes a call, tests the on-chain owner-spend rejection, pays the premium, transfers the option, and attempts Pyth settlement and, if ITM, MPC Bitcoin exercise. Without funds it exits with `Setup required` before deploying. Each attempt records its status and actual testnet hashes in a new `deployments/calls-testnet-YYYY-MM-DD-HHMMSS.json` file.
 
 Do `scripts/demo.sh` → see a new `deployments/testnet-YYYY-MM-DD.json` with NEAR transaction links and local-chain transaction IDs. Do `pnpm web` after creating `packages/web/.env.local` from `.env.example` → see live boxes, addresses, balances, vault rules, pending countdowns, signing and sale controls at `http://127.0.0.1:5173`. The Bitcoin balance and broadcast controls need the local proxy: `node scripts/bitcoin-proxy.mjs`, with `VITE_BITCOIN_ESPLORA_URL=http://127.0.0.1:3007` in the web env file. The proxy reads the real Bitcoin Core regtest node; it is not a fixture service. `scripts/demo.sh` saves Anvil's state to ignored `.demo/anvil-state.json` on exit so local receipts can be reloaded.
 
@@ -28,12 +50,12 @@ The web wallet uses MyNearWallet on testnet. The demo's generated NEAR accounts 
 
 | Package | Purpose |
 | --- | --- |
-| `packages/contract` | NFT ownership/sale, BTC/ETH/SOL transaction checks, ML-DSA authorization, 2-of-3 guardian recovery, inheritance, MPC calls. |
-| `packages/sdk` | MPC derivation, BTC/ETH/SOL transaction assembly, scanner reads, ML-DSA signatures and live RPC helpers. |
-| `packages/web` | Landing page, no-wallet exposure scanner, and wallet screen with balances, vault rules, guardian/heir actions, receive/send/sale controls. |
-| `packages/mcp` | stdio `box_info`, `scan_exposure`, `request_spend`, `list_box`; writes call the same contract checks as the UI. |
+| `packages/contract` | NFT ownership/sale, BTC/ETH/SOL checks, ML-DSA authorization, guardian recovery, inheritance, covered-call auction/payment/oracle state, and MPC calls. |
+| `packages/sdk` | MPC derivation, BTC/ETH/SOL transaction assembly, scanner reads, ML-DSA signatures, live RPC helpers, and 1Click dry quotes. |
+| `packages/web` | Landing page, exposure scanner, wallet controls, and Earn panel with live call state and dry deposit quotes. |
+| `packages/mcp` | stdio `box_info`, `call_info`, `dry_deposit_quote`, `scan_exposure`, `request_spend`, and `list_box`; writes call the same contract checks as the UI. |
 
-NEAR features used: **Chain Signatures** (ECDSA domain 0 for BTC/ETH, EdDSA domain 1 for SOL) to sign foreign transactions; **NEP-171 core ownership/enumeration methods** for the vault NFT; NEAR testnet transactions for sale and vault policy; **`env::ml_dsa_verify`** for owner and guardian authorization. Intents, sub-accounts, NEP-141/245, meta transactions, OutLayer TEE, and Sputnik DAO are not used. NEAR Intents has no testnet; Hako does not claim a live Intents integration.
+NEAR features used: **Chain Signatures** (ECDSA domain 0 for BTC/ETH, EdDSA domain 1 for SOL) to sign foreign transactions; **NEP-171 core ownership/enumeration methods** for the vault NFT; NEAR testnet transactions for sale and vault policy; **`env::ml_dsa_verify`** for owner and guardian authorization. The covered-call receiver accepts NEP-141 testnet USDC for a premium; a completed payment is still blocked by unfunded buyer balance. 1Click mainnet is used for `dry: true` quotes only; NEAR Intents has no testnet. Sub-accounts, NEP-245, meta transactions, OutLayer TEE, and Sputnik DAO are not used. The option claim is not yet NEP-171 conformant.
 
 The MPC testnet signer is `v1.signer-prod.testnet`. Each box uses `hako/<token_id>/<epoch>` as its path. The SDK computes SHA3-256 epsilon according to the [NEAR MPC implementation](https://github.com/near/mpc/blob/main/crates/near-mpc-crypto-types/src/kdf.rs) and verifies the derived key against the signer's `derived_public_key` view. The contract sends `sign` a `payload_v2.Ecdsa` 32-byte digest, `path`, and `domain_id: 0` with one yoctoNEAR. The [NEAR Chain Signatures documentation](https://docs.near.org/chain-abstraction/chain-signatures/implementation) describes the network and signer; the [MPC repository](https://github.com/near/mpc) describes the request schema.
 
@@ -57,7 +79,7 @@ The signer contract's [EdDSA domain 1](https://github.com/near/mpc/blob/main/cra
 | 2-of-3 PQ recovery initiated | [AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y](https://testnet.nearblocks.io/txns/AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y) | One guardian rejected [on-chain](https://testnet.nearblocks.io/txns/C26pPNCi4RfYH9x2ZTMnzuyNKCHv1XNeo67pz29RHDzn) |
 | PQ recovery finalized after timelock | [GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc](https://testnet.nearblocks.io/txns/GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc) | Early finalization rejected [on-chain](https://testnet.nearblocks.io/txns/5zrAxsiFqBehWMpJFZUbd61FDzZzxg5Fx87ckxFT4zAp) |
 
-The exact final tested wasm was [deployed again](https://testnet.nearblocks.io/txns/5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4); a post-deploy RPC code read matched its SHA-256 hash. Full records: [Solana](deployments/solana-2026-11-09.json), [PQ recovery](deployments/recovery-2026-11-09.json), [final upgrade](deployments/upgrade-2026-11-09.json), and [sandbox attack tests](deployments/sandbox.json). The Solana signature is local-validator evidence, so it has no public explorer URL; reproduce it with `scripts/demo-solana.sh` and query the validator before the script stops.
+The earlier wallet release was [deployed](https://testnet.nearblocks.io/txns/5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4); the covered-call contract [final upgrade](https://testnet.nearblocks.io/txns/2aDHEvai52YJyE5HXJBRAWGoBuFw15KbKVe8mTwozmA1) is the current testnet code. Full records: [Solana](deployments/solana-2026-11-09.json), [PQ recovery](deployments/recovery-2026-11-09.json), [earlier upgrade](deployments/upgrade-2026-11-09.json), [wallet sandbox attacks](deployments/sandbox.json), and [covered-call sandbox attacks](deployments/calls-sandbox.json). The Solana signature is local-validator evidence, so it has no public explorer URL; reproduce it with `scripts/demo-solana.sh` and query the validator before the script stops.
 
 ## Deployment and evidence
 
@@ -115,7 +137,7 @@ pnpm web
 
 Run the proxy, validator, and web commands in separate terminals. Stop Anvil, the validator, the proxy, and Vite with Ctrl-C and Bitcoin Core with `.tools/bitcoin-31.2/bin/bitcoin-cli -regtest -datadir="$PWD/.demo/bitcoin" stop` when done.
 
-For MCP, build first, then set `HAKO_CONTRACT_ID` and run `node packages/mcp/dist/main.js` as a stdio server. `box_info` reads testnet and local-chain state. Write tools additionally require `NEAR_TESTNET_ACCOUNT`, `NEAR_TESTNET_KEY`, and `ML_DSA_KEY_FILE`; Bitcoin requests also require `BITCOIN_ESPLORA_URL`. The MCP server never receives an MPC signing capability directly. It only submits transactions to Hako's policy checks.
+For MCP, build first, then set `HAKO_CONTRACT_ID` and run `node packages/mcp/dist/main.js` as a stdio server. `box_info` and `call_info` read testnet state; `dry_deposit_quote` requests a real 1Click preview without initiating a swap. Write tools additionally require `NEAR_TESTNET_ACCOUNT`, `NEAR_TESTNET_KEY`, and `ML_DSA_KEY_FILE`; Bitcoin requests also require `BITCOIN_ESPLORA_URL`. The MCP server never receives an MPC signing capability directly. It only submits transactions to Hako's policy checks.
 
 ## Tests
 
@@ -136,10 +158,10 @@ See [TESTING.md](TESTING.md) for commands, actual counts, gas, and negative case
 
 Lead: <TBD by Nick>
 
-Hako folds the former Phylax ML-DSA recovery concept and Athanatos quantum-safe-wallet concept into one product and one entry. It reuses Nick's pre-hackathon `near-qday-recovery` recovery pattern, ML-DSA toolchain, and sandbox setup as a Q-005 baseline. Nick must identify any *other independent* entry under Q-015 and disclose it here before publishing; Phylax is no longer an entry. One person may submit at most two projects.
+Hako folds the former Phylax ML-DSA recovery concept, Athanatos quantum-safe-wallet concept, and Tsuna covered-call yield concept into one product and one entry. It reuses Nick's pre-hackathon `near-qday-recovery` recovery pattern, ML-DSA toolchain, and sandbox setup as a Q-005 baseline. Nick must identify any *other independent* entry under Q-015 and disclose it here before publishing; Phylax, Athanatos, and Tsuna are not separate entries. One person may submit at most two projects.
 
 ## Submission
 
-Primary track: `nfts`; secondary tracks: `security`, `open`. The [submission form draft](HACKATHON_SUBMISSION_FORM.md) leaves human decisions as TBD. Nick publishes the local-only repository, demo post, and final application. The [hackathon rules](https://nearhackathon.com/HACKATHON.md) require a public repository by 2026-11-14 23:59 UTC.
+Primary track: `defi`; secondary tracks: `nfts`, `security`. The [submission form draft](HACKATHON_SUBMISSION_FORM.md) leaves human decisions as TBD. Nick publishes the local-only repository, demo post, and final application. The [hackathon rules](https://nearhackathon.com/HACKATHON.md) require a public repository by 2026-11-14 23:59 UTC.
 
 MIT © 2026 Nivesh Gajengi.
