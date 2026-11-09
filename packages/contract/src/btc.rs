@@ -45,6 +45,7 @@ fn write(id: &str, s: &BtcState) { env::storage_write(&key(id),&borsh::to_vec(s)
 pub fn btc_pending(id: &str) -> bool { read(id).map(|s|s.requests.iter().any(|r|r.state=="pending"||r.state=="signing")).unwrap_or(false) }
 pub fn btc_guardian_pending(id: &str) -> bool { read(id).map(|s|s.requests.iter().any(|r|r.guardian_recovery&&r.state=="pending")).unwrap_or(false) }
 pub fn void_pending(id: &str) {if let Some(mut s)=read(id){for r in s.requests.iter_mut().filter(|r|r.state=="pending"){r.state="cancelled".into();}write(id,&s);}}
+pub fn clear(id: &str) { env::storage_remove(&key(id)); }
 fn script(pk: &str) -> Vec<u8> { let k=hex_decode(pk);require!(k.len()==33&&(k[0]==2||k[0]==3),"compressed Bitcoin public key required");let hash=Ripemd160::digest(env::sha256(&k));let mut script=vec![0,20];script.extend_from_slice(&hash);script }
 fn check_script(s: &str) -> Vec<u8> { let bytes=hex_decode(s);require!(bytes.len()==22&&bytes[0]==0&&bytes[1]==20,"P2WPKH script required");bytes }
 
@@ -155,7 +156,7 @@ impl Hako {
         require!(request.state=="pending"&&env::block_timestamp()>=request.ready_ns,"request not ready");
         request.state="signing".into();
         let t=self.token_mut(&token_id);t.ever_signed=true;
-        let path=format!("hako/bitcoin/{}/{}",token_id,s.epoch);
+        let path=format!("hako/{}/{}",token_id,s.epoch);
         let hash=request.sighash_hex.clone();write(&token_id,&s);
         let args=near_sdk::serde_json::json!({"request":{"payload_v2":{"Ecdsa":hash},"path":path,"domain_id":0}});
         Promise::new(self.mpc_contract.clone()).function_call("sign",near_sdk::serde_json::to_vec(&args).unwrap(),NearToken::from_yoctonear(1),MPC_GAS)

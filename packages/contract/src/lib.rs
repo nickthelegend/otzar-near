@@ -104,6 +104,7 @@ impl Hako {
         let t = self.token_mut(&token_id);
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(t.listed_yocto.is_none(), "listed box cannot spend");
+        require!(t.policy.recovery_eth != "0x0000000000000000000000000000000000000000", "Setup required: set_policy after transfer");
         verify_pq(t, nonce, &bytes, &signature.0);
         apply_daily_cap(t, amount, now);
         let delay = if t.policy.allow_eth.iter().any(|a| a.eq_ignore_ascii_case(&destination)) { 0 } else { t.policy.delay_sec };
@@ -139,7 +140,7 @@ impl Hako {
         require!(spend.clawback || t.pq_key.is_some(), "quantum lock required");
         spend.state = "signing".into();
         t.ever_signed = true;
-        let path = format!("hako/ethereum/{}/{}", spend.token_id, t.epoch);
+        let path = format!("hako/{}/{}", spend.token_id, t.epoch);
         let args = near_sdk::serde_json::json!({"request":{"payload_v2":{"Ecdsa":spend.sighash_hex},"path":path,"domain_id":0}});
         Promise::new(self.mpc_contract.clone())
             .function_call("sign", near_sdk::serde_json::to_vec(&args).unwrap(), NearToken::from_yoctonear(1), MPC_GAS)
@@ -189,6 +190,10 @@ impl Hako {
         t.nonce = 0;
         t.listed_yocto = None;
         t.spent_today_wei = U128(0);
+        t.policy.guardian = t.owner_id.clone();
+        t.policy.recovery_eth = "0x0000000000000000000000000000000000000000".into();
+        t.policy.allow_eth.clear();
+        btc::clear(&token_id);
         Promise::new(seller).transfer(NearToken::from_yoctonear(price))
     }
 
@@ -203,11 +208,15 @@ impl Hako {
         require!(receiver_id != t.owner_id, "same owner");
         for s in self.spends.values_mut().filter(|s|s.token_id==token_id && s.state=="pending") {s.state="cancelled".into();}
         btc::void_pending(&token_id);
+        btc::clear(&token_id);
         let t = self.token_mut(&token_id);
         t.owner_id = receiver_id;
         t.pq_key = None;
         t.nonce = 0;
         t.listed_yocto = None;
+        t.policy.guardian = t.owner_id.clone();
+        t.policy.recovery_eth = "0x0000000000000000000000000000000000000000".into();
+        t.policy.allow_eth.clear();
     }
 
     pub fn nft_token(&self, token_id: String) -> Option<BoxToken> { self.tokens.get(&token_id).cloned() }
@@ -217,12 +226,12 @@ impl Hako {
     pub fn nft_metadata(&self) -> near_sdk::serde_json::Value { near_sdk::serde_json::json!({"spec":"nft-1.0.0","name":"Hako","symbol":"HAKO"}) }
     pub fn spend(&self, spend_id: u64) -> Option<Spend> { self.spends.get(&spend_id).cloned() }
     pub fn spends_for_box(&self, token_id: String) -> Vec<Spend> { self.spends.values().filter(|s| s.token_id == token_id).cloned().collect() }
-    pub fn derivation_path(&self, token_id: String, chain: String) -> String { let t = self.tokens.get(&token_id).expect("token not found"); require!(chain == "ethereum" || chain == "bitcoin", "chain"); format!("hako/{}/{}/{}", chain, token_id, t.epoch) }
+    pub fn derivation_path(&self, token_id: String, chain: String) -> String { let t = self.tokens.get(&token_id).expect("token not found"); require!(chain == "ethereum" || chain == "bitcoin", "chain"); format!("hako/{}/{}", token_id, t.epoch) }
     fn token_mut(&mut self, id: &str) -> &mut BoxToken { self.tokens.get_mut(id).expect("token not found") }
 }
 
 fn self_pending_for(id: &str, spends: &BTreeMap<u64, Spend>) -> bool { spends.values().any(|s| s.token_id == id && (s.state == "pending" || s.state == "signing")) }
-fn validate_policy(p: &Policy) { require!(p.delay_sec >= 120 && p.delay_sec <= 7 * 86_400, "delay range 120s..7d"); require!(p.daily_eth_wei.0 > 0, "daily cap required"); require!(is_address(&p.recovery_eth), "recovery ETH address"); require!(p.allow_eth.len() <= 32 && p.allow_eth.iter().all(|a| is_address(a)), "allowlist ETH address"); if let Some(a) = &p.emergency_migration { require!(is_address(a), "migration address"); } }
+fn validate_policy(p: &Policy) { require!(p.delay_sec >= 120 && p.delay_sec <= 7 * 86_400, "delay range 120s..7d"); require!(p.daily_eth_wei.0 > 0, "daily cap required"); require!(is_address(&p.recovery_eth) && p.recovery_eth != "0x0000000000000000000000000000000000000000", "recovery ETH address"); require!(p.allow_eth.len() <= 32 && p.allow_eth.iter().all(|a| is_address(a)), "allowlist ETH address"); if let Some(a) = &p.emergency_migration { require!(is_address(a), "migration address"); } }
 fn verify_pq(t: &BoxToken, nonce: u64, request: &[u8], signature: &[u8]) { let pk = t.pq_key.as_ref().expect("Setup required: ML_DSA_KEY"); require!(nonce == t.nonce, "bad nonce"); require!(signature.len() == ML_SIG_LEN, "bad signature length"); let message = format!("hako:v1:{}:{}:{}", t.token_id, nonce, hex_encode(&env::sha256(request))); let digest = env::sha256(message.as_bytes()); require!(env::ml_dsa_verify(signature.try_into().unwrap(), &digest, pk.as_slice().try_into().unwrap()), "bad ML-DSA signature"); }
 fn apply_daily_cap(t: &mut BoxToken, amount: u128, now: u64) { let day = now / (86_400 * NS_SEC); if t.day_index != day { t.day_index = day; t.spent_today_wei = U128(0); } let new = t.spent_today_wei.0.checked_add(amount).expect("cap overflow"); require!(new <= t.policy.daily_eth_wei.0, "daily cap exceeded"); t.spent_today_wei = U128(new); }
 fn is_address(s: &str) -> bool { s.len() == 42 && s.starts_with("0x") && s[2..].bytes().all(|c| c.is_ascii_hexdigit()) }
