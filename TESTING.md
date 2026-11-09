@@ -62,6 +62,10 @@ The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testn
 
 `vite build` passed. Same harness on port 5202: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` (covered-call colour) and `/vault/sol-mw9amrrr` (any-chain colour) at 1440, 390 and 375, plus the round, withdraw and mint sheets: horizontal overflow 0, no page errors. Body-text contrast was computed for every band: ink on jade 5.8:1, ink on gold 10.1:1, ink on blush 9.7:1, ivory on forest 7.1:1, and the muted tints 4.7:1 or more.
 
+### Web QA (2026-11-10, restrained Otzar with generated art)
+
+`vite build` passed. Same harness on port 5202 with the hero render, logo B and the vault, coins, key and hourglass stickers in place: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` and `/vault/sol-mw9amrrr` at 1440, 390 and 375, plus the round, withdraw and mint sheets: horizontal overflow 0, no page errors. Gold yield numbers use #a06a00 on light surfaces (4.2:1) and #f2b33d on deep forest; body text on the forest band is ivory (7.1:1) and on the soft blush band ink (15.6:1).
+
 ## Negative checks
 
 | Attack or invariant | Where rejected |
