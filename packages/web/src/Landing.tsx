@@ -105,7 +105,7 @@ export default function Landing() {
       </section></div>
 
       <div className="band band-blush"><section className="l-sec" id="security">
-        <header className="l-head center"><Art name="otzar2-security" className="sec-art" fallback={['shield']} /><p className="lbl">Security</p><h2>Security you can check yourself.</h2><p className="l-lede">Bitcoin cannot enforce a spending cap, a delay, a guardian or an heir. The Otzar contract on NEAR does, before it asks the signer network for a signature.</p></header>
+        <header className="l-head center"><Art name="otzar2-security" className="sec-art" fallback={['key']} /><p className="lbl">Security</p><h2>Security you can check yourself.</h2><p className="l-lede">Bitcoin cannot enforce a spending cap, a delay, a guardian or an heir. The Otzar contract on NEAR does, before it asks the signer network for a signature.</p></header>
         <Safety />
         <div className="sec-links">
           {contractId && <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer" className="pill pill-line pill-sm">Contract on NearBlocks <Icon name="external" size={13} /></a>}
