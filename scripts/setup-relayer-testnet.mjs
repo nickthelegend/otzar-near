@@ -8,7 +8,7 @@ import {account,call,sender,codeHash} from './near-lib.mjs';
 import {actions} from 'near-api-js';
 import {relayPrice} from './price-relayer.mjs';
 
-const out='deployments/relayer-upgrade-2026-11-09.json';const record={date:new Date().toISOString(),network:'NEAR testnet',steps:[]};
+const out=process.argv[2]||'deployments/relayer-upgrade-2026-11-09.json';const record={date:new Date().toISOString(),network:'NEAR testnet',steps:[]};
 const save=()=>writeFileSync(out,JSON.stringify(record,null,2)+'\n');const send=sender(record,save);
 const contract=account('contract'),poster=account('guardian');
 const token=JSON.parse(readFileSync('.near-credentials/test-usdc.json','utf8')).id;

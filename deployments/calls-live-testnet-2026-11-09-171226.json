@@ -1,0 +1,238 @@
+{
+  "date": "2026-11-09T17:12:26.750Z",
+  "network": "NEAR testnet + Bitcoin Core regtest",
+  "status": "ITM itm exercised on regtest; OTM otm collateral released; premium earned $0.019547 tUSDC",
+  "premiumToken": {
+    "account": "husdc-3177b477.testnet",
+    "symbol": "tUSDC (Hako test)",
+    "decimals": 6,
+    "note": "test token, no value"
+  },
+  "priceLabel": "relayer price (testnet)",
+  "steps": [
+    {
+      "name": "itm: mint box call-itm-mw9irlhd",
+      "txHash": "BLnc1phLZJFL76uwi7JR78PvT1vqx5qVYBYs7Uw2xGR5",
+      "explorer": "https://testnet.nearblocks.io/txns/BLnc1phLZJFL76uwi7JR78PvT1vqx5qVYBYs7Uw2xGR5",
+      "rejected": false
+    },
+    {
+      "name": "itm: register ML-DSA writer key",
+      "txHash": "9CTK11mN35aBmu4h7K6K3424ufbssCiN7y1kbWDHbjRY",
+      "explorer": "https://testnet.nearblocks.io/txns/9CTK11mN35aBmu4h7K6K3424ufbssCiN7y1kbWDHbjRY",
+      "rejected": false
+    },
+    {
+      "name": "itm: register Bitcoin key and policy",
+      "txHash": "GwnkA4tk29de4NhqiG28yMhwBVwCzEKtocKCXHPHawvh",
+      "explorer": "https://testnet.nearblocks.io/txns/GwnkA4tk29de4NhqiG28yMhwBVwCzEKtocKCXHPHawvh",
+      "rejected": false
+    },
+    {
+      "name": "otm: mint box call-otm-mw9is1x9",
+      "txHash": "DZ9x3TsB3gLbQMTThtAf4vFFcbazicxdVPeiEnjS9Tth",
+      "explorer": "https://testnet.nearblocks.io/txns/DZ9x3TsB3gLbQMTThtAf4vFFcbazicxdVPeiEnjS9Tth",
+      "rejected": false
+    },
+    {
+      "name": "otm: register ML-DSA writer key",
+      "txHash": "FDwaSZ72Uq9AYiRxbiKoxhXG5UzjYS6YRt8uhALNC1bF",
+      "explorer": "https://testnet.nearblocks.io/txns/FDwaSZ72Uq9AYiRxbiKoxhXG5UzjYS6YRt8uhALNC1bF",
+      "rejected": false
+    },
+    {
+      "name": "otm: register Bitcoin key and policy",
+      "txHash": "2HdCYkh2EUHT6wzAYdmNCetcJdV946rP5HThZyuKao1Z",
+      "explorer": "https://testnet.nearblocks.io/txns/2HdCYkh2EUHT6wzAYdmNCetcJdV946rP5HThZyuKao1Z",
+      "rejected": false
+    },
+    {
+      "name": "itm: write covered call, strike $73,348.00 (2% below spot 74845.82)",
+      "txHash": "2fUWxgkMiXCakivEEjjgXa13HfamxavMR7RAfESGYZAK",
+      "explorer": "https://testnet.nearblocks.io/txns/2fUWxgkMiXCakivEEjjgXa13HfamxavMR7RAfESGYZAK",
+      "rejected": false
+    },
+    {
+      "name": "otm: write covered call, strike $77,092.00 (3% above spot 74845.82)",
+      "txHash": "9PnXfthp1Xg7fMVqcWBd96T3nbA4srUu8pXzX6bgJkos",
+      "explorer": "https://testnet.nearblocks.io/txns/9PnXfthp1Xg7fMVqcWBd96T3nbA4srUu8pXzX6bgJkos",
+      "rejected": false
+    },
+    {
+      "name": "itm: writer front-run spend of collateral rejected",
+      "txHash": "A2FQof1ircJejob64sUrRHejyyhAPszGg4S4VDzcMTMN",
+      "explorer": "https://testnet.nearblocks.io/txns/A2FQof1ircJejob64sUrRHejyyhAPszGg4S4VDzcMTMN",
+      "rejected": true,
+      "error": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: covered call encumbers box\"}}}}"
+    },
+    {
+      "name": "itm: buy call, premium $0.010369 tUSDC",
+      "txHash": "LEHEvVvX9fSEY8u5ZU1adrXcSrvVdYXydJnkKJpBtbe",
+      "explorer": "https://testnet.nearblocks.io/txns/LEHEvVvX9fSEY8u5ZU1adrXcSrvVdYXydJnkKJpBtbe",
+      "rejected": false
+    },
+    {
+      "name": "otm: buy call, premium $0.009178 tUSDC",
+      "txHash": "GHbcAGgtbJ4c1opJXJeMx539TgSYcPioKTtNvsU4KWV9",
+      "explorer": "https://testnet.nearblocks.io/txns/GHbcAGgtbJ4c1opJXJeMx539TgSYcPioKTtNvsU4KWV9",
+      "rejected": false
+    },
+    {
+      "name": "otm: writer spend of sold-call collateral rejected",
+      "txHash": "op4uf8MXsaBd3jqGd4Zz5khRnDcrbM3hpHeW1hksHrm",
+      "explorer": "https://testnet.nearblocks.io/txns/op4uf8MXsaBd3jqGd4Zz5khRnDcrbM3hpHeW1hksHrm",
+      "rejected": true,
+      "error": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: covered call encumbers box\"}}}}"
+    },
+    {
+      "name": "relay Coinbase BTC-USD price at expiry (relayer price, testnet)",
+      "txHash": "ESEEWVhwoH85JDvWGHCQ62VHkHT1enBQqnyfZSCkivsq",
+      "explorer": "https://testnet.nearblocks.io/txns/ESEEWVhwoH85JDvWGHCQ62VHkHT1enBQqnyfZSCkivsq",
+      "rejected": false
+    },
+    {
+      "name": "itm: settle against relayer price 74821.04",
+      "txHash": "65JCAniykkbS1wXhrF6rSmWyXpwbJPk8YH9hntj8wAhv",
+      "explorer": "https://testnet.nearblocks.io/txns/65JCAniykkbS1wXhrF6rSmWyXpwbJPk8YH9hntj8wAhv",
+      "rejected": false,
+      "error": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: relayer price must be fresh and observed at or after expiry\"}}}}",
+      "note": "Failed: under the first relayer contract the settle had to land within 60 s of the print; FastNEAR HTTP 429 delayed it. Fixed by contract d692e34 (signed print passed to settle_call)."
+    },
+    {
+      "name": "otm: writer spend of sold-call collateral rejected",
+      "txHash": "GsDaer4Pbjuj7oKkpGQC58qC7Q1CDq33TVchuTob2HbW",
+      "explorer": "https://testnet.nearblocks.io/txns/GsDaer4Pbjuj7oKkpGQC58qC7Q1CDq33TVchuTob2HbW",
+      "rejected": true,
+      "error": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: covered call encumbers box\"}}}}"
+    },
+    {
+      "name": "relay Coinbase BTC-USD price at expiry (relayer price, testnet)",
+      "txHash": "4ZQY1fVgdjAtqZBeRNymJA2cbS7q9TxbNB6Qprs2jQqj",
+      "explorer": "https://testnet.nearblocks.io/txns/4ZQY1fVgdjAtqZBeRNymJA2cbS7q9TxbNB6Qprs2jQqj",
+      "rejected": false,
+      "note": "Second post, made by the resumed script ~6 min after expiry (outside the 5-minute settlement-print window). Not used for settlement."
+    },
+    {
+      "name": "itm: settle against relayer price 74821.04",
+      "txHash": "71gsnoXgkW34ByRqNwwvNuUfikxh8aofGaAPixprnnyq",
+      "explorer": "https://testnet.nearblocks.io/txns/71gsnoXgkW34ByRqNwwvNuUfikxh8aofGaAPixprnnyq",
+      "rejected": false
+    },
+    {
+      "name": "otm: settle against relayer price 74821.04",
+      "txHash": "DoRKjEpsLwGhqnYdrnnWqAkeQKGh8p5S5D7QEjCpCzXq",
+      "explorer": "https://testnet.nearblocks.io/txns/DoRKjEpsLwGhqnYdrnnWqAkeQKGh8p5S5D7QEjCpCzXq",
+      "rejected": false
+    },
+    {
+      "name": "itm: buyer pays strike $7,334.80 tUSDC",
+      "txHash": "8ZKeBrXMYe6eSdenyoyXttwrTw9bw6XBPkT9aJeZ68KV",
+      "explorer": "https://testnet.nearblocks.io/txns/8ZKeBrXMYe6eSdenyoyXttwrTw9bw6XBPkT9aJeZ68KV",
+      "rejected": false,
+      "note": "RPC returned HTTP 500 after submission; hash recovered from NearBlocks; call state paid and writer balance checked"
+    },
+    {
+      "name": "itm: contract MPC-signs Bitcoin transfer to buyer",
+      "txHash": "EXAL6x2FCgETk2YoHqGqrxVL6aFhv1cLmjm8X5ccH8w2",
+      "explorer": "https://testnet.nearblocks.io/txns/EXAL6x2FCgETk2YoHqGqrxVL6aFhv1cLmjm8X5ccH8w2",
+      "rejected": false,
+      "note": "RPC returned HTTP 500 while waiting for the MPC callback; hash recovered from NearBlocks; on-chain call state is signed for this exact raw transaction"
+    },
+    {
+      "name": "otm: writer spend accepted after OTM expiry (encumbrance released)",
+      "txHash": "AuGzmi72Evhn5He9gnRJ65GG6zkQp2Jg86T2yib2ZvgD",
+      "explorer": "https://testnet.nearblocks.io/txns/AuGzmi72Evhn5He9gnRJ65GG6zkQp2Jg86T2yib2ZvgD",
+      "rejected": false
+    },
+    {
+      "name": "otm: MPC signs writer collateral release",
+      "txHash": "9neZbTr3ccK8VkKToqcC32G7y9N28evWDPtAR2yri4DE",
+      "explorer": "https://testnet.nearblocks.io/txns/9neZbTr3ccK8VkKToqcC32G7y9N28evWDPtAR2yri4DE",
+      "rejected": false
+    }
+  ],
+  "calls": {
+    "itm": {
+      "tokenId": "call-itm-mw9irlhd",
+      "boxAddress": "bcrt1q33k7hz5u7delsank58nps9us6s0xg9vhhvhdy5",
+      "fundingTx": "c9ea0881e2639a2ce11447844caf58998a4e628333d4e732deb1b56e2b205012",
+      "collateralSats": "10010000",
+      "strikeUsdE6": "73348000000",
+      "sizeSats": "10000000",
+      "expirySec": 1794244640,
+      "notionalAtWriteUsdE6": "7484582000",
+      "openingPremium": "11392",
+      "minimumPremium": "2848",
+      "premiumPaid": "10369",
+      "writerTusdcBefore": "0",
+      "writerTusdcAfter": "10369",
+      "tenorSec": 238,
+      "annualisedYieldPct": 18.3568,
+      "yieldFormula": "premium / (size x write spot) x 365 d / tenor",
+      "settledState": "itm",
+      "settlementPriceUsdE6": "74821040000",
+      "strikePaid": "7334800000",
+      "exerciseBtcTx": "eb9aa599cde89f606e4144cfa9c193c6ff618e16307c6e904e37ae543249f1b1",
+      "exerciseBlock": "2aa78c5dc868b96b969d8d78aed1c1348c8392cbc1fa97386248144791694e8e",
+      "buyerReceivedSats": "10000000",
+      "changeToNextEpoch": "bcrt1qp35zdsc9a0q8fy2cvmm98dsxh0tfuq0syhpy0k",
+      "strikeNotionalUsdE6": "7334800000",
+      "annualisedYieldPctOnStrikeNotional": 18.7317
+    },
+    "otm": {
+      "tokenId": "call-otm-mw9is1x9",
+      "boxAddress": "bcrt1qpq8yqcp23s6vc44nez3wryc05lquv6n3d7pmel",
+      "fundingTx": "f080a0e699f1d9af11ac01b07b7d0648ba1da8eb96290896a633c5f90790347b",
+      "collateralSats": "10010000",
+      "strikeUsdE6": "77092000000",
+      "sizeSats": "10000000",
+      "expirySec": 1794244640,
+      "notionalAtWriteUsdE6": "7484582000",
+      "openingPremium": "11249",
+      "minimumPremium": "2812",
+      "premiumPaid": "9178",
+      "tenorSec": 234,
+      "annualisedYieldPct": 16.5261,
+      "yieldFormula": "premium / (size x write spot) x 365 d / tenor",
+      "settledState": "otm",
+      "settlementPriceUsdE6": "74821040000",
+      "releaseBtcTx": "2f0063042853f33e33d2ae1ee4e8a15015d14931c15e487939876493ca7516fe",
+      "writerReturnedSats": "10009000",
+      "strikeNotionalUsdE6": "7709200000",
+      "annualisedYieldPctOnStrikeNotional": 16.0446
+    }
+  },
+  "accounts": {
+    "contract": "hako-contract-mw984kpp.testnet",
+    "writer": "hako-seller-mw984kqa.testnet",
+    "buyer": "hako-buyer-mw984kqb.testnet",
+    "relayerPoster": "hako-guardian-mw984kqc.testnet"
+  },
+  "contractWasmSha256": "3b42573262b8712af8ceb592b6aad239df9e358ba547297546e0c7f476168ff5",
+  "codeVerifiedAtBlock": 276949169,
+  "relayerPublicKey": "ed25519:79cyBu1FHUTJUXXdvksqMMapfdFTt8vx8kDE1NFaM5u5",
+  "bitcoin": {
+    "buyerAddress": "bcrt1qj3wkrcutucm0dsurh33k3qj3rag2tsxzaejzdr",
+    "writerReturnAddress": "bcrt1qwk7trrqxp3fwzwhvjg7d7wzpxarj4qp6uk4cjj"
+  },
+  "writeSpot": {
+    "price": "74845.82",
+    "priceUsdE6": "74845820000",
+    "time": "2026-11-09T17:13:18.333599540Z",
+    "source": "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+    "label": "Coinbase spot used to choose strikes (not posted on-chain)"
+  },
+  "resumedAt": "2026-11-09T17:36:03.453Z",
+  "settlementPrice": {
+    "price": "74821.04",
+    "priceUsdE6": "74821040000",
+    "publishTimeSec": 1794244642,
+    "time": "2026-11-09T17:17:22.000Z",
+    "sourceUrl": "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+    "signedAndPostedIn": "ESEEWVhwoH85JDvWGHCQ62VHkHT1enBQqnyfZSCkivsq"
+  },
+  "settlementNote": "Settled with the relayer print posted in ESEEWVhwoH85JDvWGHCQ62VHkHT1enBQqnyfZSCkivsq (trade 2 s after expiry). The first settle attempt reached the chain more than 60 s after that print because FastNEAR returned HTTP 429, and the earlier contract rejected it; the contract was then upgraded to verify the signed print directly.",
+  "writerPremiumEarned": "19547",
+  "blendedAnnualisedYieldPctOnStrikeNotional": 17.3661,
+  "yieldNote": "Web and docs use premium / (strike x size) x 365 d / tenor. annualisedYieldPct uses the write-time spot notional instead. The auction opened at 20% and floored at 5% APR of notional over the call tenor; demo terms, not an options-model price."
+}

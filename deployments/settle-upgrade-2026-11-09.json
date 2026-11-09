@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-09T17:29:37.673Z",
+  "network": "NEAR testnet",
+  "steps": [
+    {
+      "name": "upgrade Hako to relayer-price contract",
+      "txHash": "B2xv656hbBdzHPXpYNyD35nWqqogTdhDtELbBbn2hW9w",
+      "explorer": "https://testnet.nearblocks.io/txns/B2xv656hbBdzHPXpYNyD35nWqqogTdhDtELbBbn2hW9w",
+      "rejected": false
+    },
+    {
+      "name": "set tUSDC premium token and relayer key",
+      "txHash": "EcyFvzTLkCefMgXNmka4RgHu3LCeXDTxugyrxSA479eW",
+      "explorer": "https://testnet.nearblocks.io/txns/EcyFvzTLkCefMgXNmka4RgHu3LCeXDTxugyrxSA479eW",
+      "rejected": false
+    },
+    {
+      "name": "first relayer BTC-USD price",
+      "txHash": "EAoVd8Q9eUV8t4yzyXnZet9epRWLbCNJznRQBGgdFrvX",
+      "explorer": "https://testnet.nearblocks.io/txns/EAoVd8Q9eUV8t4yzyXnZet9epRWLbCNJznRQBGgdFrvX",
+      "rejected": false
+    }
+  ],
+  "existingCallBefore": {
+    "token_id": "call-mw9c9f1x",
+    "state": "auction",
+    "writer": "hako-seller-mw984kqa.testnet"
+  },
+  "wasmSha256": "0de4a9d73a61572a001b1b9bc1aae2c7ec89f9a91fd8c9c386edff2673403897",
+  "verifiedAtBlock": 276950968,
+  "existingCallAfter": {
+    "state": "auction",
+    "premium_token": null
+  },
+  "config": {
+    "premium_token": "husdc-3177b477.testnet",
+    "relayer_public_key": "ed25519:79cyBu1FHUTJUXXdvksqMMapfdFTt8vx8kDE1NFaM5u5",
+    "price_label": "relayer price (testnet)"
+  },
+  "firstPrice": {
+    "price": "74763.26",
+    "priceUsdE6": "74763260000",
+    "time": "2026-11-09T17:29:46.820023735Z",
+    "publishTimeSec": 1794245386,
+    "tradeId": 1117701915,
+    "sourceUrl": "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
+  },
+  "stored": {
+    "pair": "BTC-USD",
+    "price_usd_e6": "74763260000",
+    "publish_time_sec": 1794245386,
+    "source_url": "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+    "relayer_public_key": "ed25519:79cyBu1FHUTJUXXdvksqMMapfdFTt8vx8kDE1NFaM5u5",
+    "posted_ns": 1794245389193514000,
+    "posted_by": "hako-guardian-mw984kqc.testnet",
+    "label": "relayer price (testnet)"
+  }
+}

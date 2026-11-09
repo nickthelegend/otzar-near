@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-09T17:13:08.297Z",
+  "rpc": "https://rpc.mainnet.fastnear.com",
+  "contract": "priceoracle.near",
+  "method": "get_price_data",
+  "asset": "2260fac5e5542a773aa44fbcfedf7c193bc2c599.factory.bridge.near (bridged WBTC)",
+  "block_height": 223796480,
+  "result": {
+    "timestamp": "1794244385645583377",
+    "recency_duration_sec": 90,
+    "prices": [
+      {
+        "asset_id": "2260fac5e5542a773aa44fbcfedf7c193bc2c599.factory.bridge.near",
+        "price": null
+      }
+    ]
+  },
+  "finding": "Contract exists and lists 17 assets with a 90 s recency window, but every price was null at this block (no fresh report). The mainnet design note points at this oracle; a live BTC price from it is not verified."
+}
