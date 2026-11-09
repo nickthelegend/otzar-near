@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-09T14:14:16.341Z",
+  "nearRpc": "https://test.rpc.fastnear.com",
+  "oracleContract": "pyth-oracle.testnet",
+  "feedId": "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+  "method": "get_price_no_older_than",
+  "ageSeconds": 60,
+  "blockHash": "EFu9MWJQ1oCNmG1wgL9U92C3Srpr99k1vMpREydVxWrt",
+  "blockHeight": 276930856,
+  "result": null,
+  "hermesStatusWithoutKey": 401,
+  "feedExists": false,
+  "alternateReceiver": "price-oracle-pyth.testnet",
+  "alternateFeedExists": true,
+  "alternateUnsafePrice": {
+    "price": 6844895500000,
+    "conf": 0,
+    "expo": -8,
+    "publish_time": 1770393248
+  }
+}

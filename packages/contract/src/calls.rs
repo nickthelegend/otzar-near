@@ -50,7 +50,8 @@ fn price(c:&CoveredCall,now:u64)->u128{
 
 fn pyth_price(bytes:&[u8],now:u64,expiry:u64)->Option<u128>{
     let value:near_sdk::serde_json::Value=near_sdk::serde_json::from_slice(bytes).ok()?;
-    let p=value.get("price")?.as_str()?.parse::<i128>().ok()?;
+    let raw=value.get("price")?;
+    let p=raw.as_str().and_then(|s|s.parse::<i128>().ok()).or_else(||raw.as_i64().map(i128::from))?;
     let expo=value.get("expo")?.as_i64()?;
     let published=value.get("publish_time")?.as_i64()?;
     if p<=0||!(-18..=6).contains(&expo)||published<0{return None;}
@@ -178,4 +179,25 @@ impl Hako {
 
     #[private]
     pub fn on_call_signed(&mut self,token_id:String){let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");require!(c.state=="signing","not signing");match env::promise_result_checked(0,4096){Ok(bytes)=>{c.exercise_signature_json=Some(String::from_utf8(bytes).expect("MPC UTF-8"));c.state="signed".into();},Err(_)=>c.state="paid".into()}write(&token_id,&calls);}
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn dutch_premium_declines_to_floor() {
+        let c=CoveredCall{id:0,token_id:"test".into(),writer:"writer.testnet".parse().unwrap(),holder:None,strike_usd_e6:U128(100_000_000_000),size_sats:U64(100_000),collateral_outpoint_hex:String::new(),collateral_sats:U64(100_000),opening_premium_usdc:U128(1_000_000),minimum_premium_usdc:U128(200_000),premium_paid_usdc:None,opened_ns:100,auction_end_ns:200,expiry_ns:300,exercise_deadline_ns:None,oracle_price_usd_e6:None,exercise_script_hex:None,exercise_raw_hex:None,exercise_signature_json:None,state:"auction".into()};
+        assert_eq!(price(&c,100),1_000_000);
+        assert_eq!(price(&c,150),600_000);
+        assert_eq!(price(&c,200),200_000);
+        assert_eq!(price(&c,250),200_000);
+    }
+    #[test]
+    fn rejects_stale_price_recorded_from_testnet_receiver() {
+        // Observed via price-oracle-pyth.testnet get_price_unsafe on 2026-11-09;
+        // the original provider update is stale and cannot settle a new call.
+        let update=br#"{"price":6844895500000,"conf":0,"expo":-8,"publish_time":1770393248}"#;
+        assert_eq!(pyth_price(update,(1770393248+61)*NS_SEC,1770393248*NS_SEC),None);
+        assert_eq!(pyth_price(update,(1770393248+30)*NS_SEC,1770393248*NS_SEC),Some(68_448_955_000));
+    }
 }
