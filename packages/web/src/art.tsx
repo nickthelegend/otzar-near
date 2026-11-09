@@ -41,7 +41,7 @@ export function Sticker({ name, className = '', rot = 0 }: { name: StickerName; 
 
 /** The Otzar mark: the chosen generated logo, else an aleph on a jade tile. */
 // Logo option chosen after comparing both at 32px; falls back to the other, then to the drawn aleph.
-const LOGO_PICK = 'otzar-logo-a';
+const LOGO_PICK = 'otzar-logo-b';
 export const LOGO = artSrc(LOGO_PICK) || artSrc(LOGO_PICK.endsWith('a') ? 'otzar-logo-b' : 'otzar-logo-a');
 export function Mark({ size = 34 }: { size?: number }) {
   if (LOGO) return <img className="mark-img" src={LOGO} alt="" width={size} height={size} />;
