@@ -54,6 +54,10 @@ The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testn
 
 `vite build` passed. Headless Chrome (playwright-core, `channel: 'chrome'`) against the Vite dev server on port 5202 with the testnet contract: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` and `/vault/box-mw984t1q` at 1440×900, 390×844 and 375×812, plus the round-details sheet, the Withdraw panel and the mint sheet at each width: horizontal overflow 0, no page errors. Every figure is a live read (`nft_tokens`, `call_history` per vault, `relayer_price`, `ft_balance_of`, NearBlocks v3 transactions); the recorded-run JSON only supplies transaction hashes. Console errors were FastNEAR HTTP 429s, which browsers report as CORS failures; reads now fail over to dRPC and every page rendered its data. The vault pages also log `ERR_CONNECTION_REFUSED` from the local Anvil and Solana nodes, shown in the UI as `Setup required`.
 
+### Web QA (2026-11-10, Otzar retheme)
+
+`vite build` passed. Headless Chrome against the dev server on port 5202: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` and `/vault/box-mw984t1q` at 1440×900, 390×844 and 375×812, plus the round sheet, the Withdraw panel and the mint sheet at each width: horizontal overflow 0, no page errors. The only console errors were FastNEAR 429s (reads fail over to dRPC) and the offline local Anvil/Solana nodes, which the UI labels `Setup required`. The realised-APY counter, the live tape and the highlight cards all read live contract state. Stickers render as drawn jade and gold tiles until the generated `otzar-*` art is added to `packages/web/public/art/`.
+
 ## Negative checks
 
 | Attack or invariant | Where rejected |
