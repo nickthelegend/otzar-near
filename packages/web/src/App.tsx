@@ -23,7 +23,7 @@ function AppBar({ page, wallet }: { page: Page; wallet: Wallet }) {
   const on = (p: Page) => (page === p || (p === 'vaults' && page === 'vault') ? 'page' : undefined);
   return <header className="bar">
     <div className="bar-row">
-      <Link to="/" className="bar-logo" aria-label="Hako home"><Wordmark /></Link>
+      <Link to="/" className="bar-logo" aria-label="Otzar home"><Wordmark /></Link>
       <nav className="seg-nav" aria-label="App">
         {NAV.map(n => <Link key={n.page} to={n.to} aria-current={on(n.page)}>{n.label}</Link>)}
         <Link to="/#how">Learn</Link>
@@ -44,7 +44,7 @@ export default function App() {
   const vaultId = path.match(/^\/vault\/([^/]+)/)?.[1];
   const page: Page = vaultId ? 'vault' : path.startsWith('/app') || path.startsWith('/vaults') ? 'vaults' : path.startsWith('/you') ? 'you' : 'home';
   useEffect(() => {
-    const t: Record<Page, string> = { home: 'Hako · Quantum-safe Bitcoin that earns', vaults: 'Hako · Vaults', vault: `Hako · ${vaultId}`, you: 'Hako · Portfolio' };
+    const t: Record<Page, string> = { home: 'Otzar · Quantum-safe Bitcoin that earns', vaults: 'Otzar · Vaults', vault: `Otzar · ${vaultId}`, you: 'Otzar · Portfolio' };
     document.title = t[page];
   }, [page, vaultId]);
 
@@ -61,7 +61,7 @@ export default function App() {
       {page === 'you' && <Portfolio wallet={wallet} />}
     </main>
     <footer className="app-foot">
-      <span>Hako · NEAR testnet and local chains · MIT · © 2026 Nivesh Gajengi</span>
+      <span>Otzar · NEAR testnet and local chains · MIT · © 2026 Nivesh Gajengi</span>
       {contractId && <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer">{contractId} <Icon name="external" size={12} /></a>}
     </footer>
   </div>;

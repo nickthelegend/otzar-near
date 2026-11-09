@@ -32,7 +32,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
 
     {acct ? <>
       <div className="stats4">
-        <StatCard highlight label={`${TUSDC_SYMBOL} balance`} icon="wallet" value={bal.data !== null ? <Amount e6={bal.data} unit={TUSDC_SYMBOL} /> : bal.error ? 'Unavailable' : '…'} sub="Hako test token, no value" />
+        <StatCard highlight label={`${TUSDC_SYMBOL} balance`} icon="wallet" value={bal.data !== null ? <Amount e6={bal.data} unit={TUSDC_SYMBOL} /> : bal.error ? 'Unavailable' : '…'} sub="Otzar test token, no value" />
         <StatCard label="Premium earned" icon="coin" value={rounds.data ? <Amount e6={wrote.earned} /> : '…'} sub={`${wrote.paid.length} paid rounds you wrote`} />
         <StatCard label="Realised APY" icon="spark" value={<span className="ice">{pct(wrote.blended, 2)}</span>} sub="on your paid rounds" />
         <StatCard label="Vaults" icon="key" value={boxes.data ? mine.length : '…'} sub={`${mine.filter(b => b.pq_key?.length).length} sealed with ML-DSA-65`} />
@@ -64,7 +64,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
         <ActivityTable txns={myTx} error={txns.error} loading={txns.loading} />
       </section>
     </> : <section className="card connect-card">
-      <State kind="setup" title="No wallet connected" action={<button className="pill pill-ice pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect with MyNearWallet</button>}>Hako runs on NEAR testnet. Your vaults, rounds and balances appear here once you connect.</State>
+      <State kind="setup" title="No wallet connected" action={<button className="pill pill-ice pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect with MyNearWallet</button>}>Otzar runs on NEAR testnet. Your vaults, rounds and balances appear here once you connect.</State>
     </section>}
 
     <section className="port-safety" id="safety">

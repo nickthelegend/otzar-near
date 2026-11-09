@@ -1,9 +1,9 @@
-# Hako follow-up 3 report: "it earned" (2026-11-09)
+# Otzar follow-up 3 report: "it earned" (2026-11-09)
 
 ## What works live
 
-- Hako's earlier BTC, ETH and SOL vault, ML-DSA guardian recovery, inheritance, scanner, wallet and MCP flows are unchanged. Their testnet hashes and local-chain receipts remain in [README.md](README.md) and `deployments/`; the original 47-transaction sandbox suite was rerun on the new contract and passed.
-- **Premium token:** tUSDC (Hako test) is a labelled, no-value NEP-141 at [`husdc-3177b477.testnet`](https://testnet.nearblocks.io/address/husdc-3177b477.testnet), with source in `packages/test-usdc`. The buyer was minted 1,000,000 tUSDC. Calls now fix their premium token at write time; the contract-only `set_call_config` points new calls at tUSDC.
+- Otzar's earlier BTC, ETH and SOL vault, ML-DSA guardian recovery, inheritance, scanner, wallet and MCP flows are unchanged. Their testnet hashes and local-chain receipts remain in [README.md](README.md) and `deployments/`; the original 47-transaction sandbox suite was rerun on the new contract and passed.
+- **Premium token:** tUSDC is a labelled, no-value NEP-141 at [`husdc-3177b477.testnet`](https://testnet.nearblocks.io/address/husdc-3177b477.testnet), with source in `packages/test-usdc`. The buyer was minted 1,000,000 tUSDC. Calls now fix their premium token at write time; the contract-only `set_call_config` points new calls at tUSDC.
 - **Price:** a signed relayer price replaces the dead Pyth read.
   - The relayer is `scripts/price-relayer.mjs`: it signs the last Coinbase BTC-USD trade (price, trade time, source URL) with an ed25519 key.
   - The contract verifies the signature, an allow-listed source, 60 s freshness and monotonic time for `post_relayer_price`.
@@ -43,7 +43,7 @@
 ## Testnet NEAR spent
 
 - 2 NEAR from `hako-seller-mw984kqa.testnet` to create the tUSDC account, plus storage deposits of about 0.004 NEAR.
-- Gas for every transaction, paid by the Hako accounts that signed them.
+- Gas for every transaction, paid by the Otzar accounts that signed them.
 - No other funders were used. hako-seller and hako-guardian stay above 2 NEAR.
 
 ## BLOCKED / needs mainnet

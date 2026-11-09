@@ -107,11 +107,11 @@ export function Link({ to, className, children, ...rest }: { to: string; classNa
   return <a href={to} className={className} onClick={onClick} {...rest}>{children}</a>;
 }
 
-/** The Hako mark: 箱 ("box") cut into a frosted glass tile. */
+/** The Otzar mark: 箱 ("box") cut into a frosted glass tile. */
 export function Mark({ size = 34 }: { size?: number }) {
   return <span className="mark" style={{ width: size, height: size, fontSize: size * 0.5 }} aria-hidden="true">箱</span>;
 }
-export function Wordmark() { return <span className="wordmark"><Mark /><span className="wm">Hako</span></span>; }
+export function Wordmark() { return <span className="wordmark"><Mark /><span className="wm">Otzar</span></span>; }
 
 /** A glowing object cut out of the generated art. Falls back to a soft orb, never a broken image. */
 export function Glow({ name, className = '' }: { name: 'box' | 'key' | 'dial' | 'vault' | 'trio'; className?: string }) {

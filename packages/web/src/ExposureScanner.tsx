@@ -39,8 +39,8 @@ export default function ExposureScanner({ target, targetUsable, bitcoinProxy, an
   async function move() {
     setBusy(true); setError(''); setUnsigned('');
     try {
-      if (!result || !target) throw new Error('Setup required: select a Hako vault');
-      if (!targetUsable) throw new Error('Select an unsigned Hako vault for a fresh sweep destination');
+      if (!result || !target) throw new Error('Setup required: select a Otzar vault');
+      if (!targetUsable) throw new Error('Select an unsigned Otzar vault for a fresh sweep destination');
       if (network !== 'local') throw new Error('Setup required: local regtest or Anvil source for sweep demo');
       if (result.chain === 'bitcoin') {
         if (!bitcoinProxy) throw new Error('Setup required: VITE_BITCOIN_ESPLORA_URL');

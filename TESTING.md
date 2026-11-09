@@ -5,7 +5,7 @@ Run `corepack pnpm install --frozen-lockfile && corepack pnpm test` on macOS arm
 | Check | Actual result | Source |
 | --- | ---: | --- |
 | Rust contract unit tests | 11 passed, 0 failed, 0 ignored (includes relayer freshness, at-expiry settlement print, and signed-message binding) | `cargo test --manifest-path packages/contract/Cargo.toml` |
-| tUSDC (Hako test) NEP-141 unit tests | 2 passed: labelled metadata and owner mint, outsider mint rejected | `cargo test --manifest-path packages/test-usdc/Cargo.toml` |
+| tUSDC NEP-141 unit tests | 2 passed: labelled metadata and owner mint, outsider mint rejected | `cargo test --manifest-path packages/test-usdc/Cargo.toml` |
 | SDK tests, including live chain scanner reads, EdDSA derivation, live 1Click asset discovery, relayer message/signature and a live Coinbase BTC-USD read | 11 passed, 0 failed, 0 skipped | `pnpm --filter @hako/sdk test` |
 | Live MCP stdio tool and testnet box read | 1 passed, 0 failed, 0 skipped | `pnpm --filter @hako/mcp test` |
 | Web type check | passed; no test cases counted | `pnpm --filter @hako/web test` |

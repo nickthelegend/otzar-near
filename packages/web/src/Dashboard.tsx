@@ -15,7 +15,7 @@ export function RelayerCard() {
     {p ? <>
       <p className="relayer-px">${e6(p.price_usd_e6, 2)}</p>
       <p className="relayer-meta">BTC-USD · Coinbase last trade · {ago(p.publish_time_sec * 1e9, now)}</p>
-      <p className="relayer-src">Signed by the Hako relayer key and checked on-chain by <code>post_relayer_price</code> before a round can settle.</p>
+      <p className="relayer-src">Signed by the Otzar relayer key and checked on-chain by <code>post_relayer_price</code> before a round can settle.</p>
     </> : relayer.error ? <p className="err-line">{relayer.error}</p> : relayer.loading ? <p className="relayer-meta"><i className="pulse" /> Reading…</p> : <p className="relayer-meta">No price posted yet.</p>}
   </section>;
 }
@@ -34,7 +34,7 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
   return <div className="page dash">
     <header className="dash-head">
       <div>
-        <p className="lbl">Hako · BTC covered-call vaults</p>
+        <p className="lbl">Otzar · BTC covered-call vaults</p>
         <h1>Vaults <span className="live-pill"><i className="live-dot" />Live · NEAR testnet</span></h1>
         <p className="dash-sub">Each vault is a NEAR NFT holding native Bitcoin. Its owner sells covered calls on it and keeps the premium, signed with a post-quantum key.</p>
       </div>

@@ -17,7 +17,7 @@ export async function sendCall(wallet: Wallet, receiverId: string, methodName: s
   return result.transaction?.hash || '';
 }
 
-/** MyNearWallet on NEAR testnet, signed in for the Hako contract. */
+/** MyNearWallet on NEAR testnet, signed in for the Otzar contract. */
 export function useWallet(): Wallet {
   const [selector, setSelector] = useState<any>();
   const [account, setAccount] = useState('');

@@ -88,7 +88,7 @@ export const useRelayer = () => useLive<RelayerPrice | null>('relayer', () => vi
 export const useCallConfig = () => useLive<CallConfig | null>('cfg', () => view<CallConfig | null>(need(), 'call_config', {}), 300000);
 export const useTxns = () => useLive<ChainTx[]>('txns', () => recentContractTxns(12), 45000);
 
-/** The connected account's tUSDC (Hako test token) balance, in 6-decimal units. */
+/** The connected account's tUSDC (Otzar test token) balance, in 6-decimal units. */
 export function useTusdc(account: string) {
   const cfg = useCallConfig();
   const token = cfg.data?.premium_token || '';

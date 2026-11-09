@@ -31,7 +31,7 @@ export async function loadBoxes(): Promise<Box[]> {
 
 export type ChainTx = { hash: string; method: string; signer: string; ok: boolean; ns: number };
 
-/** Recent transactions to the Hako contract, read from the NearBlocks v3 public API (testnet). */
+/** Recent transactions to the Otzar contract, read from the NearBlocks v3 public API (testnet). */
 export async function recentContractTxns(limit = 6): Promise<ChainTx[]> {
   if (!contractId) throw new Error('Setup required: VITE_HAKO_CONTRACT');
   const r = await fetch(`https://api-testnet.nearblocks.io/v3/accounts/${contractId}/txns?per_page=${limit}`);

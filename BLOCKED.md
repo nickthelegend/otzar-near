@@ -5,8 +5,8 @@ The local regtest/Anvil and NEAR testnet demo works without a mainnet key or fau
 | Item | Exact input Nick must provide | Current behavior |
 | --- | --- | --- |
 | Public Bitcoin testnet4 funding | `BITCOIN_TESTNET4_FUNDED_ADDRESS`, plus access to funded testnet4 UTXOs | `scripts/demo.sh --network testnet4` exits with `Setup required`. No faucet or balance is simulated. |
-| Sepolia broadcast | `SEPOLIA_RPC_URL` and funded Sepolia ETH at the Hako derived address | Not exercised; simple EIP-1559 chain ID 11155111 is accepted by the contract. |
-| Public-chain sweep from the scanner | A source-wallet signing integration and Nick's explicit authorization for a public-chain spend; funded testnet4/Sepolia source assets for testnet-only extension | **Move it into Hako** builds unsigned transactions only on local regtest/Anvil. No mainnet spend or signature is attempted. |
+| Sepolia broadcast | `SEPOLIA_RPC_URL` and funded Sepolia ETH at the Otzar derived address | Not exercised; simple EIP-1559 chain ID 11155111 is accepted by the contract. |
+| Public-chain sweep from the scanner | A source-wallet signing integration and Nick's explicit authorization for a public-chain spend; funded testnet4/Sepolia source assets for testnet-only extension | **Move it into Otzar** builds unsigned transactions only on local regtest/Anvil. No mainnet spend or signature is attempted. |
 | P2PK public balance | A public Esplora indexer that includes the queried P2PK script, or a local fully indexed Bitcoin node | The scanner marks the key exposed but shows balance unavailable if the service reports no P2PK outputs. The known block-1 P2PK output is omitted by the public Blockstream scripthash response in this environment. |
 | Complete ETH outgoing-tx proof | A reliable address-history indexer or a transaction hash supplied by the user | Public `eth_getTransactionCount` is insufficient after EIP-7702. The scanner reports nonce activity as exposure unknown, not as proof of a sent transaction. |
 | Direct mempool.space verification from this machine | Network reachability to `https://mempool.space/api` | The SDK tries mempool.space first; requests timed out during verification, so live scanner tests used the real Blockstream Esplora fallback. |
@@ -18,12 +18,12 @@ The local regtest/Anvil and NEAR testnet demo works without a mainnet key or fau
 
 ## Covered calls
 
-The full testnet loop now runs without outside funding: tUSDC (Hako test) replaces Tidepool USDC, and a signed Coinbase relayer price replaces Pyth. See README "It earned". What remains:
+The full testnet loop now runs without outside funding: tUSDC replaces Tidepool USDC, and a signed Coinbase relayer price replaces Pyth. See README "It earned". What remains:
 
 | Item | Exact input or work needed | Current behavior |
 | --- | --- | --- |
 | Mainnet price oracle | Verify a live BTC price from the Rhea oracle `priceoracle.near` (or another NEAR mainnet oracle) and point `settle_call` at it for mainnet | A mainnet read on 2026-11-09 returned `null` for every asset, including bridged WBTC ([evidence](deployments/rhea-oracle-mainnet-2026-11-09.json)). Testnet uses the relayer, labelled "relayer price (testnet)". |
-| Real USDC premiums | Mainnet deployment review plus a real NEP-141 USDC (e.g. native USDC on NEAR) via `set_call_config` | Testnet premiums are tUSDC (Hako test), a no-value token minted by its own account. |
+| Real USDC premiums | Mainnet deployment review plus a real NEP-141 USDC (e.g. native USDC on NEAR) via `set_call_config` | Testnet premiums are tUSDC, a no-value token minted by its own account. |
 | Relayer trust | A multi-signer or oracle-network price for production | One ed25519 relayer key is trusted on testnet. The contract checks its signature, the allow-listed source, the timing and monotonic posts, but it cannot check that the HTTP body really said that price. |
 | Exercise-window lapse, option transfer before exercise | A run that waits 24 h after an ITM settlement; a run with `option_transfer` before expiry | Code paths are unchanged and untested on testnet in this loop. |
 | Full option NEP-171 interoperability | NFT core ownership, token view, enumeration, events, and marketplace approval for option claim tokens | `option_transfer` changes the holder on NEAR; it is not a complete NEP-171 option NFT. |

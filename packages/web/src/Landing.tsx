@@ -19,7 +19,7 @@ export default function Landing() {
   return <>
     {sum && sum.paid.length > 0 && <a className="announce" href="#record"><span className="announce-tag">Live</span><span>The covered-call loop on NEAR testnet has paid <b><Amount e6={sum.earned} unit={TUSDC_SYMBOL} /></b> in premium, <b>{pct(sum.blended, 2)}</b> annualised.</span><span className="announce-go">See the record <Icon name="arrow" size={13} /></span></a>}
     <header className="l-nav">
-      <Link to="/" aria-label="Hako home"><Wordmark /></Link>
+      <Link to="/" aria-label="Otzar home"><Wordmark /></Link>
       <nav aria-label="Sections">
         <a href="#vaults">Vaults</a><a href="#how">How it works</a><a href="#security">Security</a><a href="#record">Record</a><a href="#tech">NEAR</a>
       </nav>
@@ -31,7 +31,7 @@ export default function Landing() {
         <div className="hero-copy">
           <p className="lbl">Quantum-safe Bitcoin yield · NEAR testnet</p>
           <h1>Earn on native Bitcoin.<br /><span>Locked for Q-day.</span></h1>
-          <p className="lede">Hako vaults hold real BTC that only a post-quantum key can move. Sell covered calls on it and keep the premium. No bridge, no wrapping.</p>
+          <p className="lede">Otzar vaults hold real BTC that only a post-quantum key can move. Sell covered calls on it and keep the premium. No bridge, no wrapping.</p>
           <div className="hero-cta">
             <Link to="/app" className="pill pill-ice pill-lg">Launch app <Icon name="arrow" size={17} /></Link>
             <a href="#how" className="pill pill-ghost pill-lg">How it works</a>
@@ -95,7 +95,7 @@ export default function Landing() {
       </section>
 
       <section className="l-sec sec-dark" id="security">
-        <header className="l-head center"><p className="lbl">Security</p><h2>Security you can check yourself.</h2><p className="l-lede">Bitcoin cannot enforce a spending cap, a delay, a guardian or an heir. The Hako contract on NEAR does, before it asks the signer network for a signature.</p></header>
+        <header className="l-head center"><p className="lbl">Security</p><h2>Security you can check yourself.</h2><p className="l-lede">Bitcoin cannot enforce a spending cap, a delay, a guardian or an heir. The Otzar contract on NEAR does, before it asks the signer network for a signature.</p></header>
         <Safety />
         <div className="sec-links">
           {contractId && <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer" className="pill pill-ghost pill-sm">Contract on NearBlocks <Icon name="external" size={13} /></a>}
@@ -110,7 +110,7 @@ export default function Landing() {
       </section>
 
       <section className="l-sec" id="scan">
-        <header className="l-head"><p className="lbl">Quantum exposure scanner</p><h2>Is your address already exposed?</h2><p className="l-lede">Paste a Bitcoin or Ethereum address, or a P2PK public key. Hako reads the public chain and tells you whether the public key is already visible. No wallet needed.</p></header>
+        <header className="l-head"><p className="lbl">Quantum exposure scanner</p><h2>Is your address already exposed?</h2><p className="l-lede">Paste a Bitcoin or Ethereum address, or a P2PK public key. Otzar reads the public chain and tells you whether the public key is already visible. No wallet needed.</p></header>
         <ExposureScanner target={null} targetUsable={false} bitcoinProxy={esploraUrl} anvilRpc={anvilUrl} />
       </section>
 
@@ -119,7 +119,7 @@ export default function Landing() {
         <div className="tech">
           <article><h3>Chain Signatures</h3><p>The contract asks <code>{TESTNET_MPC}</code> to sign with a key derived from <code>hako/&lt;vault&gt;/&lt;epoch&gt;</code>. Selling the vault hands over its addresses; nothing is bridged.</p><span className="tech-live">{mpc.data ? <><i className="ok-dot" />root {short(String(mpc.data), 12, 6)}</> : mpc.error ? <span className="bad">{mpc.error}</span> : 'Reading signer…'}</span></article>
           <article><h3>ML-DSA on-chain</h3><p>Every spend, rule change, round and heir update carries an ML-DSA-65 signature over the vault ID, nonce and payload, checked with <code>env::ml_dsa_verify</code>.</p><span className="tech-live">{sealed !== undefined ? <><i className="ok-dot" />{sealed} keys registered</> : '…'}</span></article>
-          <article><h3>NEP-141 premiums</h3><p>Buyers pay with one <code>ft_transfer_call</code> in {TUSDC_SYMBOL}, Hako's own test token. The contract accepts it only at the current auction price.</p><span className="tech-live"><i className="ok-dot" />{short(evidenceMeta.premiumToken, 10, 8)}</span></article>
+          <article><h3>NEP-141 premiums</h3><p>Buyers pay with one <code>ft_transfer_call</code> in {TUSDC_SYMBOL}, Otzar's own test token. The contract accepts it only at the current auction price.</p><span className="tech-live"><i className="ok-dot" />{short(evidenceMeta.premiumToken, 10, 8)}</span></article>
           <article><h3>Signed price relayer</h3><p>Pyth no longer serves NEAR, so a relayer signs the last Coinbase BTC-USD trade with an ed25519 key; <code>post_relayer_price</code> checks the key, source, 60-second freshness and forward-only time. Mainnet design: the Rhea oracle, not yet verified for BTC.</p><span className="tech-live">{relayer.data ? <><i className="ok-dot" />${e6(relayer.data.price_usd_e6, 2)} · {ago(relayer.data.publish_time_sec * 1e9, now)}</> : relayer.error ? <span className="bad">{relayer.error}</span> : '…'}</span></article>
           <article><h3>NEAR Intents · 1Click</h3><p>Each vault asks 1Click for a live <code>dry: true</code> quote from ETH, SOL or USDC into its next Bitcoin address. Quotes only.</p><span className="tech-live"><i className="warn-dot" />Setup required: NEAR_MAINNET_ACCOUNT</span></article>
         </div>

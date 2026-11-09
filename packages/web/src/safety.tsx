@@ -1,7 +1,7 @@
 import { Glow } from './ui';
 
 const RULES = [
-  { glow: 'key' as const, k: 'Quantum key', h: 'Only your quantum key can ask for a spend.', p: 'Bitcoin keys are elliptic-curve keys a large quantum computer could crack. Hako puts the decision of who may spend behind an ML-DSA-65 signature that NEAR checks on-chain. No valid signature, no spend.' },
+  { glow: 'key' as const, k: 'Quantum key', h: 'Only your quantum key can ask for a spend.', p: 'Bitcoin keys are elliptic-curve keys a large quantum computer could crack. Otzar puts the decision of who may spend behind an ML-DSA-65 signature that NEAR checks on-chain. No valid signature, no spend.' },
   { glow: 'dial' as const, k: 'Delay and guardian', h: 'Big moves wait, and someone you trust can pull them back.', p: 'Spends over the daily cap are refused. Spends to new addresses wait out a delay, and during it your guardian can send the coins to your recovery address instead.' },
   { glow: 'box' as const, k: 'Lost key', h: 'Lose your key and two of three guardians can replace it.', p: 'Each guardian holds their own ML-DSA key. When enough of them agree, a new owner key takes over after a timelock, and you can cancel during that time if it was not you.' },
   { glow: 'trio' as const, k: 'Heir', h: 'Stop checking in and the box passes to your heir.', p: 'Set an heir and a check-in deadline. Miss it, and after the grace delay the heir can claim the NFT, and with it the addresses and coins inside.' },

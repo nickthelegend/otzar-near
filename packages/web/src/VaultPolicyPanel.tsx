@@ -30,7 +30,7 @@ export default function VaultPolicyPanel({ box, contractId, account, keyFile, bu
     if (!config) throw new Error('Configure guardians first');
     const fresh = newQuantumKey();
     const payload=JSON.stringify({type:'hako-ml-dsa-65',publicKey:b64(fresh.publicKey),secretKey:b64(fresh.secretKey)});
-    const url=URL.createObjectURL(new Blob([payload],{type:'application/json'})); const anchor=document.createElement('a'); anchor.href=url;anchor.download=`hako-${box.token_id}-recovered-key.json`;anchor.click();URL.revokeObjectURL(url);
+    const url=URL.createObjectURL(new Blob([payload],{type:'application/json'})); const anchor=document.createElement('a'); anchor.href=url;anchor.download=`otzar-${box.token_id}-recovered-key.json`;anchor.click();URL.revokeObjectURL(url);
     const approvals=Array(config.keys.length).fill('');
     for(const file of files){const key=JSON.parse(await file.text());const index=config.keys.indexOf(key.publicKey);if(index>=0)approvals[index]=b64(signGuardianApproval(Buffer.from(key.secretKey,'base64'),box.token_id,box.owner_id,config.recovery_nonce,fresh.publicKey));}
     if(approvals.filter(Boolean).length<config.threshold)throw new Error(`Need ${config.threshold} guardian key files`);

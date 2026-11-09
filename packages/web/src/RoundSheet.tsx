@@ -53,7 +53,7 @@ export function RoundSheet({ r, wallet, onClose }: { r: Round; wallet: Wallet; o
     <div className="sheet-actions">
       <Link to={`/vault/${r.token_id}`} className="pill pill-ghost">Open the vault <Icon name="arrow" size={15} /></Link>
     </div>
-    <p className="sheet-note">{ev ? 'Transaction links come from the recorded run (scripts/demo-calls.sh); every figure above is a live contract read.' : 'Every figure above is a live contract read.'} {TUSDC_SYMBOL} is Hako's own test token with no value; Bitcoin is Core regtest.</p>
+    <p className="sheet-note">{ev ? 'Transaction links come from the recorded run (scripts/demo-calls.sh); every figure above is a live contract read.' : 'Every figure above is a live contract read.'} {TUSDC_SYMBOL} is Otzar's own test token with no value; Bitcoin is Core regtest.</p>
   </Sheet>;
 }
 

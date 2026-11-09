@@ -1,4 +1,4 @@
-// Testnet price relayer helpers. Pyth Core no longer serves NEAR, so on testnet Hako settles
+// Testnet price relayer helpers. Pyth Core no longer serves NEAR, so on testnet Otzar settles
 // covered calls against a public Coinbase BTC-USD spot print, signed by a relayer ed25519 key
 // and verified on-chain. Mainnet design: read the Rhea price oracle instead.
 import { sha256 } from '@noble/hashes/sha2.js';
