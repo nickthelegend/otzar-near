@@ -1049,3 +1049,27 @@ span.copyable { cursor: default; font-size: 13px; }
 .p-call .product-apy { border-color: rgba(20, 18, 15, .2); }
 .p-call .product-apy span, .p-call .status { color: #0b2a1f; }
 .p-call .live-dot { background: var(--ink); }
+
+/* split hero once the generated jade-vault render exists: copy left, art right (the render carries its own sunburst) */
+.hero-split.sunburst { background: var(--ivory); min-height: 760px; padding-top: 72px; padding-bottom: 72px; }
+.hero-split { place-items: center start; text-align: left; }
+.hero-split .hero-copy { justify-items: start; max-width: 640px; margin-left: max(0px, calc((100vw - 1240px) / 2)); }
+.hero-split .hero-apy { justify-items: start; }
+.hero-split .hero-cta { justify-content: flex-start; }
+.hero-split .hero h1, .hero-split h1 { font-size: clamp(50px, 5.6vw, 88px); }
+.hero-split .hero-img { position: absolute; z-index: 0; right: 0; top: 50%; transform: translateY(-50%); width: min(62vw, 980px); margin: 0; border-radius: 0; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%), linear-gradient(180deg, transparent 0, #000 12%, #000 86%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0, #000 22%), linear-gradient(180deg, transparent 0, #000 12%, #000 86%, transparent 100%); mask-composite: intersect; }
+.hero-split .st-2, .hero-split .st-4, .hero-split .st-6 { display: none; }
+.hero-split .st-1 { left: auto; right: 6%; top: 8%; width: clamp(80px, 7vw, 110px); }
+.hero-split .st-3 { left: 44%; bottom: 8%; }
+.hero-split .st-5 { left: 2%; top: 6%; }
+@media (max-width: 1023px) {
+  .hero-split { place-items: center; text-align: center; }
+  .hero-split .hero-copy { justify-items: center; margin: 0 auto; }
+  .hero-split .hero-apy { justify-items: center; }
+  .hero-split .hero-cta { justify-content: center; }
+  .hero-split .hero-img { position: relative; transform: none; top: auto; width: min(640px, 112%); margin: 18px -6% 0; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 84%, transparent 100%); }
+  .hero-split .st-3, .hero-split .st-1 { display: none; }
+}
+
+.hero h1 span { white-space: nowrap; }
+@media (max-width: 720px) { .hero h1 { font-size: clamp(40px, 11.4vw, 56px); } }

@@ -29,7 +29,7 @@ export default function Landing() {
     </header>
 
     <main id="main">
-      <section className="hero sunburst">
+      <section className={`hero sunburst ${artSrc('otzar-hero') ? 'hero-split' : ''}`}>
         <div className="stickers" aria-hidden="true">
           <Sticker name="vault" rot={-9} className="st st-1" />
           <Sticker name="coins" rot={7} className="st st-2" />
