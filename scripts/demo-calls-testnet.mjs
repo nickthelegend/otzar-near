@@ -5,8 +5,8 @@ import {Account,KeyPair,KeyPairSigner,JsonRpcProvider,actions,teraToGas,nearToYo
 import {deriveAddresses,bitcoinScriptHex,newQuantumKey,signAuthorization,unsignedBitcoinSpend,signedBitcoinTransaction,rpcQuery} from '@hako/sdk';
 
 const rpc='https://test.rpc.fastnear.com';const provider=new JsonRpcProvider({url:rpc});
-const USDC='usdc.tidepool-sandbox.testnet';const stamp=new Date().toISOString().slice(0,10);
-const file=resolve(`deployments/calls-testnet-${stamp}.json`);const record={date:stamp,network:'NEAR testnet + Bitcoin Core regtest',status:'running',steps:[],bitcoin:{},oracle:{contract:'pyth-oracle.testnet',feedId:'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43'}};
+const USDC='usdc.tidepool-sandbox.testnet';const started=new Date().toISOString();const stamp=started.slice(0,10);const runId=started.slice(11,19).replaceAll(':','');
+const file=resolve(`deployments/calls-testnet-${stamp}-${runId}.json`);const record={date:started,network:'NEAR testnet + Bitcoin Core regtest',status:'running',steps:[],bitcoin:{},oracle:{contract:'pyth-oracle.testnet',feedId:'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43'}};
 const save=()=>writeFileSync(file,JSON.stringify(record,null,2)+'\n');
 function account(label){const {id,key}=JSON.parse(readFileSync(resolve(`.near-credentials/${label}.json`),'utf8'));return new Account(id,provider,new KeyPairSigner(KeyPair.fromString(key)));}
 async function send(actor,receiver,action,name,rejected=false){const r=await actor.signAndSendTransaction({receiverId:receiver,actions:[action],throwOnFailure:false,waitUntil:'FINAL'});const failed=!!r.status?.Failure;if(failed!==rejected)throw new Error(`${name}: ${failed?JSON.stringify(r.status.Failure):'attack accepted'}`);record.steps.push({name,txHash:r.transaction.hash,explorer:`https://testnet.nearblocks.io/txns/${r.transaction.hash}`,rejected});save();console.log(`${name}: ${failed?'rejected':'ok'} ${r.transaction.hash}`);return r;}
