@@ -799,8 +799,9 @@ span.copyable { cursor: default; font-size: 13px; }
 @media (max-width: 820px) {
   .l-nav nav { display: none; }
   .l-nav-end { margin-left: auto; }
-  .hero { min-height: 0; padding: 64px 16px 72px; }
-  .st-1 { width: 84px; left: -10px; top: 18px; } .st-2 { width: 78px; right: -8px; top: 10px; }
+  .hero { min-height: 0; padding: 112px 16px 84px; }
+  .st-1 { width: 76px; left: 4px; top: 16px; } .st-2 { width: 70px; right: 6px; top: 12px; }
+  .hero-lbl { font-size: 9.5px; letter-spacing: .06em; padding: 7px 12px; }
   .st-3 { width: 68px; left: 2px; bottom: 10px; } .st-4 { width: 72px; right: 4px; bottom: 6px; }
   .products { grid-template-columns: 1fr; }
   .tech { grid-template-columns: 1fr; }
@@ -856,6 +857,7 @@ span.copyable { cursor: default; font-size: 13px; }
   .cta-band { margin: 72px 16px 0; }
   .l-foot { margin-top: 72px; }
   .v-hero { padding: 24px 18px; }
+  .v-hero-st { display: none; }
   .sheet-kv { grid-template-columns: 1fr; }
   .sheet-buy { flex-wrap: wrap; }
   .form-grid, .kv { grid-template-columns: 1fr; }
