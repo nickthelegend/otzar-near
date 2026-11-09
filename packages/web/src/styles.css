@@ -933,7 +933,10 @@ span.copyable { cursor: default; font-size: 13px; }
   .sheet-kv { grid-template-columns: 1fr; }
   .sheet-buy { flex-wrap: wrap; }
   .form-grid, .kv { grid-template-columns: 1fr; }
-  .announce { font-size: 13px; gap: 8px; }
+  .announce { font-size: 13px; gap: 8px; padding: 9px 14px; }
+  .announce-go { display: none; }
+  .hero-art { order: 0; max-height: none; margin-top: 4px; }
+  .hero-glow { width: min(260px, 70%); }
 }
 @media (max-width: 420px) {
   .net { display: none; }

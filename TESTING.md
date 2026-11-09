@@ -50,6 +50,10 @@ The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testn
 
 `vite build` passed. Headless Chrome against `vite preview` on port 5192: `/` (with the yield section and its new "It earned" block) and `/app` → `call-itm-mw9irlhd` → Earn, at 1440×900 and 390×844 (plus the full-page 375 check): horizontal overflow 0, no page errors. The block read live `call_state` for both demo calls: 0.019547 tUSDC earned, 17.4% blended annualised, ITM 18.7% / OTM 16.0%, settled at $74,821.04. One earlier run hit FastNEAR HTTP 429, which browsers report as a CORS failure. `rpcQuery` now retries that case, and the rerun was clean.
 
+### Web QA (2026-11-10, vault-app rebuild)
+
+`vite build` passed. Headless Chrome (playwright-core, `channel: 'chrome'`) against the Vite dev server on port 5202 with the testnet contract: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` and `/vault/box-mw984t1q` at 1440×900, 390×844 and 375×812, plus the round-details sheet, the Withdraw panel and the mint sheet at each width: horizontal overflow 0, no page errors. Every figure is a live read (`nft_tokens`, `call_history` per vault, `relayer_price`, `ft_balance_of`, NearBlocks v3 transactions); the recorded-run JSON only supplies transaction hashes. Console errors were FastNEAR HTTP 429s, which browsers report as CORS failures; reads now fail over to dRPC and every page rendered its data. The vault pages also log `ERR_CONNECTION_REFUSED` from the local Anvil and Solana nodes, shown in the UI as `Setup required`.
+
 ## Negative checks
 
 | Attack or invariant | Where rejected |
