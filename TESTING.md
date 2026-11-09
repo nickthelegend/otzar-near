@@ -58,6 +58,10 @@ The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testn
 
 `vite build` passed. Headless Chrome against the dev server on port 5202: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` and `/vault/box-mw984t1q` at 1440×900, 390×844 and 375×812, plus the round sheet, the Withdraw panel and the mint sheet at each width: horizontal overflow 0, no page errors. The only console errors were FastNEAR 429s (reads fail over to dRPC) and the offline local Anvil/Solana nodes, which the UI labels `Setup required`. The realised-APY counter, the live tape and the highlight cards all read live contract state. Stickers render as drawn jade and gold tiles until the generated `otzar-*` art is added to `packages/web/public/art/`.
 
+### Web QA (2026-11-10, four-colour blocking)
+
+`vite build` passed. Same harness on port 5202: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` (covered-call colour) and `/vault/sol-mw9amrrr` (any-chain colour) at 1440, 390 and 375, plus the round, withdraw and mint sheets: horizontal overflow 0, no page errors. Body-text contrast was computed for every band: ink on jade 5.8:1, ink on gold 10.1:1, ink on blush 9.7:1, ivory on forest 7.1:1, and the muted tints 4.7:1 or more.
+
 ## Negative checks
 
 | Attack or invariant | Where rejected |
