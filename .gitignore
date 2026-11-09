@@ -1,6 +1,7 @@
 node_modules/
 dist/
 target/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
@@ -10,3 +11,5 @@ secrets/
 .DS_Store
 data/
 regtest/
+.tools/
+.demo/
