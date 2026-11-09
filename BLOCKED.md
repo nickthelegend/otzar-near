@@ -16,16 +16,21 @@ The local regtest/Anvil and NEAR testnet demo works without a mainnet key or fau
 | MCP writes | `NEAR_TESTNET_ACCOUNT`, `NEAR_TESTNET_KEY`, `ML_DSA_KEY_FILE`; Bitcoin also needs `BITCOIN_ESPLORA_URL` | Read tool works with `HAKO_CONTRACT_ID`; write tools return a named setup error. |
 | Public hackathon submission | Public repository URL, public demo post URL, lead/contact/payout/consent fields in `HACKATHON_SUBMISSION_FORM.md` | Local Git only. Nick publishes and submits; nothing is pushed or posted by this build. |
 
-## Covered-call follow-up
+## Covered calls
+
+The full testnet loop now runs without outside funding: tUSDC (Hako test) replaces Tidepool USDC, and a signed Coinbase relayer price replaces Pyth. See README "It earned". What remains:
 
 | Item | Exact input or work needed | Current behavior |
 | --- | --- | --- |
-| Testnet USDC premium purchase | Fund `hako-buyer-mw984kqb.testnet` with at least 51 testnet USDC using the [Tidepool site faucet](https://app.usetidepool.tech/faucet), or provide another funded testnet account and its key through ignored credentials | The buyer's real `ft_balance_of` is `0`. Tidepool's API faucet returned HTTP 403 `site_only`; browser access was unavailable. The demo stops with `Setup required` before another deployment. |
-| Pyth BTC/USD expiry settlement | `PYTH_HERMES_API_KEY` to fetch signed Hermes updates and a verified push to `pyth-oracle.testnet`; a fresh BTC/USD update must be available inside the five-minute expiry settlement window | The verified testnet receiver returned `null` for `get_price_no_older_than` on the BTC/USD feed. The callback leaves the call in `sold` and does not invent a price. Hermes returned HTTP 401 without an API key. |
-| ITM exercise to buyer's regtest address | A fresh verified Pyth testnet update at expiry, a funded buyer testnet-USDC balance, then the holder's exact strike payment and MPC Bitcoin signature | Code paths exist, but no end-to-end proof or Bitcoin receipt is claimed until the oracle path works. |
-| Full option NEP-171 interoperability | NFT core ownership, token view, enumeration, events, and marketplace approval integration for option claim tokens | `option_transfer` changes the holder on NEAR; it is not a complete NEP-171 option NFT. |
-| Contract-proven Bitcoin collateral | A Bitcoin inclusion/UTXO proof verified on NEAR, or a separately audited trust model | The writer ML-DSA-signs an outpoint and amount. The browser and demo check Bitcoin Core, but the contract cannot independently prove the assertion. Buyers must not rely on the NEAR call record alone as proof of collateral. |
+| Mainnet price oracle | Verify a live BTC price from the Rhea oracle `priceoracle.near` (or another NEAR mainnet oracle) and point `settle_call` at it for mainnet | A mainnet read on 2026-11-09 returned `null` for every asset, including bridged WBTC ([evidence](deployments/rhea-oracle-mainnet-2026-11-09.json)). Testnet uses the relayer, labelled "relayer price (testnet)". |
+| Real USDC premiums | Mainnet deployment review plus a real NEP-141 USDC (e.g. native USDC on NEAR) via `set_call_config` | Testnet premiums are tUSDC (Hako test), a no-value token minted by its own account. |
+| Relayer trust | A multi-signer or oracle-network price for production | One ed25519 relayer key is trusted on testnet. The contract checks its signature, the allow-listed source, the timing and monotonic posts, but it cannot check that the HTTP body really said that price. |
+| Exercise-window lapse, option transfer before exercise | A run that waits 24 h after an ITM settlement; a run with `option_transfer` before expiry | Code paths are unchanged and untested on testnet in this loop. |
+| Full option NEP-171 interoperability | NFT core ownership, token view, enumeration, events, and marketplace approval for option claim tokens | `option_transfer` changes the holder on NEAR; it is not a complete NEP-171 option NFT. |
+| Contract-proven Bitcoin collateral | A Bitcoin inclusion/UTXO proof verified on NEAR, or a separately audited trust model | The writer ML-DSA-signs an outpoint and amount. The demo and browser check Bitcoin Core, but the contract cannot independently prove the assertion. |
+| Public Bitcoin network | `BITCOIN_TESTNET4_FUNDED_ADDRESS` with funded testnet4 UTXOs | Collateral and exercise use Bitcoin Core regtest. |
 | Auto-compound premium to native BTC | `NEAR_MAINNET_ACCOUNT`, funded mainnet USDC, a live 1Click swap, and mainnet deployment review | Only `dry: true` mainnet USDC→BTC quote previews are available. No mainnet swap runs. |
-| Any-chain deposit into native BTC | `NEAR_MAINNET_ACCOUNT`, funded origin assets, and a live 1Click quote/deposit after explicit mainnet authorization | The SDK, web, and MCP request real `dry: true` quotes from 1Click. A dry quote has no deposit address and cannot receive funds. `ONECLICK_JWT` is optional; unauthenticated quotes work. |
+| Any-chain deposit into native BTC | `NEAR_MAINNET_ACCOUNT`, funded origin assets, and a live 1Click quote/deposit after explicit mainnet authorization | The SDK, web, and MCP request real `dry: true` quotes. A dry quote has no deposit address and cannot receive funds. |
+| Browser settlement | A relayer endpoint that serves its signed prints | The web app shows settlement state but does not settle. `settle_call` needs the relayer's signed print, which the CLI scripts hold. |
 
 The inheritance claim path requires the configured deadline plus delay to pass on a live chain; early and wrong-heir rejections are in the NEAR sandbox record, and the successful claim path is covered by a Rust unit test with an advanced block timestamp.

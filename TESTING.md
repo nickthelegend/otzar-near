@@ -4,12 +4,13 @@ Run `corepack pnpm install --frozen-lockfile && corepack pnpm test` on macOS arm
 
 | Check | Actual result | Source |
 | --- | ---: | --- |
-| Rust contract unit tests | 9 passed, 0 failed, 0 ignored | `cargo test --manifest-path packages/contract/Cargo.toml` |
-| SDK tests, including live chain scanner reads, EdDSA derivation, and live 1Click asset discovery | 8 passed, 0 failed, 0 skipped | `pnpm --filter @hako/sdk test` |
+| Rust contract unit tests | 11 passed, 0 failed, 0 ignored (includes relayer freshness, at-expiry settlement print, and signed-message binding) | `cargo test --manifest-path packages/contract/Cargo.toml` |
+| tUSDC (Hako test) NEP-141 unit tests | 2 passed: labelled metadata and owner mint, outsider mint rejected | `cargo test --manifest-path packages/test-usdc/Cargo.toml` |
+| SDK tests, including live chain scanner reads, EdDSA derivation, live 1Click asset discovery, relayer message/signature and a live Coinbase BTC-USD read | 11 passed, 0 failed, 0 skipped | `pnpm --filter @hako/sdk test` |
 | Live MCP stdio tool and testnet box read | 1 passed, 0 failed, 0 skipped | `pnpm --filter @hako/mcp test` |
 | Web type check | passed; no test cases counted | `pnpm --filter @hako/web test` |
 | NEAR protocol-88 sandbox transactions | 47 passed, including 16 expected on-chain rejections | [sandbox.json](deployments/sandbox.json) |
-| Covered-call sandbox plus Bitcoin Core regtest transactions | 13 passed, including 4 expected on-chain rejections; 1 real regtest funding transaction | [calls-sandbox.json](deployments/calls-sandbox.json) |
+| Covered-call sandbox plus Bitcoin Core regtest transactions | 30 passed, including 13 expected on-chain rejections; 1 real regtest funding transaction; local tUSDC deployment, a real tUSDC premium purchase and a live Coinbase print signed by a fresh relayer key | [calls-sandbox.json](deployments/calls-sandbox.json) |
 | NEAR testnet transactions in demo | 24 independently re-queried, including 10 expected on-chain rejections | [testnet-2026-11-09.json](deployments/testnet-2026-11-09.json) |
 | Anvil receipts | 3 successful: funding, guardian recovery, withdrawal | `scripts/verify-evidence.mjs` |
 | Bitcoin Core regtest transactions | 2 confirmed: funding, MPC-signed withdrawal | `scripts/verify-evidence.mjs` |
@@ -18,29 +19,36 @@ Run `corepack pnpm install --frozen-lockfile && corepack pnpm test` on macOS arm
 | Guardian recovery NEAR testnet transactions | 8 total: 5 confirmed, 3 expected rejections | [recovery-2026-11-09.json](deployments/recovery-2026-11-09.json) |
 | Earlier tested wallet wasm upgrade | 1 NEAR testnet deployment; RPC code SHA-256 matched the local wasm at the time | [upgrade-2026-11-09.json](deployments/upgrade-2026-11-09.json) |
 | Final covered-call wasm upgrade | 1 NEAR testnet deployment; RPC code SHA-256 matched the passing build `badb2268140fb213af9056a6aa626596020353466f08e0fed41694fdc8519171` | [calls-upgrade-2026-11-09.json](deployments/calls-upgrade-2026-11-09.json) |
-| Covered-call testnet attempt | 9 NEAR testnet transactions recorded: 8 successful and 1 rejected owner front-run spend; premium purchase not run because buyer USDC balance was zero | [calls-testnet-2026-11-09.json](deployments/calls-testnet-2026-11-09.json) |
+| **Live covered-call loop on testnet** | 22 NEAR testnet transactions: 18 confirmed, 3 expected rejections (writer spends of live collateral), 1 failed settle under the first relayer contract (kept; see README). ITM exercised: buyer received 10,000,000 regtest sats in `eb9aa599…`; OTM released: writer got 10,009,000 sats back in `2f006304…`. Premium earned 0.019547 tUSDC | [calls-live-testnet-2026-11-09-171226.json](deployments/calls-live-testnet-2026-11-09-171226.json) |
+| tUSDC deployment and contract upgrades | 5 token transactions; 2 contract upgrades with RPC code SHA-256 matched (`3b425732…`, then current `0de4a9d7…`), each followed by `set_call_config` and a relayer price post | [test-usdc](deployments/test-usdc-testnet-2026-11-09.json), [relayer-upgrade](deployments/relayer-upgrade-2026-11-09.json), [settle-upgrade](deployments/settle-upgrade-2026-11-09.json) |
+| Earlier covered-call testnet attempt (history) | 9 NEAR testnet transactions recorded: 8 successful and 1 rejected owner front-run spend; premium purchase not run because buyer USDC balance was zero | [calls-testnet-2026-11-09.json](deployments/calls-testnet-2026-11-09.json) |
 | Mainnet 1Click quote | 1 successful `dry: true` ETH→native BTC quote, no deposit address; separate live request, not counted as a test case | [oneclick-dry-2026-11-09.json](deployments/oneclick-dry-2026-11-09.json) |
-| Pyth testnet feed | 1 live view returned `null`; Hermes returned HTTP 401 without an API key; no settlement result claimed | [pyth-testnet-2026-11-09.json](deployments/pyth-testnet-2026-11-09.json) |
+| Pyth testnet feed (history) | 1 live view returned `null`; Hermes returned HTTP 401 without an API key; replaced by the signed relayer price | [pyth-testnet-2026-11-09.json](deployments/pyth-testnet-2026-11-09.json) |
 
 No tests were skipped. Sandbox uses a real local nearcore node, not a mocked RPC. The SDK reads the real testnet signer, public Ethereum RPC, and live Bitcoin Esplora. This machine could not reach mempool.space, so the scanner used Blockstream's real Esplora fallback. MCP testing launches the actual stdio server and reads the deployed testnet box plus public ETH exposure. The BTC/ETH demo invokes testnet MPC and broadcasts to Anvil and bitcoind; the SOL demo invokes EdDSA MPC and broadcasts to a local Solana validator. `scripts/verify-evidence.mjs` calls NEAR RPC `tx`, Anvil `eth_getTransactionReceipt`, and Bitcoin Core `getrawtransaction` for every original demo hash. The local nodes are stopped by their demo scripts.
 
 The live 1Click quote service intermittently returned HTTP 500 timeouts during SDK verification, then a separate `node scripts/verify-oneclick.mjs` request succeeded and saved the returned amount, correlation ID, and signature. The mandatory SDK suite tests its live token list and real MPC-derived Bitcoin recipient; the separate quote command must be run to check quote availability. It never converts an error into success or a fabricated quote.
 
-## Covered-call follow-up checks
+## Covered-call checks
 
 | Requested case | Observed status |
 | --- | --- |
-| ML-DSA write and encumbered spend rejection | Passed on sandbox + regtest and on NEAR testnet; links in call evidence. |
-| Dutch auction price decay | Pure contract arithmetic unit test passed; sandbox read the current asking price within bounds. No later on-chain time advance was recorded. |
-| Premium paid directly to owner | **BLOCKED:** buyer's testnet USDC balance is zero; Tidepool's API faucet returned HTTP 403 `site_only`. |
-| OTM release | **BLOCKED:** Pyth testnet BTC/USD feed has no fresh update. |
-| ITM exercise and real MPC-signed regtest receipt | **BLOCKED:** fresh Pyth update and testnet USDC exercise payment needed. The scripted path is present, but not verified. |
-| Exercise-window lapse | **BLOCKED:** no verified ITM settlement opened a window. |
-| Stale price rejected | Rust parser test using a real stale testnet receiver value passed; official Pyth receiver returned `null` for a fresh-price query. No fake oracle service was used. |
-| Option transfer and new-holder exercise | Custom `option_transfer` path exists; **BLOCKED** for a paid, transferable option and exercise. Full NEP-171 option conformance is also pending. |
-| Owner front-runs exercise with BTC spend | Spend rejected while the call is open in sandbox and testnet. A post-purchase attempt is **BLOCKED** by missing testnet USDC. |
+| ML-DSA write and encumbered spend rejection | Passed on sandbox + regtest and on NEAR testnet (ITM box before sale, OTM box after sale). |
+| Dutch auction price decay | Unit test passed; on testnet both buys paid the live `auction_price` between the 20% and 5% APR bounds (0.010369 and 0.009178 tUSDC). |
+| Premium paid directly to writer | Passed on sandbox and testnet: the writer's tUSDC balance rose by exactly the asking premium in the same transaction's callback. |
+| Wrong premium token | Sandbox: calling `ft_on_transfer` directly (not from the call's token) rejected. |
+| Relayer price attacks | Sandbox: foreign key, stale (120 s old) print, unlisted source URL, and replay of the same print all rejected; the real Coinbase print signed by the relayer key accepted. |
+| Settlement timing | Sandbox: settle before expiry rejected; `expire_unsettled_call` before the 24 h grace rejected. Testnet: settled with a print observed 2 s after expiry. Unit test: pre-expiry, more than 5 minutes after expiry, and future prints rejected. |
+| ITM exercise and real MPC-signed regtest receipt | **Passed on testnet + regtest**: strike 7,334.80 tUSDC paid to the writer, contract checked the raw transaction (exact 0.1 BTC to the buyer's script, change to the next epoch) and MPC-signed it; Bitcoin Core confirmed it and the buyer wallet received 10,000,000 sats. |
+| OTM release | **Passed on testnet + regtest**: after the OTM settlement, the same owner spend that was rejected while the call was live was accepted, MPC-signed and confirmed on regtest. |
+| Exercise-window lapse | Not run: it needs 24 h after an ITM settlement. `lapse_call` is unchanged. |
+| Option transfer and new-holder exercise | Not rerun in this loop; the buyer exercised directly. `option_transfer` is unchanged; full NEP-171 option conformance is pending. |
 
-The source of the recorded stale price is `price-oracle-pyth.testnet` via `get_price_unsafe` at publish time `1770393248`; it is documented in [Pyth evidence](deployments/pyth-testnet-2026-11-09.json). It is not a Hermes-signed fixture. Hermes returned HTTP 401 without `PYTH_HERMES_API_KEY`, so the requested pinned signed-update pair and changed-price exercise demo remain [blocked](BLOCKED.md).
+The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testnet-2026-11-09.json) is kept as history.
+
+### Web QA (2026-11-09, earned block)
+
+`vite build` passed. Headless Chrome against `vite preview` on port 5192: `/` (with the yield section and its new "It earned" block) and `/app` → `call-itm-mw9irlhd` → Earn, at 1440×900 and 390×844 (plus the full-page 375 check): horizontal overflow 0, no page errors. The block read live `call_state` for both demo calls: 0.019547 tUSDC earned, 17.4% blended annualised, ITM 18.7% / OTM 16.0%, settled at $74,821.04. One earlier run hit FastNEAR HTTP 429, which browsers report as a CORS failure. `rpcQuery` now retries that case, and the rerun was clean.
 
 ## Negative checks
 
