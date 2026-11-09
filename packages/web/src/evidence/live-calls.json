@@ -1,0 +1,34 @@
+{
+  "source": "deployments/calls-live-testnet-2026-11-09-171226.json",
+  "date": "2026-11-09T17:12:26.750Z",
+  "premiumToken": "husdc-3177b477.testnet",
+  "writer": "hako-seller-mw984kqa.testnet",
+  "buyer": "hako-buyer-mw984kqb.testnet",
+  "calls": [
+    {
+      "kind": "itm",
+      "tokenId": "call-itm-mw9irlhd",
+      "write": "2fUWxgkMiXCakivEEjjgXa13HfamxavMR7RAfESGYZAK",
+      "buy": "LEHEvVvX9fSEY8u5ZU1adrXcSrvVdYXydJnkKJpBtbe",
+      "settle": "71gsnoXgkW34ByRqNwwvNuUfikxh8aofGaAPixprnnyq",
+      "strike": "8ZKeBrXMYe6eSdenyoyXttwrTw9bw6XBPkT9aJeZ68KV",
+      "mpc": "EXAL6x2FCgETk2YoHqGqrxVL6aFhv1cLmjm8X5ccH8w2",
+      "release": null,
+      "blockedSpend": "A2FQof1ircJejob64sUrRHejyyhAPszGg4S4VDzcMTMN",
+      "btcTx": "eb9aa599cde89f606e4144cfa9c193c6ff618e16307c6e904e37ae543249f1b1"
+    },
+    {
+      "kind": "otm",
+      "tokenId": "call-otm-mw9is1x9",
+      "write": "9PnXfthp1Xg7fMVqcWBd96T3nbA4srUu8pXzX6bgJkos",
+      "buy": "GHbcAGgtbJ4c1opJXJeMx539TgSYcPioKTtNvsU4KWV9",
+      "settle": "DoRKjEpsLwGhqnYdrnnWqAkeQKGh8p5S5D7QEjCpCzXq",
+      "strike": null,
+      "mpc": "9neZbTr3ccK8VkKToqcC32G7y9N28evWDPtAR2yri4DE",
+      "release": "AuGzmi72Evhn5He9gnRJ65GG6zkQp2Jg86T2yib2ZvgD",
+      "blockedSpend": "op4uf8MXsaBd3jqGd4Zz5khRnDcrbM3hpHeW1hksHrm",
+      "btcTx": "2f0063042853f33e33d2ae1ee4e8a15015d14931c15e487939876493ca7516fe"
+    }
+  ],
+  "price": "ESEEWVhwoH85JDvWGHCQ62VHkHT1enBQqnyfZSCkivsq"
+}

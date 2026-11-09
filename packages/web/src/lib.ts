@@ -67,3 +67,29 @@ export function navigate(path: string) {
   dispatchEvent(new PopStateEvent('popstate'));
   scrollTo({ top: 0 });
 }
+
+// ---------- covered calls ----------
+export type CoveredCall = { id: number; token_id: string; state: string; writer: string; holder: string | null; strike_usd_e6: string; size_sats: string; opening_premium_usdc: string; minimum_premium_usdc: string; premium_paid_usdc: string | null; opened_ns: number; auction_end_ns: number; expiry_ns: number; exercise_deadline_ns: number | null; oracle_price_usd_e6: string | null; collateral_sats: string; collateral_outpoint_hex: string; exercise_signature_json: string | null; premium_token?: string | null };
+export type CallConfig = { premium_token: string; relayer_public_key: string | null; price_label: string };
+export type RelayerPrice = { pair: string; price_usd_e6: string; publish_time_sec: number; source_url: string; relayer_public_key: string; posted_ns: number; posted_by: string; label: string };
+export const TUSDC_SYMBOL = 'tUSDC';
+export const YEAR_SEC = 365 * 86400;
+
+/** Fixed-point (6 decimals) to a display string, trimming trailing zeros but keeping at least `min` decimals. */
+export function e6(value: string | number | bigint, min = 2) {
+  const n = BigInt(value); const whole = n / 1_000_000n; const frac = (n % 1_000_000n).toString().padStart(6, '0').replace(/0+$/, '');
+  const f = frac.padEnd(min, '0');
+  return f ? `${whole.toLocaleString('en-US')}.${f}` : whole.toLocaleString('en-US');
+}
+export const callTenorSec = (c: CoveredCall) => (c.expiry_ns - c.opened_ns) / 1e9;
+/** Strike notional in micro-dollars: strike x size. */
+export const strikeNotionalE6 = (c: CoveredCall) => Number(BigInt(c.strike_usd_e6) * BigInt(c.size_sats) / 100_000_000n);
+/** Annualised yield on strike notional: premium / (strike x size) x 365 d / tenor. Null until a premium is paid. */
+export function annualisedPct(c: CoveredCall): number | null {
+  if (!c.premium_paid_usdc) return null;
+  const tenor = callTenorSec(c), notional = strikeNotionalE6(c);
+  if (!(tenor > 0) || !(notional > 0)) return null;
+  return Number(c.premium_paid_usdc) / notional * YEAR_SEC / tenor * 100;
+}
+export function tenorLabel(sec: number) { return sec < 3600 ? `${Math.round(sec / 60)} min` : sec < 172800 ? `${Math.round(sec / 3600)} h` : `${Math.round(sec / 86400)} d`; }
+export const callStateLabel: Record<string, string> = { auction: 'Auction open', purchasing: 'Paying premium', sold: 'Sold', settling: 'Settling', itm: 'In the money', otm: 'Expired OTM', paying: 'Paying strike', paid: 'Strike paid', signing: 'MPC signing', signed: 'Exercised', lapsed: 'Lapsed', unfilled: 'Unfilled', unsettled: 'Unsettled' };

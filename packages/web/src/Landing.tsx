@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { rootPublicKey, rpcQuery, TESTNET_MPC } from '@hako/sdk';
 import ExposureScanner from './ExposureScanner';
-import { ago, anvilUrl, contractId, esploraUrl, loadBoxes, navigate, nearblocksAccount, nearblocksTx, recentContractTxns, short, type Box, type ChainTx } from './lib';
+import EarnedProof from './EarnedProof';
+import { ago, anvilUrl, contractId, e6, esploraUrl, loadBoxes, navigate, nearblocksAccount, nearblocksTx, recentContractTxns, short, type Box, type ChainTx, type RelayerPrice } from './lib';
 import { Art, Chip, Eyebrow, Icon } from './ui';
-
-const PYTH_BTC = 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43';
 
 type Live<T> = { state: 'loading' } | { state: 'ok'; value: T } | { state: 'error'; message: string };
 function useLive<T>(load: () => Promise<T>, every = 0): Live<T> {
@@ -30,7 +29,7 @@ export default function Landing() {
   const boxes = useLive(loadBoxes, 30000);
   const txns = useLive(() => recentContractTxns(6), 30000);
   const mpc = useLive(() => rootPublicKey() as Promise<string>);
-  const pyth = useLive(() => rpcQuery('pyth-oracle.testnet', 'get_price_no_older_than', { price_id: PYTH_BTC, age: 60 }), 60000);
+  const relayer = useLive(() => contractId ? rpcQuery(contractId, 'relayer_price', {}) as Promise<RelayerPrice | null> : Promise.reject(new Error('Setup required: VITE_HAKO_CONTRACT')), 60000);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 5000); return () => clearInterval(t); }, []);
   const open = (e: React.MouseEvent) => { e.preventDefault(); navigate('/app'); };
@@ -130,7 +129,7 @@ export default function Landing() {
         <div className="yield-copy">
           <Eyebrow>yield on native BTC</Eyebrow>
           <h2>Idle Bitcoin can earn a premium. <span>It stays on Bitcoin.</span></h2>
-          <p>Sell a covered call from your box. A buyer pays a USDC premium for the right to buy your sats at a strike price before expiry. You keep the premium either way.</p>
+          <p>Sell a covered call from your box. A buyer pays a premium for the right to buy your sats at a strike price before expiry. You keep the premium either way. Below are the two calls Hako ran end to end on NEAR testnet.</p>
           <p className="caveat">The trade-off is real: if BTC ends above the strike and the buyer exercises, you are paid the strike and give up the upside above it.</p>
         </div>
         <figure className="payoff">
@@ -151,8 +150,9 @@ export default function Landing() {
         <ol className="yield-steps">
           <li><b>Write</b><span>Sign strike, size, expiry and premium range with your ML-DSA key.</span></li>
           <li><b>Auction</b><span>A Dutch auction lowers the asking premium; the first buyer pays with <code>ft_transfer_call</code>.</span></li>
-          <li><b>Settle</b><span>At expiry the contract reads Pyth BTC/USD. Stale or missing price means no settlement.</span></li>
+          <li><b>Settle</b><span>At expiry a Coinbase BTC-USD print signed by the relayer key settles it. A stale, replayed or unsigned price is refused.</span></li>
         </ol>
+        <EarnedProof />
       </div>
     </section>
 
@@ -190,10 +190,10 @@ export default function Landing() {
           <div className="tech-live"><Chip tone="warn">Mainnet only</Chip><span>Execution needs NEAR_MAINNET_ACCOUNT.</span></div>
         </article>
         <article>
-          <span className="tech-k">Pyth on NEAR</span>
-          <h3>Settlement reads a fresh BTC/USD price.</h3>
-          <p>Covered calls settle against <code>pyth-oracle.testnet</code> with a 60-second freshness bound. A missing or stale price leaves the call unsettled instead of guessing.</p>
-          <div className="tech-live">{pyth.state === 'ok' ? (pyth.value ? <><Chip tone="ok">Fresh</Chip><code>BTC/USD {(Number((pyth.value as any).price) * 10 ** Number((pyth.value as any).expo)).toLocaleString(undefined, { maximumFractionDigits: 0 })}</code></> : <><Chip tone="warn">No fresh update</Chip><span>The feed returned null just now.</span></>) : pyth.state === 'error' ? <Chip tone="bad">{pyth.message}</Chip> : <Chip>Reading oracle…</Chip>}</div>
+          <span className="tech-k">Signed price relayer · testnet</span>
+          <h3>Settlement uses a price the contract can check.</h3>
+          <p>Pyth no longer serves NEAR, so on testnet a relayer signs the last Coinbase BTC-USD trade with an ed25519 key. <code>post_relayer_price</code> verifies the signature, the source URL, 60-second freshness and that time only moves forward. Mainnet design: read the Rhea oracle <code>priceoracle.near</code> instead; its BTC price read null on Nov 9, so that path still needs verifying.</p>
+          <div className="tech-live">{relayer.state === 'ok' ? (relayer.value ? <><Chip tone={Date.now() / 1000 - relayer.value.publish_time_sec < 120 ? 'ok' : 'idle'}>relayer price (testnet)</Chip><code>BTC-USD ${e6(relayer.value.price_usd_e6, 2)} · {ago(relayer.value.publish_time_sec * 1e9, now)}</code></> : <><Chip tone="warn">No price posted</Chip><span>Run <code>scripts/price-relayer.mjs</code>.</span></>) : relayer.state === 'error' ? <Chip tone="bad">{relayer.message}</Chip> : <Chip>Reading relayer price…</Chip>}</div>
         </article>
       </div>
     </section>
