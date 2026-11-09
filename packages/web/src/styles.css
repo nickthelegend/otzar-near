@@ -261,7 +261,7 @@ code { color: var(--ice-2); }
 .tag-itm { color: var(--ice); background: rgba(159, 231, 245, .1); } .tag-otm { color: var(--ink-2); } .tag-live { color: var(--gold); background: rgba(242, 184, 75, .12); } .tag-sold { color: var(--teal); }
 .d-earned { border-color: rgba(242, 184, 75, .28); }
 .d-earned::before { content: ''; position: absolute; left: 12px; right: 56px; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); box-shadow: 0 0 10px rgba(242, 184, 75, .5); }
-.legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 14px; font: 400 11px/1 var(--mono); letter-spacing: .06em; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 14px 0; font: 400 11px/1 var(--mono); letter-spacing: .06em; color: var(--muted); }
 .legend span { display: inline-flex; gap: 8px; align-items: center; }
 .legend i { width: 9px; height: 9px; border-radius: 50%; background: var(--ice); box-shadow: 0 0 8px var(--ice); }
 .wall-sm { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
@@ -726,7 +726,9 @@ span.copyable { cursor: default; font-size: 13px; }
   .page { padding: 20px 16px 72px; }
   .hero-grid { padding: 104px 16px 40px; gap: 28px; }
   .hero h1 { font-size: clamp(46px, 13.4vw, 64px); }
-  .hero-cta .pill-lg { flex: 1 1 auto; }
+  .hero-cta { gap: 10px; margin-top: 30px; }
+  .hero-cta .pill-lg { flex: 1 1 0; min-width: 0; padding: 0 12px; font-size: 15px; }
+  .lede { margin-top: 22px; }
   .hero-stage { height: 540px; }
   .stage-glow { width: 86%; right: -14%; top: -2%; }
   .stage-ring { width: 380px; right: -150px; }

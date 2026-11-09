@@ -42,7 +42,7 @@ export default function Landing() {
             <p className="lede">Put native BTC in a box only a post-quantum key can open. Sell covered calls on it and keep the premium. It never leaves Bitcoin and is never wrapped.</p>
             <div className="hero-cta">
               <Link to="/app" className="pill pill-ice pill-lg">Open the vault <Icon name="arrow" size={17} /></Link>
-              <a href="#round" className="pill pill-ghost pill-lg">How a round works</a>
+              <a href="#round" className="pill pill-ghost pill-lg">How it works</a>
             </div>
             <p className="hero-live" aria-live="polite">{sum && sum.paid.length
               ? <><i className="live-dot" />So far the vaults earned <b><Amount e6={sum.earned} unit={TUSDC_SYMBOL} /></b> on NEAR testnet, <b>{pct(sum.blended, 2)}</b> annualised.</>
