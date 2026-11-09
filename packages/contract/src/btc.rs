@@ -120,6 +120,7 @@ impl Hako {
     }
 
     pub fn request_btc_spend(&mut self, token_id: String, raw_unsigned_hex: String, prevout_sats: U64, nonce: u64, signature: Base64VecU8) -> BtcSpend {
+        require!(!super::inheritance_claimable(&token_id), "heir claim window reached");
         let mut s=read(&token_id).expect("Setup required: register_btc");
         require!(!btc_pending(&token_id),"pending Bitcoin spend exists");
         let now=env::block_timestamp();
@@ -136,6 +137,7 @@ impl Hako {
     }
 
     pub fn guardian_clawback_btc(&mut self, token_id: String, request_id: u64, recovery_tx_hex: String) -> BtcSpend {
+        require!(!super::inheritance_claimable(&token_id), "heir claim window reached");
         let mut s=read(&token_id).expect("Bitcoin box not registered");
         let old=s.requests.iter().find(|r|r.id==request_id).expect("request not found").clone();
         require!(old.state=="pending"&&env::block_timestamp()<old.ready_ns,"clawback window closed");
@@ -151,6 +153,7 @@ impl Hako {
     }
 
     pub fn execute_btc(&mut self, token_id: String, request_id: u64) -> Promise {
+        require!(!super::inheritance_claimable(&token_id), "heir claim window reached");
         let mut s=read(&token_id).expect("Bitcoin box not registered");
         let request=s.requests.iter_mut().find(|r|r.id==request_id).expect("request not found");
         require!(request.state=="pending"&&env::block_timestamp()>=request.ready_ns,"request not ready");

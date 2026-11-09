@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js';
-import { ethereumAddress, bitcoinAddress, derivePublicKey, rootPublicKey, verifyDerivation, newQuantumKey, signAuthorization, authorizationMessage, unsignedEthTransfer } from '../src/index.js';
+import { ethereumAddress, bitcoinAddress, derivePublicKey, rootPublicKey, verifyDerivation, newQuantumKey, signAuthorization, authorizationMessage, unsignedEthTransfer, solanaAddress, unsignedSolanaTransfer, scanBitcoin, scanEthereum, guardianConfigPayload, recoveryMessage } from '../src/index.js';
+import { Keypair } from '@solana/web3.js';
 
 describe('live testnet MPC key derivation', () => {
   it('matches the signer contract view for ETH and BTC paths', async () => {
@@ -23,5 +24,40 @@ describe('authorization', () => {
     const signature=signAuthorization(key.secretKey,'box1',0,raw);
     expect(ml_dsa65.verify(signature,authorizationMessage('box1',0,raw),key.publicKey)).toBe(true);
     expect(ml_dsa65.verify(signature,authorizationMessage('box1',1,raw),key.publicKey)).toBe(false);
+  });
+});
+
+describe('live exposure reads', () => {
+  it('reads Bitcoin address history and balance from an Esplora chain service', async () => {
+    const result=await scanBitcoin('bc1qqyqszqgpqyqszqgpqyqszqgpqyqszqgpyfl4f3');
+    expect(result.balance).toMatch(/^\d+$/);
+    expect(result.scannedTransactions).toBeGreaterThanOrEqual(0);
+    expect(result.source).toMatch(/^https:\/\//);
+  },30_000);
+  it('reads an Ethereum account nonce, balance, and code from public RPC', async () => {
+    const result=await scanEthereum('0x000000000000000000000000000000000000dEaD');
+    expect(result.balance).not.toBeNull();
+    expect(BigInt(result.balance!)).toBeGreaterThanOrEqual(0n);
+    expect(result.chain).toBe('ethereum');
+  },30_000);
+  it('flags a P2PK public key even when a public indexer omits its output', async () => {
+    const key='0496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858ee';
+    const result=await scanBitcoin(key);
+    expect(result.exposed).toBe(true);
+    expect(result.reasons.join(' ')).toContain('P2PK');
+  },30_000);
+});
+
+describe('Solana MPC', () => {
+  it('reads a real testnet EdDSA derived key and builds a transfer message', async () => {
+    const source=await solanaAddress('hako-derivation.testnet','solana-sdk-test');
+    const recipient=Keypair.generate().publicKey.toBase58();
+    const message=unsignedSolanaTransfer(source,recipient,1000n,Keypair.generate().publicKey.toBase58());
+    expect(Buffer.from(message,'hex').length).toBe(150);
+  },30_000);
+  it('binds guardian configuration and recovery to keys and nonces', () => {
+    const a=newQuantumKey(), b=newQuantumKey(), next=newQuantumKey();
+    expect(guardianConfigPayload('box',[a.publicKey,b.publicKey],2,120)).not.toEqual(guardianConfigPayload('box',[a.publicKey,b.publicKey],1,120));
+    expect(recoveryMessage('box','owner.testnet',0,next.publicKey)).not.toEqual(recoveryMessage('box','owner.testnet',1,next.publicKey));
   });
 });

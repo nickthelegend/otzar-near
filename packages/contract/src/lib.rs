@@ -52,6 +52,40 @@ pub struct BoxToken {
     pub ever_signed: bool,
 }
 
+#[near(serializers = [json])]
+#[derive(Clone)]
+pub struct GuardianConfig {
+    pub keys: Vec<Base64VecU8>,
+    pub threshold: u8,
+    pub timelock_sec: u64,
+    pub recovery_nonce: u64,
+    pub pending_key: Option<Base64VecU8>,
+    pub ready_ns: Option<u64>,
+}
+
+#[near(serializers = [json])]
+#[derive(Clone)]
+pub struct Inheritance {
+    pub heir: AccountId,
+    pub deadline_ns: u64,
+    pub delay_sec: u64,
+}
+
+#[near(serializers = [json])]
+#[derive(Clone)]
+pub struct SolSpend {
+    pub message_hex: String,
+    pub destination: Base64VecU8,
+    pub lamports: U128,
+    pub ready_ns: u64,
+    pub state: String,
+    pub signature_json: Option<String>,
+}
+
+#[near(serializers = [json])]
+#[derive(Clone)]
+pub struct SolState { pub public_key: Base64VecU8, pub spend: Option<SolSpend> }
+
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct Hako {
@@ -99,6 +133,7 @@ impl Hako {
     }
 
     pub fn request_eth_spend(&mut self, token_id: String, raw_unsigned_hex: String, nonce: u64, signature: Base64VecU8) -> Spend {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
         let bytes = hex_decode(&raw_unsigned_hex);
         let (chain_id, destination, amount) = parse_eth_tx(&bytes);
         require!(chain_id == 31337 || chain_id == 11155111, "only Anvil or Sepolia chain id");
@@ -120,6 +155,7 @@ impl Hako {
 
     pub fn guardian_clawback_eth(&mut self, spend_id: u64, recovery_tx_hex: String) -> Spend {
         let old = self.spends.get(&spend_id).expect("spend not found").clone();
+        require!(!inheritance_claimable(&old.token_id), "heir claim window reached");
         require!(old.state == "pending" && env::block_timestamp() < old.ready_ns, "clawback window closed");
         let bytes = hex_decode(&recovery_tx_hex);
         let (chain_id, destination, amount) = parse_eth_tx(&bytes);
@@ -136,6 +172,8 @@ impl Hako {
     }
 
     pub fn execute_eth(&mut self, spend_id: u64) -> Promise {
+        let token_id = self.spends.get(&spend_id).expect("spend not found").token_id.clone();
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
         let spend = self.spends.get_mut(&spend_id).expect("spend not found");
         require!(spend.state == "pending", "not pending");
         require!(env::block_timestamp() >= spend.ready_ns, "delay active");
@@ -164,9 +202,11 @@ impl Hako {
     }
 
     pub fn list(&mut self, token_id: String, price: U128) {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(price.0 > 0, "price must be positive");
         require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
         require!(!btc::btc_pending(&token_id), "pending Bitcoin spend exists");
+        require!(!sol_pending(&token_id), "pending Solana spend exists");
         let t = self.token_mut(&token_id);
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(!t.ever_signed, "box has issued a signature; cannot safely resell");
@@ -181,8 +221,10 @@ impl Hako {
 
     #[payable]
     pub fn buy(&mut self, token_id: String) -> Promise {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
         require!(!btc::btc_pending(&token_id), "pending Bitcoin spend exists");
+        require!(!sol_pending(&token_id), "pending Solana spend exists");
         let t = self.token_mut(&token_id);
         require!(!t.ever_signed, "box has issued a signature; cannot safely resell");
         let price = t.listed_yocto.expect("not listed").0;
@@ -197,14 +239,17 @@ impl Hako {
         t.policy.recovery_eth = "0x0000000000000000000000000000000000000000".into();
         t.policy.allow_eth.clear();
         btc::clear(&token_id);
+        clear_extensions(&token_id);
         Promise::new(seller).transfer(NearToken::from_yoctonear(price))
     }
 
     #[payable]
     pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(env::attached_deposit().as_yoctonear() == 1, "one yocto required");
         require!(!self.spends.values().any(|s|s.token_id==token_id && s.clawback && s.state=="pending"),"guardian recovery active");
         require!(!btc::btc_guardian_pending(&token_id),"Bitcoin guardian recovery active");
+        require!(!sol_pending(&token_id), "pending Solana spend exists");
         let t = self.tokens.get(&token_id).expect("token not found");
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(!t.ever_signed, "box has issued a signature; cannot safely transfer");
@@ -212,6 +257,7 @@ impl Hako {
         for s in self.spends.values_mut().filter(|s|s.token_id==token_id && s.state=="pending") {s.state="cancelled".into();}
         btc::void_pending(&token_id);
         btc::clear(&token_id);
+        clear_extensions(&token_id);
         let t = self.token_mut(&token_id);
         t.owner_id = receiver_id;
         t.pq_key = None;
@@ -230,8 +276,195 @@ impl Hako {
     pub fn spend(&self, spend_id: u64) -> Option<Spend> { self.spends.get(&spend_id).cloned() }
     pub fn spends_for_box(&self, token_id: String) -> Vec<Spend> { self.spends.values().filter(|s| s.token_id == token_id).cloned().collect() }
     pub fn derivation_path(&self, token_id: String, chain: String) -> String { let t = self.tokens.get(&token_id).expect("token not found"); require!(chain == "ethereum" || chain == "bitcoin", "chain"); format!("hako/{}/{}", token_id, t.epoch) }
+
+    pub fn guardian_config(&self, token_id: String) -> Option<GuardianConfig> { stored(&extension_key("guardians", &token_id)) }
+    pub fn inheritance(&self, token_id: String) -> Option<Inheritance> { stored(&extension_key("inheritance", &token_id)) }
+    pub fn sol_state(&self, token_id: String) -> Option<SolState> { stored(&extension_key("solana", &token_id)) }
+
+    pub fn register_sol(&mut self, token_id: String, public_key: Base64VecU8, nonce: u64, signature: Base64VecU8) {
+        require!(public_key.0.len() == 32, "Solana public key length");
+        require!(self.sol_state(token_id.clone()).is_none(), "Solana address already registered");
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id(), "owner only");
+        require!(!t.ever_signed, "signed vault cannot change Solana key");
+        verify_pq(t, nonce, &public_key.0, &signature.0);
+        save(&extension_key("solana", &token_id), &SolState { public_key, spend: None });
+        t.nonce += 1;
+    }
+
+    pub fn request_sol_spend(&mut self, token_id: String, message_hex: String, nonce: u64, signature: Base64VecU8) {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
+        require!(!self_pending_for(&token_id, &self.spends) && !btc::btc_pending(&token_id), "pending spend exists");
+        let mut state: SolState = self.sol_state(token_id.clone()).expect("Setup required: register_sol");
+        require!(!sol_pending(&token_id), "pending Solana spend exists");
+        let message = hex_decode(&message_hex);
+        let (sender, destination, lamports) = parse_sol_transfer(&message);
+        require!(sender == state.public_key.0, "unregistered Solana source");
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id(), "owner only");
+        require!(t.listed_yocto.is_none(), "listed box cannot spend");
+        verify_pq(t, nonce, &message, &signature.0);
+        t.nonce += 1;
+        state.spend = Some(SolSpend { message_hex, destination: Base64VecU8(destination), lamports: U128(lamports as u128), ready_ns: env::block_timestamp(), state: "pending".into(), signature_json: None });
+        save(&extension_key("solana", &token_id), &state);
+    }
+
+    pub fn execute_sol(&mut self, token_id: String) -> Promise {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
+        let mut state: SolState = self.sol_state(token_id.clone()).expect("Solana address not registered");
+        let spend = state.spend.as_mut().expect("no Solana spend");
+        require!(spend.state == "pending", "Solana spend not pending");
+        require!(env::block_timestamp() >= spend.ready_ns, "delay active");
+        let t = self.token_mut(&token_id);
+        require!(t.pq_key.is_some(), "quantum lock required");
+        t.ever_signed = true;
+        spend.state = "signing".into();
+        let args = near_sdk::serde_json::json!({"request":{"payload_v2":{"Eddsa":spend.message_hex},"path":format!("hako/{}/{}",token_id,t.epoch),"domain_id":1}});
+        save(&extension_key("solana", &token_id), &state);
+        Promise::new(self.mpc_contract.clone()).function_call("sign", near_sdk::serde_json::to_vec(&args).unwrap(), NearToken::from_yoctonear(1), MPC_GAS)
+            .then(Promise::new(env::current_account_id()).function_call("on_sol_signed", near_sdk::serde_json::to_vec(&near_sdk::serde_json::json!({"token_id":token_id})).unwrap(), NearToken::from_yoctonear(0), CALLBACK_GAS))
+    }
+
+    #[private]
+    pub fn on_sol_signed(&mut self, token_id: String) {
+        let mut state: SolState = self.sol_state(token_id.clone()).expect("Solana state missing");
+        let spend = state.spend.as_mut().expect("Solana spend missing");
+        require!(spend.state == "signing", "Solana spend not signing");
+        match env::promise_result_checked(0, 4096) {
+            Ok(bytes) => { let value: near_sdk::serde_json::Value = near_sdk::serde_json::from_slice(&bytes).unwrap_or_default(); if value["scheme"] == "Ed25519" && value["signature"].as_array().is_some_and(|a| a.len() == 64) { spend.signature_json = Some(String::from_utf8(bytes).expect("MPC response UTF-8")); spend.state = "signed".into(); } else { spend.state = "failed".into(); } }
+            _ => { spend.state = "failed".into(); }
+        }
+        save(&extension_key("solana", &token_id), &state);
+    }
+
+    pub fn set_guardians(&mut self, token_id: String, keys: Vec<Base64VecU8>, threshold: u8, timelock_sec: u64, nonce: u64, signature: Base64VecU8) {
+        require!(!self_pending_for(&token_id, &self.spends) && !btc::btc_pending(&token_id) && !sol_pending(&token_id), "pending spend exists");
+        require!((1..=5).contains(&keys.len()) && threshold >= 2 && threshold as usize <= keys.len(), "guardian threshold");
+        require!((120..=30 * 86_400).contains(&timelock_sec), "recovery timelock range");
+        require!(keys.iter().all(|k| k.0.len() == ML_PK_LEN), "guardian ML-DSA key length");
+        for i in 0..keys.len() { for j in 0..i { require!(keys[i].0 != keys[j].0, "duplicate guardian"); } }
+        let payload = guardian_config_payload(&token_id, &keys, threshold, timelock_sec);
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id(), "owner only");
+        verify_pq(t, nonce, &payload, &signature.0);
+        let old: Option<GuardianConfig> = stored(&extension_key("guardians", &token_id));
+        let config = GuardianConfig { keys, threshold, timelock_sec, recovery_nonce: old.map_or(0, |c| c.recovery_nonce + 1), pending_key: None, ready_ns: None };
+        save(&extension_key("guardians", &token_id), &config);
+        t.nonce += 1;
+    }
+
+    pub fn initiate_pq_recovery(&mut self, token_id: String, new_key: Base64VecU8, approvals: Vec<Base64VecU8>) {
+        require!(new_key.0.len() == ML_PK_LEN, "new ML-DSA key length");
+        require!(!self_pending_for(&token_id, &self.spends) && !btc::btc_pending(&token_id) && !sol_pending(&token_id), "pending spend exists");
+        let mut config: GuardianConfig = stored(&extension_key("guardians", &token_id)).expect("guardians not configured");
+        require!(config.pending_key.is_none(), "recovery already pending");
+        require!(approvals.len() == config.keys.len(), "one approval slot per guardian");
+        let t = self.tokens.get(&token_id).expect("token not found");
+        require!(t.pq_key.as_ref() != Some(&new_key.0), "same authority key");
+        let message = recovery_message(&token_id, &t.owner_id, config.recovery_nonce, &new_key.0);
+        let mut count = 0;
+        for (key, signature) in config.keys.iter().zip(&approvals) {
+            if signature.0.is_empty() { continue; }
+            require!(signature.0.len() == ML_SIG_LEN, "guardian signature length");
+            require!(env::ml_dsa_verify(signature.0.as_slice().try_into().unwrap(), &message, key.0.as_slice().try_into().unwrap()), "invalid guardian approval");
+            count += 1;
+        }
+        require!(count >= config.threshold, "guardian threshold not met");
+        config.pending_key = Some(new_key);
+        config.ready_ns = Some(env::block_timestamp() + config.timelock_sec * NS_SEC);
+        config.recovery_nonce += 1;
+        save(&extension_key("guardians", &token_id), &config);
+    }
+
+    pub fn finalize_pq_recovery(&mut self, token_id: String) {
+        let mut config: GuardianConfig = stored(&extension_key("guardians", &token_id)).expect("guardians not configured");
+        let ready = config.ready_ns.expect("no pending recovery");
+        require!(env::block_timestamp() >= ready, "recovery timelock active");
+        require!(!self_pending_for(&token_id, &self.spends) && !btc::btc_pending(&token_id) && !sol_pending(&token_id), "pending spend exists");
+        let t = self.token_mut(&token_id);
+        t.pq_key = Some(config.pending_key.take().expect("no pending key").0);
+        t.nonce += 1;
+        config.ready_ns = None;
+        save(&extension_key("guardians", &token_id), &config);
+    }
+
+    pub fn cancel_pq_recovery(&mut self, token_id: String, nonce: u64, signature: Base64VecU8) {
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id(), "owner only");
+        verify_pq(t, nonce, b"cancel-pq-recovery", &signature.0);
+        let mut config: GuardianConfig = stored(&extension_key("guardians", &token_id)).expect("guardians not configured");
+        require!(config.pending_key.is_some(), "no pending recovery");
+        config.pending_key = None; config.ready_ns = None; config.recovery_nonce += 1;
+        save(&extension_key("guardians", &token_id), &config);
+        t.nonce += 1;
+    }
+
+    pub fn set_inheritance(&mut self, token_id: String, heir: AccountId, deadline_sec: u64, delay_sec: u64, nonce: u64, signature: Base64VecU8) {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
+        let now = env::block_timestamp() / NS_SEC;
+        require!(deadline_sec >= now + 86_400 && deadline_sec <= now + 10 * 365 * 86_400, "inheritance deadline range");
+        require!((86_400..=30 * 86_400).contains(&delay_sec), "inheritance delay range");
+        let payload = format!("inheritance:v1:{token_id}:{heir}:{deadline_sec}:{delay_sec}");
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id() && heir != t.owner_id, "owner and distinct heir required");
+        require!(!t.ever_signed, "signed vault cannot transfer");
+        verify_pq(t, nonce, payload.as_bytes(), &signature.0);
+        save(&extension_key("inheritance", &token_id), &Inheritance { heir, deadline_ns: deadline_sec * NS_SEC, delay_sec });
+        t.nonce += 1;
+    }
+
+    pub fn check_in(&mut self, token_id: String, nonce: u64, signature: Base64VecU8) {
+        let mut inheritance: Inheritance = stored(&extension_key("inheritance", &token_id)).expect("inheritance not configured");
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id(), "owner only");
+        verify_pq(t, nonce, b"inheritance-check-in", &signature.0);
+        require!(env::block_timestamp() < inheritance.deadline_ns + inheritance.delay_sec * NS_SEC, "claim window reached");
+        inheritance.deadline_ns = inheritance.deadline_ns.max(env::block_timestamp() + 30 * 86_400 * NS_SEC);
+        save(&extension_key("inheritance", &token_id), &inheritance);
+        t.nonce += 1;
+    }
+
+    pub fn cancel_inheritance(&mut self, token_id: String, nonce: u64, signature: Base64VecU8) {
+        require!(!inheritance_claimable(&token_id), "heir claim window reached");
+        let t = self.token_mut(&token_id);
+        require!(t.owner_id == env::predecessor_account_id(), "owner only");
+        verify_pq(t, nonce, b"inheritance-cancel", &signature.0);
+        require!(env::storage_remove(&extension_key("inheritance", &token_id)), "inheritance not configured");
+        t.nonce += 1;
+    }
+
+    pub fn claim_inheritance(&mut self, token_id: String) {
+        let inheritance: Inheritance = stored(&extension_key("inheritance", &token_id)).expect("inheritance not configured");
+        require!(inheritance.heir == env::predecessor_account_id(), "heir only");
+        require!(env::block_timestamp() >= inheritance.deadline_ns + inheritance.delay_sec * NS_SEC, "inheritance delay active");
+        require!(!self.tokens.get(&token_id).expect("token not found").ever_signed, "signed vault cannot transfer");
+        for spend in self.spends.values_mut().filter(|s| s.token_id == token_id && s.state == "pending") { spend.state = "cancelled".into(); }
+        btc::void_pending(&token_id);
+        let t = self.token_mut(&token_id);
+        t.owner_id = inheritance.heir; t.pq_key = None; t.nonce = 0; t.listed_yocto = None;
+        t.policy.guardian = t.owner_id.clone(); t.policy.recovery_eth = "0x0000000000000000000000000000000000000000".into(); t.policy.allow_eth.clear();
+        btc::clear(&token_id); clear_extensions(&token_id);
+    }
     fn token_mut(&mut self, id: &str) -> &mut BoxToken { self.tokens.get_mut(id).expect("token not found") }
 }
+
+fn extension_key(kind: &str, token_id: &str) -> Vec<u8> { format!("hako:v2:{kind}:{token_id}").into_bytes() }
+fn stored<T: near_sdk::serde::de::DeserializeOwned>(key: &[u8]) -> Option<T> { env::storage_read(key).map(|v| near_sdk::serde_json::from_slice(&v).expect("extension storage JSON")) }
+fn save<T: near_sdk::serde::Serialize>(key: &[u8], value: &T) { env::storage_write(key, &near_sdk::serde_json::to_vec(value).expect("extension JSON")); }
+fn clear_extensions(id: &str) { env::storage_remove(&extension_key("guardians", id)); env::storage_remove(&extension_key("inheritance", id)); env::storage_remove(&extension_key("solana", id)); }
+fn sol_pending(id: &str) -> bool { let state: Option<SolState> = stored(&extension_key("solana", id)); state.and_then(|s| s.spend).is_some_and(|s| s.state == "pending" || s.state == "signing") }
+fn inheritance_claimable(id: &str) -> bool { let policy: Option<Inheritance> = stored(&extension_key("inheritance", id)); policy.is_some_and(|p| env::block_timestamp() >= p.deadline_ns + p.delay_sec * NS_SEC) }
+fn parse_sol_transfer(message: &[u8]) -> (Vec<u8>, Vec<u8>, u64) {
+    require!(message.len() == 150 && message[0..4] == [1,0,1,3], "simple Solana transfer message required");
+    let sender = message[4..36].to_vec(); let destination = message[36..68].to_vec();
+    require!(message[68..100].iter().all(|b| *b == 0), "system program required");
+    require!(message[132..142] == [1,2,2,0,1,12,2,0,0,0], "only SystemProgram transfer");
+    let lamports = u64::from_le_bytes(message[142..150].try_into().unwrap());
+    require!(lamports > 0 && sender != destination, "invalid Solana transfer");
+    (sender, destination, lamports)
+}
+fn guardian_config_payload(id: &str, keys: &[Base64VecU8], threshold: u8, timelock: u64) -> Vec<u8> { let mut p = format!("guardians:v1:{id}:{threshold}:{timelock}:").into_bytes(); for k in keys { p.extend_from_slice(&env::sha256(&k.0)); } p }
+fn recovery_message(id: &str, owner: &AccountId, nonce: u64, new_key: &[u8]) -> [u8;32] { env::sha256(format!("hako:recover:v1:{id}:{owner}:{nonce}:{}", hex_encode(&env::sha256(new_key))).as_bytes()).try_into().unwrap() }
 
 fn self_pending_for(id: &str, spends: &BTreeMap<u64, Spend>) -> bool { spends.values().any(|s| s.token_id == id && (s.state == "pending" || s.state == "signing")) }
 fn validate_policy(p: &Policy) { require!(p.delay_sec >= 120 && p.delay_sec <= 7 * 86_400, "delay range 120s..7d"); require!(p.daily_eth_wei.0 > 0, "daily cap required"); require!(is_address(&p.recovery_eth) && p.recovery_eth != "0x0000000000000000000000000000000000000000", "recovery ETH address"); require!(p.allow_eth.len() <= 32 && p.allow_eth.iter().all(|a| is_address(a)), "allowlist ETH address"); if let Some(a) = &p.emergency_migration { require!(!a.is_empty() && a.len() <= 128, "migration destination"); } }
@@ -317,5 +550,26 @@ mod tests {
         assert_eq!(t.owner_id.as_str(),"buyer.testnet");
         assert!(t.pq_key.is_none());
         assert_eq!(t.listed_yocto,None);
+    }
+
+    #[test]
+    fn heir_claims_after_deadline_and_delay_and_resets_authority() {
+        let mut b=VMContextBuilder::new();
+        b.predecessor_account_id("owner.testnet".parse().unwrap()).block_timestamp(1_000_000 * NS_SEC);
+        testing_env!(b.build());
+        let mut c=Hako::new("v1.signer-prod.testnet".parse().unwrap());
+        c.mint("inherited".into(),policy());
+        c.register_pq_key("inherited".into(),Base64VecU8(vec![1;ML_PK_LEN]));
+        c.spends.insert(0,Spend { id:0,token_id:"inherited".into(),raw_unsigned_hex:ETH_TX.into(),destination:"x".into(),amount_wei:U128(1),sighash_hex:"x".into(),created_ns:0,ready_ns:u64::MAX,state:"pending".into(),signature_json:None,clawback:false });
+        save(&extension_key("inheritance","inherited"),&Inheritance { heir:"heir.testnet".parse().unwrap(), deadline_ns:1_086_400 * NS_SEC, delay_sec:86_400 });
+        b.predecessor_account_id("heir.testnet".parse().unwrap()).block_timestamp(1_172_800 * NS_SEC);
+        testing_env!(b.build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.list("inherited".into(),U128(1)))).is_err());
+        c.claim_inheritance("inherited".into());
+        let token=c.nft_token("inherited".into()).unwrap();
+        assert_eq!(token.owner_id.as_str(),"heir.testnet");
+        assert!(token.pq_key.is_none());
+        assert!(c.inheritance("inherited".into()).is_none());
+        assert_eq!(c.spend(0).unwrap().state,"cancelled");
     }
 }

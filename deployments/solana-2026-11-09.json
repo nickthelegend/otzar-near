@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-09",
+  "network": "NEAR testnet + local Solana validator",
+  "contract": "hako-contract-mw984kpp.testnet",
+  "tokenId": "sol-mw9anp16",
+  "address": "CRjB4svoofgdYkAG5EVDe3Gm8bzm3zkmBCHmg8wDaZPP",
+  "recipient": "Cu1ftKF23oFzDyQGZB5QLRE1bCg7A9LYf7cfj9T9hSuU",
+  "steps": [
+    {
+      "action": "upgrade Hako for Solana",
+      "rejected": false,
+      "txHash": "QgwDfsJA7T6uJhCexueNtBTvRmeQWNZYkZ4MidUsJCS",
+      "explorer": "https://testnet.nearblocks.io/txns/QgwDfsJA7T6uJhCexueNtBTvRmeQWNZYkZ4MidUsJCS"
+    },
+    {
+      "action": "mint",
+      "rejected": false,
+      "txHash": "trsgsHUcSPbY6N6Ua9mw9fbcmJMuCHVKxA5WQVvEWvk",
+      "explorer": "https://testnet.nearblocks.io/txns/trsgsHUcSPbY6N6Ua9mw9fbcmJMuCHVKxA5WQVvEWvk"
+    },
+    {
+      "action": "register_pq_key",
+      "rejected": false,
+      "txHash": "FYdyC7DUM8dRrEa4LrwcN8Ygmo9XW9AQQdrB7DmHa4fV",
+      "explorer": "https://testnet.nearblocks.io/txns/FYdyC7DUM8dRrEa4LrwcN8Ygmo9XW9AQQdrB7DmHa4fV"
+    },
+    {
+      "action": "register_sol",
+      "rejected": false,
+      "txHash": "CtkHMADGR6E2vZmShh5tWLJDdf3Zc8r9ojkCrYZt26EG",
+      "explorer": "https://testnet.nearblocks.io/txns/CtkHMADGR6E2vZmShh5tWLJDdf3Zc8r9ojkCrYZt26EG"
+    },
+    {
+      "action": "request_sol_spend",
+      "rejected": false,
+      "txHash": "AwwQn9dNKrNXgMZ3pMPn5Qtp7aqiZJmeNHvdaBHYDURJ",
+      "explorer": "https://testnet.nearblocks.io/txns/AwwQn9dNKrNXgMZ3pMPn5Qtp7aqiZJmeNHvdaBHYDURJ"
+    },
+    {
+      "action": "execute_sol",
+      "rejected": false,
+      "txHash": "AEq9SevVDCWTqAoTecYk8uxybgrxb2c2hQGDG227HE5h",
+      "explorer": "https://testnet.nearblocks.io/txns/AEq9SevVDCWTqAoTecYk8uxybgrxb2c2hQGDG227HE5h"
+    }
+  ],
+  "solana": {
+    "airdrop": "3bUGDm3eLfU8X6EKvnPnaFStissuPXAzvpsaVs5xM1umxPVyqbRzPbFWaanmMs11zuxonPxaE79NPEs4wK7fJNDU",
+    "transfer": "4HA5Awa6j9yXgDPDCmTKXf48z426jCcGaMuW1nvwhahhWZqg8cdx2RwzJeVvZtA5azWZwrS5d7xCTcDNpygArrcW",
+    "recipientLamports": "100000000",
+    "status": {
+      "confirmationStatus": "confirmed",
+      "confirmations": 2,
+      "err": null,
+      "slot": 67,
+      "status": {
+        "Ok": null
+      }
+    }
+  }
+}

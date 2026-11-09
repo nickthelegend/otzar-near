@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Account, KeyPair, KeyPairSigner, JsonRpcProvider, PublicKey, actions, nearToYocto, teraToGas } from 'near-api-js';
-import { newQuantumKey, signAuthorization, unsignedEthTransfer, rpcQuery } from '@hako/sdk';
+import { newQuantumKey, signAuthorization, signGuardianApproval, guardianConfigPayload, inheritancePayload, unsignedEthTransfer, unsignedSolanaTransfer, rpcQuery } from '@hako/sdk';
+import bs58 from 'bs58';
 
 const rpcUrl='http://127.0.0.1:3030';
 const keyFile=process.env.HAKO_ROOT_KEY_FILE||resolve('.demo/sandbox/validator_key.json');
@@ -46,6 +47,37 @@ async function main(){const [contract,seller,buyer,guardian]=[await child('hako'
   const transferred=await rpcQuery(contract.accountId,'nft_token',{token_id:'transfer'},rpcUrl);const voided=await rpcQuery(contract.accountId,'spends_for_box',{token_id:'transfer'},rpcUrl);
   if(transferred.owner_id!==buyer.accountId||transferred.pq_key!==null||voided[0].state!=='cancelled')throw new Error('transfer did not void request and reset PQ key');
   await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'transfer',raw_unsigned_hex:raw,nonce:0,signature:auth(transferKey.secretKey,'transfer',0,raw)}),'old PQ key rejected after transfer',true);
+  await tx(seller,contract.accountId,call('mint',{token_id:'recovery',policy}),'mint recovery box');
+  const recoveryOwner=newQuantumKey();const recoveryKeys=[newQuantumKey(),newQuantumKey(),newQuantumKey()];
+  await tx(seller,contract.accountId,call('register_pq_key',{token_id:'recovery',key:Buffer.from(recoveryOwner.publicKey).toString('base64')}),'lock recovery box');
+  const guardianKeys=recoveryKeys.map(k=>Buffer.from(k.publicKey).toString('base64'));
+  const configPayload=guardianConfigPayload('recovery',recoveryKeys.map(k=>k.publicKey),2,120);
+  await tx(seller,contract.accountId,call('set_guardians',{token_id:'recovery',keys:guardianKeys,threshold:2,timelock_sec:120,nonce:0,signature:Buffer.from(signAuthorization(recoveryOwner.secretKey,'recovery',0,configPayload)).toString('base64')}),'set 2 of 3 quantum guardians');
+  const fresh=newQuantumKey();const approval=(k)=>Buffer.from(signGuardianApproval(k.secretKey,'recovery',seller.accountId,0,fresh.publicKey)).toString('base64');
+  await tx(guardian,contract.accountId,call('initiate_pq_recovery',{token_id:'recovery',new_key:Buffer.from(fresh.publicKey).toString('base64'),approvals:[approval(recoveryKeys[0]),'','']}),'one guardian rejected',true);
+  await tx(guardian,contract.accountId,call('initiate_pq_recovery',{token_id:'recovery',new_key:Buffer.from(fresh.publicKey).toString('base64'),approvals:[approval(recoveryKeys[0]),approval(recoveryKeys[1]),'']}),'initiate 2 of 3 recovery');
+  await tx(guardian,contract.accountId,call('finalize_pq_recovery',{token_id:'recovery'}),'recovery timelock bypass rejected',true);
+  await tx(guardian,contract.accountId,call('initiate_pq_recovery',{token_id:'recovery',new_key:Buffer.from(fresh.publicKey).toString('base64'),approvals:[approval(recoveryKeys[0]),approval(recoveryKeys[1]),'']}),'recovery replay rejected',true);
+  await tx(seller,contract.accountId,call('cancel_pq_recovery',{token_id:'recovery',nonce:1,signature:Buffer.from(signAuthorization(recoveryOwner.secretKey,'recovery',1,Buffer.from('cancel-pq-recovery'))).toString('base64')}),'owner cancels recovery');
+  await tx(seller,contract.accountId,call('mint',{token_id:'inheritance',policy}),'mint inheritance box');
+  const inheritanceKey=newQuantumKey();await tx(seller,contract.accountId,call('register_pq_key',{token_id:'inheritance',key:Buffer.from(inheritanceKey.publicKey).toString('base64')}),'lock inheritance box');
+  const deadline=Math.floor(Date.now()/1000)+3*86_400;const delay=86_400;
+  const inheritSig=Buffer.from(signAuthorization(inheritanceKey.secretKey,'inheritance',0,inheritancePayload('inheritance',buyer.accountId,deadline,delay))).toString('base64');
+  await tx(seller,contract.accountId,call('set_inheritance',{token_id:'inheritance',heir:buyer.accountId,deadline_sec:deadline,delay_sec:delay,nonce:0,signature:inheritSig}),'set NFT heir');
+  await tx(buyer,contract.accountId,call('claim_inheritance',{token_id:'inheritance'}),'early inheritance claim rejected',true);
+  await tx(guardian,contract.accountId,call('claim_inheritance',{token_id:'inheritance'}),'wrong heir rejected',true);
+  await tx(seller,contract.accountId,call('check_in',{token_id:'inheritance',nonce:1,signature:Buffer.from(signAuthorization(inheritanceKey.secretKey,'inheritance',1,Buffer.from('inheritance-check-in'))).toString('base64')}),'owner checks in');
+  await tx(seller,contract.accountId,call('cancel_inheritance',{token_id:'inheritance',nonce:2,signature:Buffer.from(signAuthorization(inheritanceKey.secretKey,'inheritance',2,Buffer.from('inheritance-cancel'))).toString('base64')}),'owner cancels heir');
+  await tx(seller,contract.accountId,call('mint',{token_id:'solana',policy}),'mint Solana box');
+  const solKey=newQuantumKey();const source=bs58.encode(Buffer.alloc(32,7));const target=bs58.encode(Buffer.alloc(32,8));const other=bs58.encode(Buffer.alloc(32,9));const blockhash=bs58.encode(Buffer.alloc(32,10));
+  await tx(seller,contract.accountId,call('register_pq_key',{token_id:'solana',key:Buffer.from(solKey.publicKey).toString('base64')}),'lock Solana box');
+  await tx(seller,contract.accountId,call('register_sol',{token_id:'solana',public_key:Buffer.alloc(32,7).toString('base64'),nonce:0,signature:Buffer.from(signAuthorization(solKey.secretKey,'solana',0,Buffer.alloc(32,7))).toString('base64')}),'register Solana address');
+  const solMessage=unsignedSolanaTransfer(source,target,100000000n,blockhash);const solWrong=unsignedSolanaTransfer(other,target,100000000n,blockhash);
+  const solAuth=(message)=>Buffer.from(signAuthorization(solKey.secretKey,'solana',1,Buffer.from(message,'hex'))).toString('base64');
+  await tx(seller,contract.accountId,call('request_sol_spend',{token_id:'solana',message_hex:solWrong,nonce:1,signature:solAuth(solWrong)}),'unregistered Solana source rejected',true);
+  await tx(seller,contract.accountId,call('request_sol_spend',{token_id:'solana',message_hex:solMessage,nonce:1,signature:solAuth(solWrong)}),'tampered Solana transfer rejected',true);
+  await tx(seller,contract.accountId,call('request_sol_spend',{token_id:'solana',message_hex:solMessage,nonce:1,signature:solAuth(solMessage)}),'request Solana transfer');
+  await tx(seller,contract.accountId,call('list',{token_id:'solana',price:'10000000000000000000000'}),'pending Solana listing rejected',true);
   mkdirSync('deployments',{recursive:true});writeFileSync('deployments/sandbox.json',JSON.stringify(evidence,null,2)+'\n');console.log(`${evidence.steps.length} sandbox transactions passed`);
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});

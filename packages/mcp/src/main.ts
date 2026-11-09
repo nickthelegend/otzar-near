@@ -4,14 +4,15 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
-  bitcoinSighash, deriveAddresses, ethBalance, rpcQuery, signAuthorization,
-  unsignedBitcoinSpend, unsignedEthTransfer, verifyAuthorization,
+  bitcoinSighash, deriveAddresses, ethBalance, rpcQuery, scanExposure, signAuthorization,
+  solanaAddress, solanaBalance, solanaBlockhash, unsignedBitcoinSpend, unsignedEthTransfer, unsignedSolanaTransfer, verifyAuthorization,
 } from '@hako/sdk';
 
 const contractId = process.env.HAKO_CONTRACT_ID;
 const nearRpc = 'https://test.rpc.fastnear.com';
 const anvil = process.env.ANVIL_RPC_URL ?? 'http://127.0.0.1:8545';
 const bitcoin = process.env.BITCOIN_ESPLORA_URL;
+const solana = process.env.SOLANA_RPC_URL ?? 'http://127.0.0.1:8899';
 if (!contractId) throw new Error('Setup required: HAKO_CONTRACT_ID');
 
 async function evm(method: string, params: unknown[]) {
@@ -60,21 +61,28 @@ async function bitcoinUtxos(address: string): Promise<{txid:string,vout:number,s
 const server = new Server({ name: 'hako', version: '0.1.0' }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [
   { name: 'box_info', description: 'Read a live Hako NFT, BTC and ETH addresses, policies, and pending requests.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' } }, required: ['token_id'] } },
-  { name: 'request_spend', description: 'Submit a Bitcoin or Ethereum spend through on-chain caps, delay and ML-DSA checks. Amount uses sats for Bitcoin or wei for Ethereum.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' }, asset: { type: 'string', enum: ['bitcoin', 'ethereum'] }, destination: { type: 'string' }, amount: { type: 'string' } }, required: ['token_id', 'asset', 'destination', 'amount'] } },
+  { name: 'scan_exposure', description: 'Read live Bitcoin or Ethereum public-key exposure and native balance with no wallet.', inputSchema: { type: 'object', properties: { address: { type: 'string' } }, required: ['address'] } },
+  { name: 'request_spend', description: 'Submit a Bitcoin, Ethereum, or local Solana spend through NEAR ML-DSA policy checks. Amount uses sats, wei, or lamports.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' }, asset: { type: 'string', enum: ['bitcoin', 'ethereum', 'solana'] }, destination: { type: 'string' }, amount: { type: 'string' } }, required: ['token_id', 'asset', 'destination', 'amount'] } },
   { name: 'list_box', description: 'List an owned, unsigned box for testnet NEAR. The contract rejects pending spends.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' }, price_yocto: { type: 'string' } }, required: ['token_id', 'price_yocto'] } },
 ] }));
 server.setRequestHandler(CallToolRequestSchema, async request => {
   try {
     const args = request.params.arguments as Record<string,string> || {};
     let result: unknown;
-    if (request.params.name === 'box_info') {
+    if (request.params.name === 'scan_exposure') {
+      result = await scanExposure(args.address ?? '');
+    } else if (request.params.name === 'box_info') {
       const box = await rpcQuery(contractId!, 'nft_token', { token_id: args.token_id });
       if (!box) throw new Error('box not found');
       const addresses = await deriveAddresses(contractId!, args.token_id, box.epoch);
       let ethBalanceWei: string;
       try { ethBalanceWei = (await ethBalance(addresses.ethereum, anvil)).toString(); }
       catch (error) { ethBalanceWei = `Setup required: ANVIL_RPC_URL (${(error as Error).message})`; }
-      result = { box, addresses, ethBalanceWei, ethSpends: await rpcQuery(contractId!, 'spends_for_box', { token_id: args.token_id }), btcState: await rpcQuery(contractId!, 'btc_state', { token_id: args.token_id }) };
+      const solAddress = await solanaAddress(contractId!, args.token_id, box.epoch);
+      let solBalanceLamports: string;
+      try { solBalanceLamports = (await solanaBalance(solAddress, solana)).toString(); }
+      catch (error) { solBalanceLamports = `Setup required: SOLANA_RPC_URL (${(error as Error).message})`; }
+      result = { box, addresses: { ...addresses, solana: solAddress }, ethBalanceWei, solBalanceLamports, ethSpends: await rpcQuery(contractId!, 'spends_for_box', { token_id: args.token_id }), btcState: await rpcQuery(contractId!, 'btc_state', { token_id: args.token_id }), solState: await rpcQuery(contractId!, 'sol_state', { token_id: args.token_id }), guardians: await rpcQuery(contractId!, 'guardian_config', { token_id: args.token_id }), inheritance: await rpcQuery(contractId!, 'inheritance', { token_id: args.token_id }) };
     } else if (request.params.name === 'list_box') {
       if (!/^\d+$/.test(args.price_yocto ?? '')) throw new Error('price_yocto must be an integer');
       result = await submit('list', { token_id: args.token_id, price: args.price_yocto });
@@ -103,7 +111,13 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         const data = Buffer.concat([Buffer.from(tx.rawHex, 'hex'), Buffer.alloc(8)]);
         data.writeBigUInt64LE(prevout, data.length - 8);
         result = { ...await submit('request_btc_spend', { token_id: args.token_id, raw_unsigned_hex: tx.rawHex, prevout_sats: prevout.toString(), nonce: box.nonce, signature: authorize(box, data) }), unsignedTx: tx.rawHex };
-      } else throw new Error('asset must be bitcoin or ethereum');
+      } else if (args.asset === 'solana') {
+        const registered = await rpcQuery(contractId!, 'sol_state', { token_id: args.token_id });
+        if (!registered) throw new Error('Setup required: register_sol');
+        const source = await solanaAddress(contractId!, args.token_id, box.epoch);
+        const raw = unsignedSolanaTransfer(source, args.destination, BigInt(args.amount), await solanaBlockhash(solana));
+        result = { ...await submit('request_sol_spend', { token_id: args.token_id, message_hex: raw, nonce: box.nonce, signature: authorize(box, Buffer.from(raw, 'hex')) }), unsignedMessage: raw };
+      } else throw new Error('asset must be bitcoin, ethereum, or solana');
     } else throw new Error(`unknown tool ${request.params.name}`);
     return { content: [{ type: 'text', text: JSON.stringify(result) }] };
   } catch (error) {

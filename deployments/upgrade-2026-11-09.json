@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-09",
+  "account": "hako-contract-mw984kpp.testnet",
+  "txHash": "5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4",
+  "explorer": "https://testnet.nearblocks.io/txns/5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4",
+  "wasmSha256": "c9b3b5eed4f92f60bd436ceca83462f42cde934aba0632b3d9c149f3c2d5da4b",
+  "onChainSha256": "c9b3b5eed4f92f60bd436ceca83462f42cde934aba0632b3d9c149f3c2d5da4b",
+  "verified": true
+}

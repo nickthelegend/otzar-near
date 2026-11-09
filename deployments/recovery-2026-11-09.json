@@ -1,0 +1,54 @@
+{
+  "tokenId": "recover-mw9auxou",
+  "contract": "hako-contract-mw984kpp.testnet",
+  "steps": [
+    {
+      "method": "mint",
+      "rejected": false,
+      "txHash": "CPHuHTdPa2RgtHKVSXPZKx24iaNie2L9Bt227A89E1a2",
+      "explorer": "https://testnet.nearblocks.io/txns/CPHuHTdPa2RgtHKVSXPZKx24iaNie2L9Bt227A89E1a2"
+    },
+    {
+      "method": "register_pq_key",
+      "rejected": false,
+      "txHash": "CZEQESo8USpQbnH9ZYVzspti6wg7irufa56S3dkJFnVs",
+      "explorer": "https://testnet.nearblocks.io/txns/CZEQESo8USpQbnH9ZYVzspti6wg7irufa56S3dkJFnVs"
+    },
+    {
+      "method": "set_guardians",
+      "rejected": false,
+      "txHash": "BBa74awvUotyBMrM5zmS2HhfS94wwYEg4j2gqMcruUUz",
+      "explorer": "https://testnet.nearblocks.io/txns/BBa74awvUotyBMrM5zmS2HhfS94wwYEg4j2gqMcruUUz"
+    },
+    {
+      "method": "initiate_pq_recovery",
+      "rejected": true,
+      "txHash": "C26pPNCi4RfYH9x2ZTMnzuyNKCHv1XNeo67pz29RHDzn",
+      "explorer": "https://testnet.nearblocks.io/txns/C26pPNCi4RfYH9x2ZTMnzuyNKCHv1XNeo67pz29RHDzn"
+    },
+    {
+      "method": "initiate_pq_recovery",
+      "rejected": false,
+      "txHash": "AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y",
+      "explorer": "https://testnet.nearblocks.io/txns/AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y"
+    },
+    {
+      "method": "finalize_pq_recovery",
+      "rejected": true,
+      "txHash": "5zrAxsiFqBehWMpJFZUbd61FDzZzxg5Fx87ckxFT4zAp",
+      "explorer": "https://testnet.nearblocks.io/txns/5zrAxsiFqBehWMpJFZUbd61FDzZzxg5Fx87ckxFT4zAp"
+    },
+    {
+      "method": "finalize_pq_recovery",
+      "rejected": false,
+      "txHash": "GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc",
+      "explorer": "https://testnet.nearblocks.io/txns/GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc"
+    },
+    {
+      "method": "cancel_inheritance",
+      "rejected": true,
+      "txHash": "2KgmhhcH3vjTkQmkS4pJg89q3Mgwx7qKFSUigdgdNQ3K",
+      "explorer": "https://testnet.nearblocks.io/txns/2KgmhhcH3vjTkQmkS4pJg89q3Mgwx7qKFSUigdgdNQ3K"
+    }
+  ]
+}
