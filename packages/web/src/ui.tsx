@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from 'react';
-import { countdown } from './lib';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { countdown, navigate } from './lib';
 
-type IconName = 'key' | 'lock' | 'clock' | 'coin' | 'shield' | 'arrow' | 'copy' | 'check' | 'external' | 'send' | 'heir' | 'tag' | 'scan' | 'plus' | 'box' | 'spark';
+export type IconName = 'key' | 'lock' | 'clock' | 'coin' | 'shield' | 'arrow' | 'copy' | 'check' | 'external' | 'send' | 'heir' | 'tag' | 'scan' | 'plus' | 'box' | 'spark' | 'x' | 'back' | 'user' | 'grid' | 'wave' | 'refresh' | 'wallet';
 const paths: Record<IconName, string> = {
   key: 'M14 10a4 4 0 1 0-3.9 4H11l2 2h2v2h2v2h3v-3l-5.3-5.3A4 4 0 0 0 14 10Zm-6-.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z',
   lock: 'M7 11V8a5 5 0 0 1 10 0v3M5.5 11h13a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5ZM12 15v2',
@@ -19,6 +19,13 @@ const paths: Record<IconName, string> = {
   plus: 'M12 5v14M5 12h14',
   box: 'M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Zm0 0v9m0 0 8-4.5M12 12l-8-4.5M12 12v9',
   spark: 'M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2.5 2.5m7 7L18 18M6 18l2.5-2.5m7-7L18 6',
+  x: 'M6 6l12 12M18 6 6 18',
+  back: 'M19 12H5m5-5-5 5 5 5',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-8 9a8 8 0 0 1 16 0',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  wave: 'M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6',
+  refresh: 'M20 11a8 8 0 0 0-14.6-4.5M4 4v4h4m12 8a8 8 0 0 1-14.6 4.5M20 20v-4h-4',
+  wallet: 'M4 7a2 2 0 0 1 2-2h12v4M4 7v10a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2Zm12 7h.01',
 };
 export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;
@@ -92,5 +99,54 @@ export function Art({ src, label, icon, className = '' }: { src: string; label: 
   return <div className={`art ${missing ? 'art-missing' : ''} ${className}`} role="img" aria-label={label}>
     {!missing && <img src={src} alt="" decoding="async" onError={() => setMissing(true)} />}
     {missing && <span className="art-plate" aria-hidden="true"><Icon name={icon} size={64} /></span>}
+  </div>;
+}
+
+export function Link({ to, className, children, ...rest }: { to: string; className?: string; children: ReactNode; 'aria-current'?: 'page' | undefined; 'aria-label'?: string; title?: string }) {
+  const onClick = (e: MouseEvent) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); navigate(to); };
+  return <a href={to} className={className} onClick={onClick} {...rest}>{children}</a>;
+}
+
+/** The Hako mark: 箱 ("box") cut into a frosted glass tile. */
+export function Mark({ size = 34 }: { size?: number }) {
+  return <span className="mark" style={{ width: size, height: size, fontSize: size * 0.5 }} aria-hidden="true">箱</span>;
+}
+export function Wordmark() { return <span className="wordmark"><Mark /><span className="wm">Hako</span></span>; }
+
+/** A glowing object cut out of the generated art. Falls back to a soft orb, never a broken image. */
+export function Glow({ name, className = '' }: { name: 'box' | 'key' | 'dial' | 'vault' | 'trio'; className?: string }) {
+  const [ok, setOk] = useState(true);
+  return <div className={`glow glow-${name} ${className}`} aria-hidden="true">{ok ? <img src={`/art/hako-cut-${name}.webp`} alt="" loading="eager" onError={() => setOk(false)} /> : <span className="glow-orb" />}</div>;
+}
+
+/** Fixed-point 6-decimal amount split into whole and dimmed fraction, e.g. 0.019547 → "0" ".019547". */
+export function Amount({ e6, unit, digits = 6, className = '' }: { e6: bigint | string | null | undefined; unit?: string; digits?: number; className?: string }) {
+  if (e6 === null || e6 === undefined) return <span className={`amt amt-empty ${className}`}>—</span>;
+  const n = BigInt(e6); const whole = (n / 1_000_000n).toLocaleString('en-US'); const frac = (n % 1_000_000n).toString().padStart(6, '0').slice(0, digits);
+  return <span className={`amt ${className}`}>{whole}<span className="amt-frac">.{frac}</span>{unit && <small className="amt-unit">{unit}</small>}</span>;
+}
+
+/** Bottom sheet on phones, right-hand drawer on desktop. Escape or the scrim closes it. */
+export function Sheet({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    ref.current?.focus();
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    addEventListener('keydown', key); document.body.classList.add('sheet-open');
+    return () => { removeEventListener('keydown', key); document.body.classList.remove('sheet-open'); prev?.focus?.(); };
+  }, []);
+  return <div className="sheet-wrap" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <aside ref={ref} className="sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
+      <button className="sheet-x" onClick={onClose} aria-label="Close"><Icon name="x" size={18} /></button>
+      {children}
+    </aside>
+  </div>;
+}
+
+export function State({ kind, title, children, action }: { kind: 'loading' | 'empty' | 'error' | 'setup'; title: string; children?: ReactNode; action?: ReactNode }) {
+  return <div className={`state state-${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
+    <span className="state-mark" aria-hidden="true">{kind === 'loading' ? <i className="pulse" /> : kind === 'error' ? '!' : kind === 'setup' ? '◇' : <Icon name="box" size={18} />}</span>
+    <div><strong>{title}</strong>{children && <p>{children}</p>}{action}</div>
   </div>;
 }

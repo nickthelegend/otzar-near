@@ -1,210 +1,165 @@
-import { useEffect, useState } from 'react';
-import { rootPublicKey, rpcQuery, TESTNET_MPC } from '@hako/sdk';
+import { useState } from 'react';
+import { rootPublicKey, TESTNET_MPC } from '@hako/sdk';
 import ExposureScanner from './ExposureScanner';
-import EarnedProof from './EarnedProof';
-import { ago, anvilUrl, contractId, e6, esploraUrl, loadBoxes, navigate, nearblocksAccount, nearblocksTx, recentContractTxns, short, type Box, type ChainTx, type RelayerPrice } from './lib';
-import { Art, Chip, Eyebrow, Icon } from './ui';
-
-type Live<T> = { state: 'loading' } | { state: 'ok'; value: T } | { state: 'error'; message: string };
-function useLive<T>(load: () => Promise<T>, every = 0): Live<T> {
-  const [live, setLive] = useState<Live<T>>({ state: 'loading' });
-  useEffect(() => {
-    let on = true;
-    const tick = () => load().then(value => on && setLive({ state: 'ok', value })).catch(e => on && setLive({ state: 'error', message: (e as Error).message }));
-    tick();
-    const t = every ? setInterval(tick, every) : undefined;
-    return () => { on = false; if (t) clearInterval(t); };
-  }, []);
-  return live;
-}
-
-function Stat({ label, live, pick }: { label: string; live: Live<Box[]>; pick: (b: Box[]) => number }) {
-  return <div className="stat">
-    <strong className={live.state !== 'ok' ? 'stat-dim' : ''}>{live.state === 'ok' ? pick(live.value) : '—'}</strong>
-    <span>{label}</span>
-  </div>;
-}
+import Safety from './safety';
+import LiveTape from './tape';
+import { Drawer } from './Vaults';
+import { useBoxes, useLive, useNow, useRelayer, useRounds, useTxns } from './data';
+import { ago, annualisedPct, anvilUrl, contractId, e6, earnedSummary, esploraUrl, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL } from './lib';
+import { AprRange, Dial, evidenceFor, evidenceMeta, pct, Ticket } from './rounds';
+import { Amount, Glow, Icon, Link, Wordmark } from './ui';
 
 export default function Landing() {
-  const boxes = useLive(loadBoxes, 30000);
-  const txns = useLive(() => recentContractTxns(6), 30000);
-  const mpc = useLive(() => rootPublicKey() as Promise<string>);
-  const relayer = useLive(() => contractId ? rpcQuery(contractId, 'relayer_price', {}) as Promise<RelayerPrice | null> : Promise.reject(new Error('Setup required: VITE_HAKO_CONTRACT')), 60000);
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 5000); return () => clearInterval(t); }, []);
-  const open = (e: React.MouseEvent) => { e.preventDefault(); navigate('/app'); };
+  const rounds = useRounds(); const boxes = useBoxes(); const relayer = useRelayer(); const txns = useTxns();
+  const mpc = useLive<string>('mpc-root', () => rootPublicKey() as Promise<string>, 600000);
+  const now = useNow(5000);
+  const [menu, setMenu] = useState(false);
+  const paid = (rounds.data || []).filter(r => r.premium_paid_usdc);
+  const lead = paid.find(r => roundPhase(r, now).phase === 'itm') || paid[0] || rounds.data?.[0];
+  const second = paid.find(r => r.key !== lead?.key) || rounds.data?.find(r => r.key !== lead?.key);
+  const sum = rounds.data ? earnedSummary(rounds.data) : null;
+  const sealed = boxes.data?.filter(b => b.pq_key?.length).length;
+  const leadPh = lead ? roundPhase(lead, now) : null;
 
   return <>
-    <section className="hero">
-      <div className="hero-art" aria-hidden="true"><img src="/art/hako-hero.webp" width="1536" height="1024" alt="" fetchPriority="high" /></div>
-      <div className="hero-copy">
-        <Eyebrow>post-quantum vault · NEAR testnet</Eyebrow>
-        <h1>Your Bitcoin dies on Q-day.<br /><em>Hako doesn't.</em></h1>
-        <p className="lede">A vault NFT that holds native BTC, ETH and SOL. Only a post-quantum ML-DSA key can order a spend, and every spend obeys a daily cap, a clawback delay, a guardian and an heir.</p>
-        <div className="cta-row">
-          <a className="btn btn-primary" href="/app" onClick={open}>Open the vault app <Icon name="arrow" /></a>
-          <a className="btn btn-ghost" href="#scan"><Icon name="scan" /> Scan an address</a>
+    <header className="l-nav">
+      <Link to="/" aria-label="Hako home"><Wordmark /></Link>
+      <nav aria-label="Sections" className={menu ? 'open' : ''}>
+        <a href="#round" onClick={() => setMenu(false)}>How a round works</a>
+        <a href="#wall" onClick={() => setMenu(false)}>The wall</a>
+        <a href="#safety" onClick={() => setMenu(false)}>Safety</a>
+        <a href="#tech" onClick={() => setMenu(false)}>NEAR</a>
+      </nav>
+      <Link to="/app" className="pill pill-ice pill-sm">Open the vault</Link>
+    </header>
+
+    <main id="main">
+      <section className="hero">
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <p className="lbl hero-lbl"><span className="kanji">箱</span>Quantum-safe BTC yield · NEAR testnet</p>
+            <h1>Bitcoin that <em>earns</em>,<br /><span className="h1-line">locked for Q-day.</span></h1>
+            <p className="lede">Put native BTC in a box only a post-quantum key can open. Sell covered calls on it and keep the premium. It never leaves Bitcoin and is never wrapped.</p>
+            <div className="hero-cta">
+              <Link to="/app" className="pill pill-ice pill-lg">Open the vault <Icon name="arrow" size={17} /></Link>
+              <a href="#round" className="pill pill-ghost pill-lg">How a round works</a>
+            </div>
+            <p className="hero-live" aria-live="polite">{sum && sum.paid.length
+              ? <><i className="live-dot" />So far the vaults earned <b><Amount e6={sum.earned} unit={TUSDC_SYMBOL} /></b> on NEAR testnet, <b>{pct(sum.blended, 2)}</b> annualised.</>
+              : rounds.error ? <>Live read failed: {rounds.error}</> : <><i className="pulse" /> Reading the rounds from NEAR testnet…</>}</p>
+          </div>
+          <div className="hero-stage" aria-label="The latest settled round, read live">
+            <Glow name="box" className="stage-glow" />
+            <div className="stage-ring" aria-hidden="true" />
+            {second && <div className="stage-back"><Ticket c={second} now={now} /></div>}
+            {lead ? <div className="stage-front"><Ticket c={lead} now={now} lead /></div> : <div className="stage-front"><div className="ticket skeleton" /></div>}
+            {relayer.data && <span className="float-tag tag-price"><Icon name="wave" size={14} />BTC-USD ${e6(relayer.data.price_usd_e6, 0)}<small>relayer price (testnet)</small></span>}
+            {sealed !== undefined && <span className="float-tag tag-seal"><Icon name="key" size={14} />{sealed} of {boxes.data!.length} vaults sealed<small>ML-DSA-65</small></span>}
+          </div>
         </div>
-      </div>
-      <div className="hero-foot">
-        <span>Contract</span>
-        {contractId ? <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer"><code>{contractId}</code><Icon name="external" size={14} /></a> : <Chip tone="warn">Setup required: VITE_HAKO_CONTRACT</Chip>}
-        <span className="hero-foot-sep" />
-        <span>Signer</span><code>{TESTNET_MPC}</code>
-      </div>
-    </section>
+        <LiveTape />
+      </section>
 
-    <section className="proof" aria-label="Live contract state">
-      <div className="proof-head">
-        <Eyebrow>live on NEAR testnet</Eyebrow>
-        <p>Read from the contract every 30 seconds. Nothing on this strip is typed by hand.</p>
-      </div>
-      <div className="stats">
-        <Stat label="Vault NFTs minted" live={boxes} pick={b => b.length} />
-        <Stat label="Locked to an ML-DSA key" live={boxes} pick={b => b.filter(x => x.pq_key?.length).length} />
-        <Stat label="Have issued an MPC signature" live={boxes} pick={b => b.filter(x => x.ever_signed).length} />
-        <Stat label="Listed for sale" live={boxes} pick={b => b.filter(x => x.listed_yocto).length} />
-      </div>
-      {boxes.state === 'error' && <p className="inline-error" role="alert">{boxes.message}</p>}
-      <div className="txfeed">
-        <div className="txfeed-head"><span>Recent contract transactions</span><span>NearBlocks</span></div>
-        {txns.state === 'loading' && <div className="txrow skeleton" aria-busy="true"><span /><span /><span /></div>}
-        {txns.state === 'error' && <p className="inline-error" role="alert">Transactions unavailable: {txns.message}</p>}
-        {txns.state === 'ok' && txns.value.length === 0 && <p className="muted">No transactions yet.</p>}
-        {txns.state === 'ok' && txns.value.map((t: ChainTx) => <a key={t.hash} className="txrow" href={nearblocksTx(t.hash)} target="_blank" rel="noreferrer">
-          <span className="tx-method">{t.method}</span>
-          <span className="tx-signer">{short(t.signer, 14, 8)}</span>
-          <Chip tone={t.ok ? 'ok' : 'bad'}>{t.ok ? 'Success' : 'Rejected'}</Chip>
-          <span className="tx-age">{ago(t.ns, now)}</span>
-          <span className="tx-hash">{short(t.hash, 6, 4)} <Icon name="external" size={14} /></span>
-        </a>)}
-      </div>
-    </section>
-
-    <section className="how" id="how">
-      <div className="section-intro">
-        <Eyebrow>how it works</Eyebrow>
-        <h2>Three moves.<br /><span>Your coins never leave their chain.</span></h2>
-      </div>
-      <ol className="steps">
-        <li><b>01</b><h3>Mint a box</h3><p>The NFT derives its own Bitcoin, Ethereum and Solana addresses through NEAR Chain Signatures. Fund them like any wallet.</p></li>
-        <li><b>02</b><h3>Seal it with a quantum key</h3><p>Register an ML-DSA-65 public key. From then on, the contract signs nothing unless that key authorised it.</p></li>
-        <li><b>03</b><h3>Spend under rules</h3><p>Over the daily cap is refused. Anything else waits out the delay, and your guardian can claw it back.</p></li>
-      </ol>
-    </section>
-
-    <section className="panel panel-left">
-      <Art className="panel-art art-flip" src="/art/hako-feature-key.webp" icon="key" label="A crystal key on a titanium plinth" />
-      <div className="panel-copy">
-        <Eyebrow>post-quantum authority</Eyebrow>
-        <h2>Only an ML-DSA key can order a spend.</h2>
-        <p>Bitcoin and Ethereum keys are elliptic-curve keys; once a public key is on-chain, a large quantum computer could derive it. Hako moves the decision of <em>who may spend</em> to a lattice signature that NEAR verifies on-chain.</p>
-        <dl className="specs">
-          <div><dt>Scheme</dt><dd>ML-DSA-65 (FIPS 204)</dd></div>
-          <div><dt>Verified by</dt><dd><code>env::ml_dsa_verify</code></dd></div>
-          <div><dt>Replay guard</dt><dd>per-box nonce in every signed message</dd></div>
-          <div><dt>Change</dt><dd>always to a fresh next-epoch address</dd></div>
-        </dl>
-      </div>
-    </section>
-
-    <section className="panel panel-right">
-      <Art className="panel-art" src="/art/hako-feature-lock.webp" icon="lock" label="A round vault door with a glowing clock dial" />
-      <div className="panel-copy">
-        <Eyebrow>rules bitcoin can't enforce</Eyebrow>
-        <h2>A cap, a delay, a guardian, an heir.</h2>
-        <p>The contract parses the real Bitcoin (BIP143) or Ethereum transaction before it asks the signer network for a signature, so the rules bind the actual coins.</p>
-        <div className="rules-grid">
-          <div><Icon name="coin" /><b>Daily cap</b><span>Spends over the per-day limit are refused on-chain.</span></div>
-          <div><Icon name="clock" /><b>Clawback delay</b><span>New destinations wait; the guardian can pull funds to recovery.</span></div>
-          <div><Icon name="shield" /><b>Guardians</b><span>M-of-N ML-DSA guardians rotate a lost key after a timelock.</span></div>
-          <div><Icon name="heir" /><b>Heir</b><span>Miss your check-in and the NFT passes to your heir.</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section className="yield" id="yield">
-      <Art className="yield-art" src="/art/hako-feature-yield.webp" icon="coin" label="A golden stream of light flowing into a glass vault" />
-      <div className="yield-inner">
-        <div className="yield-copy">
-          <Eyebrow>yield on native BTC</Eyebrow>
-          <h2>Idle Bitcoin can earn a premium. <span>It stays on Bitcoin.</span></h2>
-          <p>Sell a covered call from your box. A buyer pays a premium for the right to buy your sats at a strike price before expiry. You keep the premium either way. Below are the two calls Hako ran end to end on NEAR testnet.</p>
-          <p className="caveat">The trade-off is real: if BTC ends above the strike and the buyer exercises, you are paid the strike and give up the upside above it.</p>
-        </div>
-        <figure className="payoff">
-          <svg viewBox="0 0 360 220" role="img" aria-label="Covered call payoff shape: rises with BTC price until the strike, then flat">
-            <defs><linearGradient id="pg" x1="0" x2="1"><stop offset="0" stopColor="#5cc3db" /><stop offset="1" stopColor="#c9f3fb" /></linearGradient></defs>
-            <line x1="24" y1="190" x2="344" y2="190" className="axis" />
-            <line x1="24" y1="20" x2="24" y2="190" className="axis" />
-            <line x1="200" y1="20" x2="200" y2="190" className="strike" />
-            <path d="M24 170 L200 64 L344 64" fill="none" stroke="url(#pg)" strokeWidth="2.5" />
-            <path d="M24 186 L200 80 L344 80" fill="none" className="hold" />
-            <text x="206" y="34">strike</text>
-            <text x="250" y="56">capped upside</text>
-            <text x="250" y="98" className="dim">BTC alone</text>
-            <text x="300" y="208">BTC price →</text>
-          </svg>
-          <figcaption>Shape of the payoff, not a forecast. The gap between the lines is the premium.</figcaption>
-        </figure>
-        <ol className="yield-steps">
-          <li><b>Write</b><span>Sign strike, size, expiry and premium range with your ML-DSA key.</span></li>
-          <li><b>Auction</b><span>A Dutch auction lowers the asking premium; the first buyer pays with <code>ft_transfer_call</code>.</span></li>
-          <li><b>Settle</b><span>At expiry a Coinbase BTC-USD print signed by the relayer key settles it. A stale, replayed or unsigned price is refused.</span></li>
+      <section className="l-sec" id="round">
+        <header className="l-head"><p className="lbl">How a round works</p><h2>Seal it. Sell the upside.<br /><span>Keep the premium.</span></h2></header>
+        <ol className="beats">
+          <li className="beat">
+            <span className="beat-n">01</span>
+            <h3>Seal the box</h3>
+            <p>Mint a vault NFT. NEAR Chain Signatures give it its own native Bitcoin address. Register an ML-DSA-65 key, and from then on nothing moves without that key's signature.</p>
+            <div className="beat-live"><b>{sealed ?? '…'}<small>/{boxes.data?.length ?? '…'}</small></b><span>vaults on testnet are sealed with an ML-DSA key</span></div>
+          </li>
+          <li className="beat">
+            <span className="beat-n">02</span>
+            <h3>Sell a round</h3>
+            <p>Offer a covered call: a strike, a size and an expiry, signed with your quantum key. A Dutch auction lowers the premium until a buyer pays it in {TUSDC_SYMBOL}.</p>
+            <div className="beat-live">{lead ? <><b><Amount e6={lead.premium_paid_usdc || '0'} digits={6} /><small>{TUSDC_SYMBOL}</small></b><span>paid for round #{lead.id} on {short(lead.token_id, 10, 4)}</span><AprRange c={lead} compact /></> : <span>{rounds.error || 'Reading…'}</span>}</div>
+          </li>
+          <li className="beat">
+            <span className="beat-n">03</span>
+            <h3>Settle and keep it</h3>
+            <p>At expiry a signed Coinbase BTC-USD print settles the round. Below the strike your sats come back; above it the buyer pays the strike and takes them. The premium is yours either way.</p>
+            <div className="beat-live">{lead?.oracle_price_usd_e6 ? <><b>${e6(lead.oracle_price_usd_e6, 0)}</b><span>settlement print · strike ${e6(lead.strike_usd_e6, 0)} · {leadPh?.label.toLowerCase()}</span></> : <span>{rounds.data ? 'No round has settled yet' : 'Reading…'}</span>}</div>
+          </li>
         </ol>
-        <EarnedProof />
-      </div>
-    </section>
+        <p className="beats-caveat">The trade-off is real: above the strike you give up the upside. Premiums here are demo terms on a test token, not a forecast.</p>
+      </section>
 
-    <section className="scan-section" id="scan">
-      <div className="section-intro center">
-        <Eyebrow>quantum exposure scanner</Eyebrow>
-        <h2>Is your address already exposed?</h2>
-        <p>Paste a Bitcoin or Ethereum address, or a P2PK public key. Hako reads the public chain and tells you whether the public key is already visible, and how much sits behind it. No wallet needed.</p>
-      </div>
-      <ExposureScanner target={null} targetUsable={false} bitcoinProxy={esploraUrl} anvilRpc={anvilUrl} />
-    </section>
+      <section className="l-sec" id="wall">
+        <header className="l-head l-head-row">
+          <div><p className="lbl">The wall · live vault NFTs</p><h2>{boxes.data ? <>{boxes.data.length} boxes on the wall.</> : 'The wall.'}<br /><span>Every one is an NFT on NEAR.</span></h2></div>
+          <Link to="/vaults" className="l-more">Open the wall <Icon name="arrow" size={16} /></Link>
+        </header>
+        {boxes.error && !boxes.data ? <p className="err-line" role="alert">Could not read the contract: {boxes.error}</p>
+          : <div className="wall wall-landing">{boxes.data ? boxes.data.slice(0, 12).map(b => <Drawer key={b.token_id} b={b} account="" round={rounds.data?.find(r => r.token_id === b.token_id)} now={now} />) : Array.from({ length: 8 }, (_, i) => <div key={i} className="drawer skeleton" />)}</div>}
+        <div className="legend" aria-hidden="true"><span><i className="on" />ML-DSA key</span><span><i className="on" />Spending rules</span><span><i className="on" />Has signed</span></div>
+      </section>
 
-    <section className="tech" id="tech">
-      <div className="section-intro">
-        <Eyebrow>the NEAR pieces</Eyebrow>
-        <h2>Four NEAR features,<br /><span>each doing one concrete job.</span></h2>
-      </div>
-      <div className="tech-grid">
-        <article>
-          <span className="tech-k">Chain Signatures</span>
-          <h3>One NFT, three native addresses.</h3>
-          <p>The contract asks <code>{TESTNET_MPC}</code> to sign with a key derived from the path <code>hako/&lt;box&gt;/&lt;epoch&gt;</code>. Selling the box hands over the addresses; nothing is bridged or wrapped.</p>
-          <div className="tech-live">{mpc.state === 'ok' ? <><Chip tone="ok">Live</Chip><code>root {short(String(mpc.value), 14, 6)}</code></> : mpc.state === 'error' ? <Chip tone="bad">{mpc.message}</Chip> : <Chip>Reading signer…</Chip>}</div>
-        </article>
-        <article>
-          <span className="tech-k">ML-DSA on-chain</span>
-          <h3>Post-quantum signatures, checked by the runtime.</h3>
-          <p>Every spend, policy change, call write and heir update carries an ML-DSA-65 signature over the box ID, nonce and payload. The contract rejects anything else.</p>
-          <div className="tech-live"><Chip tone="ice">Boundary</Chip><span>The signer network and Bitcoin signatures stay ECDSA; ML-DSA decides who may ask.</span></div>
-        </article>
-        <article>
-          <span className="tech-k">NEAR Intents · 1Click</span>
-          <h3>Deposit anything, land as native BTC.</h3>
-          <p>The Earn tab requests live <code>dry: true</code> 1Click quotes from ETH, SOL or USDC into the box's next-epoch Bitcoin address. Quotes only; no deposit address is issued.</p>
-          <div className="tech-live"><Chip tone="warn">Mainnet only</Chip><span>Execution needs NEAR_MAINNET_ACCOUNT.</span></div>
-        </article>
-        <article>
-          <span className="tech-k">Signed price relayer · testnet</span>
-          <h3>Settlement uses a price the contract can check.</h3>
-          <p>Pyth no longer serves NEAR, so on testnet a relayer signs the last Coinbase BTC-USD trade with an ed25519 key. <code>post_relayer_price</code> verifies the signature, the source URL, 60-second freshness and that time only moves forward. Mainnet design: read the Rhea oracle <code>priceoracle.near</code> instead; its BTC price read null on Nov 9, so that path still needs verifying.</p>
-          <div className="tech-live">{relayer.state === 'ok' ? (relayer.value ? <><Chip tone={Date.now() / 1000 - relayer.value.publish_time_sec < 120 ? 'ok' : 'idle'}>relayer price (testnet)</Chip><code>BTC-USD ${e6(relayer.value.price_usd_e6, 2)} · {ago(relayer.value.publish_time_sec * 1e9, now)}</code></> : <><Chip tone="warn">No price posted</Chip><span>Run <code>scripts/price-relayer.mjs</code>.</span></>) : relayer.state === 'error' ? <Chip tone="bad">{relayer.message}</Chip> : <Chip>Reading relayer price…</Chip>}</div>
-        </article>
-      </div>
-    </section>
+      <section className="l-sec" id="safety">
+        <header className="l-head"><p className="lbl">Safety, plainly</p><h2>Four locks on every box.<br /><span>Bitcoin can't enforce any of them. NEAR does.</span></h2></header>
+        <Safety />
+      </section>
 
-    <section className="closer">
-      <Art className="closer-art" src="/art/hako-og.webp" icon="box" label="Three glass vaults on a dark reflective floor" />
-      <div className="closer-copy">
+      <section className="l-sec" id="record">
+        <header className="l-head"><p className="lbl">The record</p><h2>Read from the chain,<br /><span>not typed by hand.</span></h2></header>
+        <div className="record">
+          <div className="record-earned">
+            <Dial value={sum?.blended ?? null} label={sum?.blended != null ? `${sum.blended.toFixed(1)}%` : '…'} sub="annualised" />
+            <div>
+              <p className="lbl">Premium paid to writers</p>
+              <p className="record-big">{sum ? <Amount e6={sum.earned} unit={TUSDC_SYMBOL} /> : '…'}</p>
+              <ul className="record-runs">{paid.map(r => { const ev = evidenceFor(r); const ph = roundPhase(r, now); return <li key={r.key}>
+                <span className={`stamp stamp-${ph.phase}`}>{ph.short}</span>
+                <span>#{r.id} {short(r.token_id, 10, 4)} · <Amount e6={r.premium_paid_usdc} /> · {pct(annualisedPct(r))}</span>
+                {ev && <span className="record-tx">{[['Write', ev.write], ['Premium', ev.buy], ['Settle', ev.settle]].filter(([, h]) => h).map(([k, h]) => <a key={k} href={nearblocksTx(h!)} target="_blank" rel="noreferrer">{k}<Icon name="external" size={11} /></a>)}</span>}
+              </li>; })}</ul>
+              <p className="fine">{TUSDC_SYMBOL} is Hako's own test token (<a href={nearblocksAccount(evidenceMeta.premiumToken)} target="_blank" rel="noreferrer">{evidenceMeta.premiumToken}</a>), no value. Bitcoin is Core regtest.</p>
+            </div>
+          </div>
+          <div className="receipt">
+            <div className="receipt-head"><b>Contract transactions</b><span>NearBlocks · testnet</span></div>
+            {txns.error && !txns.data ? <p className="err-line">Unavailable: {txns.error}</p>
+              : !txns.data ? <p className="receipt-row dim"><i className="pulse" /> Reading…</p>
+              : txns.data.length === 0 ? <p className="receipt-row dim">No transactions yet.</p>
+              : txns.data.map(t => <a key={t.hash} className="receipt-row" href={nearblocksTx(t.hash)} target="_blank" rel="noreferrer">
+                <span className="r-m">{t.method}</span><span className="r-s">{short(t.signer, 12, 6)}</span><span className={t.ok ? 'r-ok' : 'r-bad'}>{t.ok ? 'ok' : 'rejected'}</span><span className="r-t">{ago(t.ns, now)}</span>
+              </a>)}
+            {contractId && <a className="receipt-foot" href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer">{contractId} <Icon name="external" size={12} /></a>}
+          </div>
+        </div>
+      </section>
+
+      <section className="l-sec" id="scan">
+        <header className="l-head"><p className="lbl">Quantum exposure scanner</p><h2>Is your address already exposed?<br /><span>Paste it. No wallet needed.</span></h2></header>
+        <ExposureScanner target={null} targetUsable={false} bitcoinProxy={esploraUrl} anvilRpc={anvilUrl} />
+      </section>
+
+      <section className="l-sec" id="tech">
+        <header className="l-head"><p className="lbl">The NEAR pieces</p><h2>Five NEAR features,<br /><span>each with one job.</span></h2></header>
+        <ol className="tech">
+          <li><span className="tech-n">Chain Signatures</span><div><h3>One NFT, native addresses on three chains.</h3><p>The contract asks <code>{TESTNET_MPC}</code> to sign with a key derived from <code>hako/&lt;box&gt;/&lt;epoch&gt;</code>. Selling the box hands over the addresses; nothing is bridged.</p></div><span className="tech-live">{mpc.data ? <><i className="ok-dot" />root {short(String(mpc.data), 12, 6)}</> : mpc.error ? <span className="bad">{mpc.error}</span> : 'Reading signer…'}</span></li>
+          <li><span className="tech-n">ML-DSA on-chain</span><div><h3>Post-quantum signatures, checked by the runtime.</h3><p>Every spend, rule change, call write and heir update carries an ML-DSA-65 signature over the box ID, nonce and payload, verified with <code>env::ml_dsa_verify</code>.</p></div><span className="tech-live">{sealed !== undefined ? <><i className="ok-dot" />{sealed} keys registered</> : '…'}</span></li>
+          <li><span className="tech-n">NEP-141 premiums</span><div><h3>Buyers pay with one <code>ft_transfer_call</code>.</h3><p>The premium token is {TUSDC_SYMBOL}, Hako's own test token. The contract's <code>ft_on_transfer</code> accepts the payment only at the current auction price.</p></div><span className="tech-live"><i className="ok-dot" />{short(evidenceMeta.premiumToken, 10, 8)}</span></li>
+          <li><span className="tech-n">Signed price relayer</span><div><h3>Settlement uses a price the contract can check.</h3><p>Pyth no longer serves NEAR, so on testnet a relayer signs the last Coinbase BTC-USD trade with an ed25519 key. <code>post_relayer_price</code> checks the key, the source, 60-second freshness and forward-only time. Mainnet design: the Rhea oracle, not yet verified for BTC.</p></div><span className="tech-live">{relayer.data ? <><i className="ok-dot" />${e6(relayer.data.price_usd_e6, 2)} · {ago(relayer.data.publish_time_sec * 1e9, now)}</> : relayer.error ? <span className="bad">{relayer.error}</span> : '…'}</span></li>
+          <li><span className="tech-n">NEAR Intents · 1Click</span><div><h3>Deposit from another chain, land as native BTC.</h3><p>Each vault's Earn tab asks 1Click for a live <code>dry: true</code> quote from ETH, SOL or USDC into its next Bitcoin address. Quotes only; executing one needs a funded mainnet account.</p></div><span className="tech-live"><i className="warn-dot" />Setup required: NEAR_MAINNET_ACCOUNT</span></li>
+        </ol>
+      </section>
+
+      <section className="closer">
+        <Glow name="trio" className="closer-glow" />
         <h2>Put a box around it.</h2>
-        <p>Connect a NEAR testnet wallet, mint a vault and seal it with a key that survives Q-day.</p>
-        <a className="btn btn-primary" href="/app" onClick={open}>Open the vault app <Icon name="arrow" /></a>
+        <Link to="/app" className="pill pill-ice pill-lg">Open the vault <Icon name="arrow" size={17} /></Link>
+      </section>
+    </main>
+
+    <footer className="l-foot">
+      <div className="l-foot-row">
+        <Wordmark />
+        <p>Quantum-safe Bitcoin vaults on NEAR testnet and local chains. A prototype, not a mainnet vault. MIT · © 2026 Nivesh Gajengi</p>
+        {contractId && <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer">Contract <Icon name="external" size={12} /></a>}
       </div>
-    </section>
+      <p className="l-foot-mark" aria-hidden="true">箱</p>
+    </footer>
   </>;
 }
+

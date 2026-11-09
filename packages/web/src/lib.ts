@@ -62,10 +62,14 @@ export function countdown(ms: number) {
 }
 
 export function navigate(path: string) {
-  if (location.pathname === path) { scrollTo({ top: 0 }); return; }
-  history.pushState(null, '', path);
-  dispatchEvent(new PopStateEvent('popstate'));
-  scrollTo({ top: 0 });
+  const [route, hash] = path.split('#');
+  if (location.pathname !== route || location.hash !== (hash ? `#${hash}` : '')) {
+    history.pushState(null, '', path);
+    dispatchEvent(new PopStateEvent('popstate'));
+  }
+  const smooth = matchMedia('(prefers-reduced-motion: no-preference)').matches ? 'smooth' : 'auto';
+  if (hash) requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ behavior: smooth as ScrollBehavior }));
+  else scrollTo({ top: 0 });
 }
 
 // ---------- covered calls ----------
@@ -92,4 +96,44 @@ export function annualisedPct(c: CoveredCall): number | null {
   return Number(c.premium_paid_usdc) / notional * YEAR_SEC / tenor * 100;
 }
 export function tenorLabel(sec: number) { return sec < 3600 ? `${Math.round(sec / 60)} min` : sec < 172800 ? `${Math.round(sec / 3600)} h` : `${Math.round(sec / 86400)} d`; }
+// ---------- rounds (every covered call the contract has recorded) ----------
+export type Round = CoveredCall & { key: string };
+export type Phase = 'live' | 'sold' | 'itm' | 'otm' | 'unfilled' | 'other';
+
+/** Annualised yield on strike notional for a given premium (6-decimal tUSDC units). */
+export function aprFor(c: CoveredCall, premiumE6: string | number | bigint): number | null {
+  const tenor = callTenorSec(c), notional = strikeNotionalE6(c);
+  if (!(tenor > 0) || !(notional > 0)) return null;
+  return Number(premiumE6) / notional * YEAR_SEC / tenor * 100;
+}
+
+/** What a round looks like to a reader right now: the contract state plus the clock. */
+export function roundPhase(c: CoveredCall, now: number): { phase: Phase; label: string; short: string } {
+  const ms = (ns: number | null) => (ns ?? 0) / 1e6;
+  switch (c.state) {
+    case 'auction': return ms(c.auction_end_ns) > now ? { phase: 'live', label: 'Auction open', short: 'Live' } : { phase: 'unfilled', label: 'Auction ended, no buyer', short: 'No buyer' };
+    case 'purchasing': return { phase: 'live', label: 'Premium arriving', short: 'Buying' };
+    case 'sold': case 'settling': return { phase: 'sold', label: ms(c.expiry_ns) > now ? 'Sold, running' : 'Sold, awaiting settlement', short: 'Sold' };
+    case 'itm': case 'paying': case 'paid': case 'signing': return { phase: 'itm', label: 'In the money', short: 'ITM' };
+    case 'signed': return { phase: 'itm', label: 'Exercised in the money', short: 'ITM' };
+    case 'otm': return { phase: 'otm', label: 'Expired out of the money', short: 'OTM' };
+    case 'unfilled': return { phase: 'unfilled', label: 'Unfilled', short: 'Unfilled' };
+    default: return { phase: 'other', label: callStateLabel[c.state] || c.state, short: callStateLabel[c.state] || c.state };
+  }
+}
+
+/** Total premium paid to writers and the blended annualised yield across those rounds. */
+export function earnedSummary(rounds: CoveredCall[]) {
+  const paid = rounds.filter(c => !!c.premium_paid_usdc);
+  const earned = paid.reduce((a, c) => a + BigInt(c.premium_paid_usdc!), 0n);
+  const notionalTime = paid.reduce((a, c) => a + strikeNotionalE6(c) * callTenorSec(c), 0);
+  const blended = paid.length && notionalTime > 0 ? Number(earned) / notionalTime * YEAR_SEC * 100 : null;
+  const tenor = paid.length ? paid.reduce((a, c) => a + callTenorSec(c), 0) / paid.length : 0;
+  return { paid, earned, blended, tenor };
+}
+
+export const utcTime = (ns: number) => new Date(ns / 1e6).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+export const utcDay = (ns: number) => new Date(ns / 1e6).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+export const btcFromSats = (sats: string | number) => (Number(sats) / 1e8).toLocaleString('en-US', { maximumFractionDigits: 4 });
+
 export const callStateLabel: Record<string, string> = { auction: 'Auction open', purchasing: 'Paying premium', sold: 'Sold', settling: 'Settling', itm: 'In the money', otm: 'Expired OTM', paying: 'Paying strike', paid: 'Strike paid', signing: 'MPC signing', signed: 'Exercised', lapsed: 'Lapsed', unfilled: 'Unfilled', unsettled: 'Unsettled' };
