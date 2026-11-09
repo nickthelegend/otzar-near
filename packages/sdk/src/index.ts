@@ -10,6 +10,7 @@ import { serializeTransaction, parseTransaction, type TransactionSerializableEIP
 import { Message, PublicKey, SystemProgram, Transaction as SolanaTransaction } from '@solana/web3.js';
 export { scanBitcoin, scanEthereum, scanExposure, type Exposure } from './exposure.js';
 export { oneClickTokens, dryBitcoinQuote, type OneClickAsset, type DryBitcoinQuoteInput } from './intents.js';
+export { RELAYER_PRICE_LABEL, COINBASE_BTC_USD, usdToE6, fetchCoinbaseBtcUsd, relayerPriceMessage, signRelayerPrice, relayerPublicKey, type SpotPrint } from './relayer.js';
 
 export const TESTNET_RPC = 'https://test.rpc.fastnear.com';
 export const TESTNET_MPC = 'v1.signer-prod.testnet';
