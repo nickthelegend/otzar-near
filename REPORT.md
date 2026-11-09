@@ -9,7 +9,7 @@
 
 ## Tests and evidence
 
-`pnpm test` passed: **5** Rust unit tests, **2** SDK tests, **1** live MCP test, web type check, and **25** NEAR sandbox transactions (**8** expected rejections). The demo recorded **24** NEAR testnet transactions (**10** expected rejections), **3** successful Anvil receipts, and **2** confirmed Bitcoin Core transactions. **Zero tests skipped.** The full links, gas measurements, and hashes are in [README.md](README.md), [TESTING.md](TESTING.md), and [deployments/testnet-2026-11-09.json](deployments/testnet-2026-11-09.json).
+`pnpm test` passed: **6** Rust unit tests, **2** SDK tests, **1** live MCP test, web type check, and **25** NEAR sandbox transactions (**8** expected rejections). The demo recorded **24** NEAR testnet transactions (**10** expected rejections), **3** successful Anvil receipts, and **2** confirmed Bitcoin Core transactions. **Zero tests skipped.** The full links, gas measurements, and hashes are in [README.md](README.md), [TESTING.md](TESTING.md), and [deployments/testnet-2026-11-09.json](deployments/testnet-2026-11-09.json).
 
 ## BLOCKED and limits
 
@@ -28,4 +28,4 @@ corepack pnpm test
 scripts/demo.sh
 ```
 
-`scripts/demo.sh` downloads Bitcoin Core 31.2 to ignored `.tools/` if needed, creates only ignored testnet keys, starts Anvil and regtest, runs and verifies the live demo, and stops both nodes. To view the web UI, set the public variables in `packages/web/.env.local`, run `node scripts/bitcoin-proxy.mjs` with a running regtest node, then `pnpm web`.
+`scripts/demo.sh` downloads Bitcoin Core 31.2 to ignored `.tools/` if needed, creates only ignored testnet keys, starts Anvil and regtest, runs and verifies the live demo, saves Anvil's local state, and stops both nodes. To view the web UI, reload the local nodes using the commands in [README.md](README.md), set the public variables in `packages/web/.env.local`, then run `node scripts/bitcoin-proxy.mjs` and `pnpm web` in separate terminals.

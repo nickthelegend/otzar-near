@@ -4,7 +4,7 @@ Run `corepack pnpm install --frozen-lockfile && corepack pnpm test` on macOS arm
 
 | Check | Actual result | Source |
 | --- | ---: | --- |
-| Rust contract unit tests | 5 passed, 0 failed, 0 ignored | `cargo test --manifest-path packages/contract/Cargo.toml` |
+| Rust contract unit tests | 6 passed, 0 failed, 0 ignored | `cargo test --manifest-path packages/contract/Cargo.toml` |
 | SDK tests, including live testnet MPC derivation view | 2 passed, 0 failed, 0 skipped | `pnpm --filter @hako/sdk test` |
 | Live MCP stdio tool and testnet box read | 1 passed, 0 failed, 0 skipped | `pnpm --filter @hako/mcp test` |
 | Web type check | passed; no test cases counted | `pnpm --filter @hako/web test` |
@@ -33,18 +33,20 @@ No tests were skipped. Sandbox uses a real local nearcore node, not a mocked RPC
 
 The sandbox also reads back the transferred box and confirms the earlier request is cancelled and its PQ key cleared. The live demo compares the on-chain Bitcoin BIP143 digest with the SDK's independent BIP143 computation, then confirms the signed transaction in Bitcoin Core. The ETH digest matches a viem EIP-1559 fixture in the Rust unit test, and Anvil accepts two MPC-signed ETH transactions.
 
+The sixth Rust test checks that an omitted delay defaults to 86,400 seconds and a future Bitcoin migration destination can be recorded without treating it as a current Ethereum address.
+
 ## Gas measured on NEAR testnet
 
 From [the final evidence](deployments/testnet-2026-11-09.json), including transaction and receipt gas:
 
 | Action | Gas (Tgas) |
 | --- | ---: |
-| Buyer ML-DSA-65 policy update | 5.66 |
-| ETH request with ML-DSA and EIP-1559 hash | 5.87 (allowlisted), 5.78 (delayed) |
-| ETH MPC signing and callback | 17.96 (withdrawal), 17.84 (recovery) |
-| Bitcoin policy/public-key registration | 6.14 |
-| Bitcoin request with ML-DSA and on-chain BIP143 | 6.46 |
-| Bitcoin MPC signing and callback | 18.52 |
+| Buyer ML-DSA-65 policy update | 6.78 |
+| ETH request with ML-DSA and EIP-1559 hash | 7.00 (allowlisted), 6.90 (delayed) |
+| ETH MPC signing and callback | 20.20 (withdrawal), 20.08 (recovery) |
+| Bitcoin policy/public-key registration | 7.27 |
+| Bitcoin request with ML-DSA and on-chain BIP143 | 7.58 |
+| Bitcoin MPC signing and callback | 20.77 |
 
 The SDK performs MPC epsilon derivation and verifies it against the signer view. **On-chain address derivation was not implemented**, so it has no measured gas figure. The contract checks a registered next-epoch P2WPKH script and enforces a two-minute registration delay for change instead. The web and MCP clients compare registered keys with SDK-derived keys before building a Bitcoin spend; direct callers must make that comparison themselves.
 

@@ -23,7 +23,7 @@ if [[ ! -x .tools/bitcoin-31.2/bin/bitcoind ]]; then
   tar -xzf .tools/bitcoin.tar.gz -C .tools
 fi
 
-anvil --host 127.0.0.1 --port 8545 --chain-id 31337 > /dev/null 2>&1 &
+anvil --host 127.0.0.1 --port 8545 --chain-id 31337 --state "$PWD/.demo/anvil-state.json" > /dev/null 2>&1 &
 anvil_pid=$!
 .tools/bitcoin-31.2/bin/bitcoind -regtest -datadir="$PWD/.demo/bitcoin" -server=1 -txindex=1 -rpcport=18443 -listen=0 -fallbackfee=0.0001 -printtoconsole=0 > /dev/null 2>&1 &
 bitcoin_pid=$!

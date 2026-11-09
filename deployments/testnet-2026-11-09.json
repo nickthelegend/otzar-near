@@ -7,217 +7,217 @@
       "step": "upgrade hako",
       "ok": true,
       "rejected": false,
-      "txHash": "HtVgZSMejybL7VAQGTBWisrjBdttuV11u7sbKf8TiNPm",
+      "txHash": "2zEtKTWUD2XmA9D3TRQZirGhaVnRkoogac9GtPuNJgLb",
       "signer": "hako-contract-mw984kpp.testnet",
       "gasTgas": "19.61",
-      "explorer": "https://testnet.nearblocks.io/txns/HtVgZSMejybL7VAQGTBWisrjBdttuV11u7sbKf8TiNPm"
+      "explorer": "https://testnet.nearblocks.io/txns/2zEtKTWUD2XmA9D3TRQZirGhaVnRkoogac9GtPuNJgLb"
     },
     {
       "step": "mint box",
       "ok": true,
       "rejected": false,
-      "txHash": "FmohRDRtTFDgx76gDbizAmux3epVeZfaQHWmyVurjg1u",
+      "txHash": "8ANx1MSBEXHy6NzL93WaF4SCvWn4RotQgaf1EKpYuHm7",
       "signer": "hako-seller-mw984kqa.testnet",
-      "gasTgas": "4.39",
-      "explorer": "https://testnet.nearblocks.io/txns/FmohRDRtTFDgx76gDbizAmux3epVeZfaQHWmyVurjg1u"
+      "gasTgas": "5.48",
+      "explorer": "https://testnet.nearblocks.io/txns/8ANx1MSBEXHy6NzL93WaF4SCvWn4RotQgaf1EKpYuHm7"
     },
     {
       "step": "list box",
       "ok": true,
       "rejected": false,
-      "txHash": "B8EHQynjLCHbbN5eWiWCGMkaFNEh6TMsj34UH6PXJ8wZ",
+      "txHash": "HE8q9oXco98jEY4DDBcU2VkT7h5xAgr8CpBqKLKhJ2w2",
       "signer": "hako-seller-mw984kqa.testnet",
-      "gasTgas": "4.40",
-      "explorer": "https://testnet.nearblocks.io/txns/B8EHQynjLCHbbN5eWiWCGMkaFNEh6TMsj34UH6PXJ8wZ"
+      "gasTgas": "5.50",
+      "explorer": "https://testnet.nearblocks.io/txns/HE8q9oXco98jEY4DDBcU2VkT7h5xAgr8CpBqKLKhJ2w2"
     },
     {
       "step": "buy box",
       "ok": true,
       "rejected": false,
-      "txHash": "FAHruS4wfEu1RfeaHEVg3k2xFgXud7fqnQVnZhJqvLvH",
+      "txHash": "CuWRZuhbuMSiNWWAYBpQ79m9G1568iWbo2pwyNFUMsQ4",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "5.18",
-      "explorer": "https://testnet.nearblocks.io/txns/FAHruS4wfEu1RfeaHEVg3k2xFgXud7fqnQVnZhJqvLvH"
+      "gasTgas": "6.28",
+      "explorer": "https://testnet.nearblocks.io/txns/CuWRZuhbuMSiNWWAYBpQ79m9G1568iWbo2pwyNFUMsQ4"
     },
     {
       "step": "buyer quantum-locks",
       "ok": true,
       "rejected": false,
-      "txHash": "G7x8moquFubihG3z29V2gAXRvJVtJ4QyQP9Mof9mumwz",
+      "txHash": "Ge32nrCMLt69XGRyo7gBkYLjGG1W2Rxmm61BDSpX5NXV",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "4.66",
-      "explorer": "https://testnet.nearblocks.io/txns/G7x8moquFubihG3z29V2gAXRvJVtJ4QyQP9Mof9mumwz"
+      "gasTgas": "5.78",
+      "explorer": "https://testnet.nearblocks.io/txns/Ge32nrCMLt69XGRyo7gBkYLjGG1W2Rxmm61BDSpX5NXV"
     },
     {
       "step": "buyer sets vault policy",
       "ok": true,
       "rejected": false,
-      "txHash": "EqXSKzsxMmJJqw9EtTpFptspTaPmgk7MX1YzL5ZgBywe",
+      "txHash": "9dgdgsyqZNQ5xCYLNBYK5kjoo4gjn7MqYs4FbYenoGca",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "5.66",
-      "explorer": "https://testnet.nearblocks.io/txns/EqXSKzsxMmJJqw9EtTpFptspTaPmgk7MX1YzL5ZgBywe"
+      "gasTgas": "6.78",
+      "explorer": "https://testnet.nearblocks.io/txns/9dgdgsyqZNQ5xCYLNBYK5kjoo4gjn7MqYs4FbYenoGca"
     },
     {
       "step": "over-cap rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "2dFhKXyaw1Drujzx2uBNZNSKNqMcTrjQ5z33xpqZW6kR",
+      "txHash": "5WGNSsxmC9Vqt55pZPi1osbyt5kiwFq4g8hSqhMg7c9E",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "3.62",
-      "explorer": "https://testnet.nearblocks.io/txns/2dFhKXyaw1Drujzx2uBNZNSKNqMcTrjQ5z33xpqZW6kR"
+      "gasTgas": "3.91",
+      "explorer": "https://testnet.nearblocks.io/txns/5WGNSsxmC9Vqt55pZPi1osbyt5kiwFq4g8hSqhMg7c9E"
     },
     {
       "step": "wrong PQ key rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "9dyc8usCCfYNyhmWe57BfnY26Pxchox8YrUdTeZAKYHF",
+      "txHash": "9zUjXAW1nshyLvu1wmTP7drURp48Z4eKjKZwRDyuJBvi",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "3.62",
-      "explorer": "https://testnet.nearblocks.io/txns/9dyc8usCCfYNyhmWe57BfnY26Pxchox8YrUdTeZAKYHF"
+      "gasTgas": "3.91",
+      "explorer": "https://testnet.nearblocks.io/txns/9zUjXAW1nshyLvu1wmTP7drURp48Z4eKjKZwRDyuJBvi"
     },
     {
       "step": "seller front-run rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "5pEimesid7MceDiK66Wn9g3RMzEACm35m4aYXYo5Yc4N",
+      "txHash": "H96BmoW8NrSsHzQzkghm1WH4LYeZtHZ6wHdPdTmB97pp",
       "signer": "hako-seller-mw984kqa.testnet",
-      "gasTgas": "2.97",
-      "explorer": "https://testnet.nearblocks.io/txns/5pEimesid7MceDiK66Wn9g3RMzEACm35m4aYXYo5Yc4N"
+      "gasTgas": "3.26",
+      "explorer": "https://testnet.nearblocks.io/txns/H96BmoW8NrSsHzQzkghm1WH4LYeZtHZ6wHdPdTmB97pp"
     },
     {
       "step": "request delayed ETH",
       "ok": true,
       "rejected": false,
-      "txHash": "Av95Lhi4USBRJWppSKqDKFYnAmnt5WjpR3aooBj4YYMT",
+      "txHash": "H67aQqArishsZiRodQxociLFMsNX62Swi89Kav2LhRSZ",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "5.78",
-      "explorer": "https://testnet.nearblocks.io/txns/Av95Lhi4USBRJWppSKqDKFYnAmnt5WjpR3aooBj4YYMT"
+      "gasTgas": "6.90",
+      "explorer": "https://testnet.nearblocks.io/txns/H67aQqArishsZiRodQxociLFMsNX62Swi89Kav2LhRSZ"
     },
     {
       "step": "listing pending box rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "8HeFg5fcccByjJNSBbYTqqatLWruCcdF4hxzXWjFsCot",
+      "txHash": "Gnf2cM1bR7YjVVDu29QRTGrX1GREE7dGeu6zD9fsj8XC",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "2.47",
-      "explorer": "https://testnet.nearblocks.io/txns/8HeFg5fcccByjJNSBbYTqqatLWruCcdF4hxzXWjFsCot"
+      "gasTgas": "2.76",
+      "explorer": "https://testnet.nearblocks.io/txns/Gnf2cM1bR7YjVVDu29QRTGrX1GREE7dGeu6zD9fsj8XC"
     },
     {
       "step": "pending request replay rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "Higa5Stq6AY7Fquv49EvUjqrz75G71fFTPAEKpkaguCm",
+      "txHash": "5uScxyHhZL2n93KwZ8iD4J5bhNJWYe3xvpjJUsSnBLzp",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "2.97",
-      "explorer": "https://testnet.nearblocks.io/txns/Higa5Stq6AY7Fquv49EvUjqrz75G71fFTPAEKpkaguCm"
+      "gasTgas": "3.26",
+      "explorer": "https://testnet.nearblocks.io/txns/5uScxyHhZL2n93KwZ8iD4J5bhNJWYe3xvpjJUsSnBLzp"
     },
     {
       "step": "guardian diversion rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "21bZJQVR7WpZyq4EcH3tEVkYsJi7cM7T9u1ZpujHHrFH",
+      "txHash": "8soUh8WnXyVwaY5uX2K19axp9bg22VZRenLsR8U5Xb9R",
       "signer": "hako-guardian-mw984kqc.testnet",
-      "gasTgas": "2.53",
-      "explorer": "https://testnet.nearblocks.io/txns/21bZJQVR7WpZyq4EcH3tEVkYsJi7cM7T9u1ZpujHHrFH"
+      "gasTgas": "2.81",
+      "explorer": "https://testnet.nearblocks.io/txns/8soUh8WnXyVwaY5uX2K19axp9bg22VZRenLsR8U5Xb9R"
     },
     {
       "step": "guardian clawback",
       "ok": true,
       "rejected": false,
-      "txHash": "J196kjnuBzbdNrZ5LVTRvwUtGXMjCTdMP3EGb3dB9q2f",
+      "txHash": "37SuJys9pi4yDmEGLByEncU5srp1mbBVSvAD1nPwdoRg",
       "signer": "hako-guardian-mw984kqc.testnet",
-      "gasTgas": "4.71",
-      "explorer": "https://testnet.nearblocks.io/txns/J196kjnuBzbdNrZ5LVTRvwUtGXMjCTdMP3EGb3dB9q2f"
+      "gasTgas": "5.83",
+      "explorer": "https://testnet.nearblocks.io/txns/37SuJys9pi4yDmEGLByEncU5srp1mbBVSvAD1nPwdoRg"
     },
     {
       "step": "MPC signs recovery",
       "ok": true,
       "rejected": false,
-      "txHash": "nd4JhqFZcm3WrJEa8CPxMgpV77Js8V35JxQfPMtcvFo",
+      "txHash": "2FuMNoARFBJpvMPmwCiHsQgM4pHhMjtiwEEeFDVWaV2Y",
       "signer": "hako-guardian-mw984kqc.testnet",
-      "gasTgas": "17.84",
-      "explorer": "https://testnet.nearblocks.io/txns/nd4JhqFZcm3WrJEa8CPxMgpV77Js8V35JxQfPMtcvFo"
+      "gasTgas": "20.08",
+      "explorer": "https://testnet.nearblocks.io/txns/2FuMNoARFBJpvMPmwCiHsQgM4pHhMjtiwEEeFDVWaV2Y"
     },
     {
       "step": "nonce replay rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "HsEvw5QQVJJMGDZr9BxfCEqeUyJDbfiQRBB6CxfNbUXC",
+      "txHash": "9hFoYXyN8p6Y6WeeHV5DBNgCagEYwa4YmQskxUpeLoXt",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "3.00",
-      "explorer": "https://testnet.nearblocks.io/txns/HsEvw5QQVJJMGDZr9BxfCEqeUyJDbfiQRBB6CxfNbUXC"
+      "gasTgas": "3.29",
+      "explorer": "https://testnet.nearblocks.io/txns/9hFoYXyN8p6Y6WeeHV5DBNgCagEYwa4YmQskxUpeLoXt"
     },
     {
       "step": "request allowlisted ETH",
       "ok": true,
       "rejected": false,
-      "txHash": "37KaEi1VrkkRirr7xCkFymieeLfaZtrCrajHHsQDFveV",
+      "txHash": "8i3pYX9vSqQAJhezW7yr7x5Pxn6g8kYRifgYRyz5EQ5f",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "5.87",
-      "explorer": "https://testnet.nearblocks.io/txns/37KaEi1VrkkRirr7xCkFymieeLfaZtrCrajHHsQDFveV"
+      "gasTgas": "7.00",
+      "explorer": "https://testnet.nearblocks.io/txns/8i3pYX9vSqQAJhezW7yr7x5Pxn6g8kYRifgYRyz5EQ5f"
     },
     {
       "step": "request MPC signature",
       "ok": true,
       "rejected": false,
-      "txHash": "3ZtRY2qkyYEtHMCmYbFYxvYQHSPjjuwkiS8gimg6GaSu",
+      "txHash": "DfUUQ5tnZ5brTFbpRz59dKTfe3FBtnvwCUWEe1KncRp",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "17.96",
-      "explorer": "https://testnet.nearblocks.io/txns/3ZtRY2qkyYEtHMCmYbFYxvYQHSPjjuwkiS8gimg6GaSu"
+      "gasTgas": "20.20",
+      "explorer": "https://testnet.nearblocks.io/txns/DfUUQ5tnZ5brTFbpRz59dKTfe3FBtnvwCUWEe1KncRp"
     },
     {
       "step": "resale after signature rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "Dwn3anTLUfUXdfARnb7FFBg5xaE47Nxg3EXRxCKAPuna",
+      "txHash": "FjZ2MGw4UTGgksCus3CwRgLD1yVWrXPofRthGJyPz2wS",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "2.59",
-      "explorer": "https://testnet.nearblocks.io/txns/Dwn3anTLUfUXdfARnb7FFBg5xaE47Nxg3EXRxCKAPuna"
+      "gasTgas": "2.88",
+      "explorer": "https://testnet.nearblocks.io/txns/FjZ2MGw4UTGgksCus3CwRgLD1yVWrXPofRthGJyPz2wS"
     },
     {
       "step": "register BTC vault",
       "ok": true,
       "rejected": false,
-      "txHash": "9EzwYnv6DQvskaiBrrqczM3jX7owjDoTcyV2cEsCh1kG",
+      "txHash": "C69BqWbcBTZLpDKqV1Erro67E38UHGTchGVzwchZTLsG",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "6.14",
-      "explorer": "https://testnet.nearblocks.io/txns/9EzwYnv6DQvskaiBrrqczM3jX7owjDoTcyV2cEsCh1kG"
+      "gasTgas": "7.27",
+      "explorer": "https://testnet.nearblocks.io/txns/C69BqWbcBTZLpDKqV1Erro67E38UHGTchGVzwchZTLsG"
     },
     {
       "step": "old BTC address reuse rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "FaPj7GVvFnCWfM54e8bt328hRNzEMLUrnNZxxqLz4Aic",
+      "txHash": "2EuSKyrVUX7XUSjjg8zNyLmWvZHsCSdQu3kvqBdScCNP",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "3.23",
-      "explorer": "https://testnet.nearblocks.io/txns/FaPj7GVvFnCWfM54e8bt328hRNzEMLUrnNZxxqLz4Aic"
+      "gasTgas": "3.51",
+      "explorer": "https://testnet.nearblocks.io/txns/2EuSKyrVUX7XUSjjg8zNyLmWvZHsCSdQu3kvqBdScCNP"
     },
     {
       "step": "BTC daily cap rejected",
       "ok": true,
       "rejected": true,
-      "txHash": "DMdw3drj7xjeb4N7Jk8ALjrSqVf66j5jati1mRsyD9Mv",
+      "txHash": "EiBvj8JdUPYNwLfGJaUqnJUy2w2fyc8zsXkSeyNzcSmM",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "4.12",
-      "explorer": "https://testnet.nearblocks.io/txns/DMdw3drj7xjeb4N7Jk8ALjrSqVf66j5jati1mRsyD9Mv"
+      "gasTgas": "4.41",
+      "explorer": "https://testnet.nearblocks.io/txns/EiBvj8JdUPYNwLfGJaUqnJUy2w2fyc8zsXkSeyNzcSmM"
     },
     {
       "step": "request BTC withdrawal",
       "ok": true,
       "rejected": false,
-      "txHash": "CYbfEQ5rbRv6ZQVLEMqc5tvMNTie1YWpnck3v8DRvDPC",
+      "txHash": "EFBzZB6XRNrjv2o3EdkHQfPSu2iSdtxZbr1BV6khKScG",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "6.46",
-      "explorer": "https://testnet.nearblocks.io/txns/CYbfEQ5rbRv6ZQVLEMqc5tvMNTie1YWpnck3v8DRvDPC"
+      "gasTgas": "7.58",
+      "explorer": "https://testnet.nearblocks.io/txns/EFBzZB6XRNrjv2o3EdkHQfPSu2iSdtxZbr1BV6khKScG"
     },
     {
       "step": "MPC signs Bitcoin",
       "ok": true,
       "rejected": false,
-      "txHash": "73K6utvKZ73Dh34JVb9K38c1srEaUphdkfTqDVYSNPNB",
+      "txHash": "AzLx5us7NyZ7uxMwnYwBJhZnQNVoxz38eEm67enLjSzL",
       "signer": "hako-buyer-mw984kqb.testnet",
-      "gasTgas": "18.52",
-      "explorer": "https://testnet.nearblocks.io/txns/73K6utvKZ73Dh34JVb9K38c1srEaUphdkfTqDVYSNPNB"
+      "gasTgas": "20.77",
+      "explorer": "https://testnet.nearblocks.io/txns/AzLx5us7NyZ7uxMwnYwBJhZnQNVoxz38eEm67enLjSzL"
     }
   ],
   "accounts": {
@@ -228,23 +228,23 @@
   },
   "ethereum": {
     "chainId": 31337,
-    "fundingTx": "0x6917d2941be1f979341569ffaf08576501a5c08d17a975b84f7662e387d2ee11",
-    "recoveryTx": "0xc40734f93d001fb949bbc62cde3d8d0ca758b9bb0864bca02d96fc93128bc338",
-    "withdrawalTx": "0xc18a9477674998f10e4761b5ca1a2408c96f1082d0d9be99dcbc6a057b4eb14c"
+    "fundingTx": "0x88b5f0c6821edea76af4fa5e413ef10d9aed84730735bc677fe2b79b9df301a6",
+    "recoveryTx": "0x2cd417589c101a97721dd833534025f08f1889390999b050ce5c61f3179e8d3b",
+    "withdrawalTx": "0xcc73278811d0c1944adab29c0549ab52afefb85596cd581b9b5f52e30b0402e0"
   },
-  "tokenId": "box-mw99g8nx",
+  "tokenId": "box-mw99z867",
   "addresses": {
-    "ethereum": "0x7bc72b678e1c1ac7ffc690cd8e4baad7cafd3a74",
-    "bitcoin": "bcrt1qdsfch3ysquncu7z7vgy8frpgszsy48002p8psp",
-    "ethereumPublicKey": "02f23e3756a26fd7100a6eb61c8288bdcf0aa6ac509e55be67f299ef9956b1de5b",
-    "bitcoinPublicKey": "02f23e3756a26fd7100a6eb61c8288bdcf0aa6ac509e55be67f299ef9956b1de5b"
+    "ethereum": "0x650892861f9530119f1af7fbde7f26384c9c6097",
+    "bitcoin": "bcrt1q3nm7q70m304zkm7yxfazxc89vtnhe27f3scq8r",
+    "ethereumPublicKey": "030e7ac2f13dbb02d02b3550924b8685f10fb4719ef38f6a98acc393bc2544d0ac",
+    "bitcoinPublicKey": "030e7ac2f13dbb02d02b3550924b8685f10fb4719ef38f6a98acc393bc2544d0ac"
   },
   "bitcoin": {
-    "fundingTx": "266237d189b61307768945512ead261cf236d39b8a65d8c6992bf02b353b0dc8",
-    "withdrawalTx": "535785fb176f9260b30a98803e0511d5f9eff63ac693c67a3d3945117e3a0c41",
-    "recipient": "bcrt1q9huzuknueewkxqwjcnhg8u0vw0ethjnc8ehlje",
-    "recovery": "bcrt1qnkpk8n0tkj3x8umvugesfun5wfledc65mqqgk6",
+    "fundingTx": "f9037a1e9b7d133275dfc83098602dbdcc08c313c2032f3878f24567934cae83",
+    "withdrawalTx": "c345f439c35fd9acda20718923093701d8f87efcd1a03dad7951edf6113e0238",
+    "recipient": "bcrt1qjpktcll000rjt4p9384a4evg58v3asv9xn4gpq",
+    "recovery": "bcrt1qs9gx4qlz5cq7tr468epqa6rfu0ugg8u9p8s3xp",
     "prevoutSats": "10000000",
-    "onChainSighash": "14906440ed5ed28e46c742644fc3faa696081fbde0d42401c04213f66768f351"
+    "onChainSighash": "b72941c51989318a0c33f2880852317a077c66e3e625d594dd93c3ead9fbb4fc"
   }
 }
