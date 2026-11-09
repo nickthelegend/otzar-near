@@ -6,7 +6,7 @@ import { MintSheet } from './mint';
 import { RoundSheet } from './RoundSheet';
 import { pct } from './rounds';
 import { Amount, Icon, State } from './ui';
-import { CountUp, Sticker } from './art';
+import { CountUp } from './art';
 import { annualisedPct, roundPhase, short, utcDay } from './lib';
 import { PhasePill } from './cards';
 import type { Wallet } from './wallet';
@@ -42,7 +42,6 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
         <p className="dash-sub">Each vault is a NEAR NFT holding native Bitcoin. Its owner sells covered calls on it and keeps the premium, signed with a post-quantum key.</p>
       </div>
       <button className="pill pill-jade" onClick={() => setMint(true)}><Icon name="plus" size={16} /> New vault</button>
-      <div className="dash-st" aria-hidden="true"><Sticker name="sprout" rot={9} className="st-a" /><Sticker name="bell" rot={-7} className="st-b" /><Sticker name="ticket" rot={12} className="st-c" /></div>
     </header>
 
     <div className="stats4">

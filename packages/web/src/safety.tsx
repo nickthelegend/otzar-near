@@ -1,4 +1,4 @@
-import { Sticker, type StickerName } from './art';
+import type { StickerName } from './art';
 
 const RULES = [
   { glow: 'key' as StickerName, k: 'Quantum key', h: 'Only your quantum key can ask for a spend.', p: 'Bitcoin keys are elliptic-curve keys a large quantum computer could crack. Otzar puts the decision of who may spend behind an ML-DSA-65 signature that NEAR checks on-chain. No valid signature, no spend.' },
@@ -16,7 +16,6 @@ export default function Safety({ compact = false }: { compact?: boolean }) {
         <h3>{r.h}</h3>
         <p>{r.p}</p>
       </div>
-      <Sticker name={r.glow} className="safe-st" rot={[-8, 6, -5, 9][i]} />
     </li>)}</ol>
     <p className="safety-edge"><b>Where the guarantee stops.</b> The signer network that produces the Bitcoin, Ethereum and Solana signatures still uses classical keys, and so do those chains. "Quantum-safe" here means who may <em>ask</em> for a signature is decided by a post-quantum key on NEAR; it does not change Bitcoin itself.</p>
   </div>;

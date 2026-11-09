@@ -52,6 +52,7 @@ export function Wordmark() { return <span className="wordmark"><Mark /><span cla
 /** Large hero or feature art with a drawn fallback. */
 export function Art({ name, className = '', alt = '', fallback = ['vault', 'coins'] }: { name: string; className?: string; alt?: string; fallback?: StickerName[] }) {
   const src = artSrc(name);
+  if (!src && !fallback.length) return null;
   if (!src) return <div className={`art-fallback ${className}`} aria-hidden="true">{fallback.map((f, i) => <Sticker key={f} name={f} rot={i % 2 ? 8 : -6} />)}</div>;
   return <img className={`art-img ${className}`} src={src} alt={alt} loading="eager" />;
 }

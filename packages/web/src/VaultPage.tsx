@@ -7,7 +7,7 @@ import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
 import { anvilUrl, btcFromSats, contractId, e6, earnedSummary, esploraUrl, formatEth, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, utcTime, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Timeline } from './ui';
-import { CountUp, Sticker } from './art';
+import { Art, CountUp } from './art';
 import { useNow, useRelayer, useRounds } from './data';
 import { PhasePill, RoundBars, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
 import { RoundSheet } from './RoundSheet';
@@ -129,7 +129,7 @@ export default function VaultPage({ id, wallet }: Props) {
           <div><dt>Current round</dt><dd>{latest ? <PhasePill c={latest} now={now} /> : <span className="dim">None</span>}</dd></div>
         </dl>
       </div>
-      <div className="v-hero-st" aria-hidden="true"><Sticker name="vault" rot={-8} className="st-a" /><Sticker name="gem" rot={10} className="st-b" /><Sticker name="lock" rot={-14} className="st-c" /></div>
+      <div className="v-hero-frame" aria-hidden="true"><Art name="otzar-st-vault" fallback={['vault']} /></div>
     </header>
 
     <div className="v-grid">
@@ -290,7 +290,6 @@ export default function VaultPage({ id, wallet }: Props) {
             <span>Realised APY</span>
             <b><CountUp value={rounds.data ? apy : null} decimals={2} suffix="%" /></b>
             <p>{rounds.data ? <><Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> premium over {earned.paid.length} paid {earned.paid.length === 1 ? 'round' : 'rounds'}</> : 'Reading rounds…'}</p>
-            <Sticker name="coins" rot={9} className="panel-st" />
           </div>
           <div className="seg2" role="tablist" aria-label="Deposit or withdraw">
             <button role="tab" aria-selected={side === 'deposit'} className={side === 'deposit' ? 'on' : ''} onClick={() => setSide('deposit')}>Deposit</button>
