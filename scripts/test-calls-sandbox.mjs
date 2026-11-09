@@ -58,7 +58,8 @@ async function main(){
   await send(buyer,contract.accountId,post(print,relayerSeed),'post signed Coinbase BTC-USD relayer price');
   await send(buyer,contract.accountId,post(print,relayerSeed),'replayed relayer price rejected',true);
   const stored=await rpcQuery(contract.accountId,'relayer_price',{},rpc);if(stored.price_usd_e6!==print.priceUsdE6.toString()||stored.label!=='relayer price (testnet)')throw new Error('relayer price not stored');
-  await send(buyer,contract.accountId,call('settle_call',{token_id:'earn'}),'settlement before expiry rejected',true);
+  await send(buyer,contract.accountId,call('settle_call',{token_id:'earn',price_usd_e6:print.priceUsdE6.toString(),publish_time_sec:print.publishTimeSec,source_url:print.sourceUrl,signature:signRelayerPrice(relayerSeed,contract.accountId,print)}),'settlement before expiry rejected',true);
+  await send(buyer,contract.accountId,call('expire_unsettled_call',{token_id:'earn'}),'unsettled-expiry before grace period rejected',true);
   const spend=unsignedBitcoinSpend({txid:funding,vout:vout.n,prevoutSats:sats,destination,amountSats:sats-1000n,feeSats:1000n});const spendPayload=Buffer.concat([Buffer.from(spend.rawHex,'hex'),Buffer.alloc(8)]);spendPayload.writeBigUInt64LE(sats,spendPayload.length-8);
   await send(owner,contract.accountId,call('request_btc_spend',{token_id:'earn',raw_unsigned_hex:spend.rawHex,prevout_sats:sats.toString(),nonce:2,signature:Buffer.from(signAuthorization(pq.secretKey,'earn',2,spendPayload)).toString('base64')}),'encumbered BTC spend rejected',true);
   await send(owner,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'earn'},120,1n),'encumbered box transfer rejected',true);

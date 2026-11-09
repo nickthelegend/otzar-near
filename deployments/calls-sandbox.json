@@ -3,160 +3,165 @@
   "steps": [
     {
       "name": "create hako-calls",
-      "txHash": "Hro3soSWMtCnZi8bajoLZoTK5ZSsEpCdspa5sSQDiCzr",
+      "txHash": "HqqDiuBogryK7Stg34Bnn7JVMigzRFRiwGqdRjduRzLx",
       "rejected": false
     },
     {
       "name": "create calls-owner",
-      "txHash": "62qeLRk7Famp8T9PWnM5xxXB969sWcEPvguMhzoTV1yB",
+      "txHash": "35kVBCo6ydvfR8MftjEbkjXCqa7TtL5muShBeo2e8Ksb",
       "rejected": false
     },
     {
       "name": "create calls-buyer",
-      "txHash": "7Cj17J1vuAp7uKowevyodr5T4qgAbkMgzFqg8KhTiGuf",
+      "txHash": "8Un4Gn5HmoPS8dFrTRFChs8Cbrup2BP2eazwUZC7N3tC",
       "rejected": false
     },
     {
       "name": "deploy covered-call contract",
-      "txHash": "93dnFr3X526wm9QEmo2aTvhj6YxRN4XTu1zsjAxg1h57",
+      "txHash": "GZPuZJGnVSp7esu5ANoMrdCpoaTYLVUb5grWFfn8rsDn",
       "rejected": false
     },
     {
       "name": "initialize covered-call contract",
-      "txHash": "J3eEqhskPhGeKQCydLKdj3pV3Pi29eeSTqjwk3WW2EQE",
+      "txHash": "EB7oJD7GTnWhCZCjatMJraQsaKPU5nM7imYvvtVZECrt",
       "rejected": false
     },
     {
       "name": "create husdc",
-      "txHash": "AwpjT8mJRPP2sLaMb6knEVaSzEmeTGuC1TDEiMv9Exxi",
+      "txHash": "9iTa2dEq1xEkBoggnmwZxR3XeNjzXf8KyndcHzz2XR31",
       "rejected": false
     },
     {
       "name": "deploy tUSDC (Hako test)",
-      "txHash": "GrhFFW569F8gSWVgmGchBD1WruPqUbLSqhmGQATz6URA",
+      "txHash": "B28QCWcunudLGXE93Q9rCgHSuW41GH3sD1MD5RxdfVj4",
       "rejected": false
     },
     {
       "name": "register hako-calls.test.near for tUSDC",
-      "txHash": "DDNHqbCFT4qBv6zXdJpcsHpC8mfeQK2z7JbfD9RyUmdT",
+      "txHash": "FgkQyt4R9XurB91wcSyMd8DHPXqGyRrwQvV1ptHV54w2",
       "rejected": false
     },
     {
       "name": "register calls-owner.test.near for tUSDC",
-      "txHash": "ADB4mL8QEJMN2tx38SDDoP2CWu6FuVNHBRyEHHnaEbEb",
+      "txHash": "J8jrfi2uc4pB4gpefHkbzADxcWN8z7bhAnjnQGcPDv5N",
       "rejected": false
     },
     {
       "name": "outsider tUSDC mint rejected",
-      "txHash": "9y3s8i3SQLxMtDZ4gzD3PRfvXiZ5JsuMB7ZNLmj8LqGT",
+      "txHash": "2eqy7azVtZagCuww9NMBfcpgKF4vqifiZFWQbVFJ6BNu",
       "rejected": true
     },
     {
       "name": "mint 1,000 tUSDC to buyer",
-      "txHash": "8gKYYykVt8XWrwodECh1Fazj1zmaj6NwcExT39moZX5D",
+      "txHash": "97sf27gWSb5iDo4Cy3ZEMPM1UGUPNq9Bpp9juigwiu6f",
       "rejected": false
     },
     {
       "name": "non-contract call config rejected",
-      "txHash": "3jwVUYHA9T9UQFCNUbFNPywWKqPbqqnE77nubLdBErKm",
+      "txHash": "G9xmVLf8FX1SoLHBYN4JhqacX4teRQBcVfBW4kH9TBuv",
       "rejected": true
     },
     {
       "name": "set premium token and relayer key",
-      "txHash": "5MTao3qE5SBGzyqojH4TCQCUof5rY2e5W4yh4i9WAF8J",
+      "txHash": "vphkUYByEUEJCsQDtUeZRTejUrMvn1HHvR12fLNq2SZ",
       "rejected": false
     },
     {
       "name": "mint earn box",
-      "txHash": "6gZzLXfRmoa3grrqdbHNuramjwKMt36NPpx414GHcotp",
+      "txHash": "GDBtdnvMHjCX4Zn77sWVkL9upE53jtpwJRb2P7QELTtC",
       "rejected": false
     },
     {
       "name": "register call writer ML-DSA key",
-      "txHash": "2qmwLiCNKaXR91oL7vuCkTh6DQNb8tVfSx1TdFGN9uqS",
+      "txHash": "FrA4vFfGnz41dS2ei8kX6pL298StUsC9nSUQfYpNcVz9",
       "rejected": false
     },
     {
       "name": "register real Bitcoin key",
-      "txHash": "FcpHL4zjQSsMxk8ivVukFPzxwDi6PWd836A48Nen8ZFR",
+      "txHash": "7p4JznbcPQdZuJjus6nBzEQkxxDb9qFasMxDdBHxW26X",
       "rejected": false
     },
     {
       "name": "write ML-DSA authorized covered call",
-      "txHash": "DGHqkdRHvAGn64ANJZUXP84Bj7mYgesD4tDx1KMKBVVX",
+      "txHash": "DCrKRQvcEqKCo5Pyzwa1phGrJTN46PEYAyT2m2zLLuqB",
       "rejected": false
     },
     {
       "name": "premium from a non-premium token rejected",
-      "txHash": "J7mv18oWv9GqK4Ly99wFrD3w5nxaHVBakR9PUMKjTXNh",
+      "txHash": "CQmfRBeW9U4P8E4aN1fULsDHcLTtL7o476kGN2Fz2zZk",
       "rejected": true
     },
     {
       "name": "buy call with tUSDC",
-      "txHash": "4Ctr4t12XyhkLLkBL7YMZeV2Cy25Kr9tnt9NfJHwTJmi",
+      "txHash": "Fm5t8sjBidjGJosrF1yP3YsNFNKJA1RhSZ8NkuXAhU2B",
       "rejected": false
     },
     {
       "name": "price signed by a different key rejected",
-      "txHash": "cXQybW1QKYNwjKD7i5aaAKWf3LHNox9CGZmz4cgHDMa",
+      "txHash": "37kbgSSEUN5e4hAAJ9axmAy9GrNb1k5bCrshaoUnwaey",
       "rejected": true
     },
     {
       "name": "stale relayer price rejected",
-      "txHash": "3qAvD3o65JA1FT2GyGXzy1mQ1E3EjsyEZC6D9fEm4dmT",
+      "txHash": "FaDJfMfszAKa5LB7T1n1pWZ3mg1vuejKf4GpveG3txr2",
       "rejected": true
     },
     {
       "name": "unlisted price source rejected",
-      "txHash": "xqg7azLKxDwxYrgkVeLHvfffrACX7WNnk5Z5avHYdJA",
+      "txHash": "3R1VQEDMWCVUYEaxtc65GiM4MJ6G4FMyNtMNH3zG5HcA",
       "rejected": true
     },
     {
       "name": "post signed Coinbase BTC-USD relayer price",
-      "txHash": "H1nP3hZiddbGX6WUYAQYQxLUkjRXsx18eMmjdpp4Um9q",
+      "txHash": "DQQTcmRo6KQqXoJPZX1r77aRV8qTfqRrd7u5xpLwx32h",
       "rejected": false
     },
     {
       "name": "replayed relayer price rejected",
-      "txHash": "GutZfK4oG33bWogDzGApv3wMwGZChaWLkU1dwcyDwPwi",
+      "txHash": "C9q8DYcU5o3SQw1yaKm4P9eqhyZzSQJ4XvVTfjQvp9F9",
       "rejected": true
     },
     {
       "name": "settlement before expiry rejected",
-      "txHash": "13mY6hSRpYq5Zejzt8LAbGzhNqsgHQzJLWL3UNHgp3Z",
+      "txHash": "D3VfChoK3s7CQxs3LWcj8daESgBrZr7qdSUE6Hqk3Z1t",
+      "rejected": true
+    },
+    {
+      "name": "unsettled-expiry before grace period rejected",
+      "txHash": "CaJfFF6wAsQi71HbipTJhMowoLbhua4x5VtDoYwaxXDM",
       "rejected": true
     },
     {
       "name": "encumbered BTC spend rejected",
-      "txHash": "Bj5fhXF4xCxPFU5bBt8Gr55wE4nfJMoRyEQeZfzqxAbP",
+      "txHash": "5o9s1xhRBvxgHcatkCpiLdgxBZVz6ZryqNQ1shVRCZSZ",
       "rejected": true
     },
     {
       "name": "encumbered box transfer rejected",
-      "txHash": "2sdZGz9ubTBNuPkuP7ECJHduwNHxACwzD7pr7GWZqAAV",
+      "txHash": "6zw9odJnUvPPzoCnY35TRJ9WyzAXsT5Nchsk5pLA6Gxh",
       "rejected": true
     },
     {
       "name": "encumbered box listing rejected",
-      "txHash": "EWjKBt7EwuBWTBu7m3SAeWXiVR4rt7ARJe37Xk9jHcPR",
+      "txHash": "ACvDbZtVEz7qvr8VLikRG5EfFvNaduxFEacQ2xvX3ZCt",
       "rejected": true
     },
     {
       "name": "premature auction close rejected",
-      "txHash": "7vszrGVoy7DGsvtBbAV2UnvqQpHZyZiJY9aCv84Wyc15",
+      "txHash": "4zMngMDKv1cPgA7xYDzGbPmfCPqC9b5oJTfXRFrBnTQx",
       "rejected": true
     }
   ],
   "bitcoin": {
-    "fundingTx": "db9b59e7e425c4d8aa2280052948d8b484f7afe62abd0e2d231ea171377b985d",
+    "fundingTx": "80c4dd7e4d7eb398b014d02378d91fac013bc618e3133b717f547f085c67360d",
     "boxAddress": "bcrt1qurfkmdry5jnr84938tng60gql6y5gv2kz2xtl7",
     "collateralSats": "10000000",
-    "outpoint": "5d987b3771a11e232d0ebd2ae6aff784b4d84829058022aad8c425e4e7599bdb01000000"
+    "outpoint": "0d36675c087f547f713b13e318c63b01ac1fd97823d014b098b37e4d7eddc48001000000"
   },
-  "premiumTusdc": "99905731",
+  "premiumTusdc": "99905583",
   "relayerPrint": {
-    "price": "74738.9",
-    "time": "2026-11-09T17:08:16.293772772Z",
+    "price": "74695.3",
+    "time": "2026-11-09T17:27:54.996684564Z",
     "source": "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
   }
 }

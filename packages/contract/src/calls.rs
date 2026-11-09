@@ -11,6 +11,10 @@ const PRICE_KEY: &[u8] = b"hako:price:btc-usd:v1";
 const PRICE_LABEL: &str = "relayer price (testnet)";
 /// A relayed price older than this (by block time) cannot be posted or used for settlement.
 const PRICE_MAX_AGE_SEC: u64 = 60;
+/// A sold call may be settled until this long after expiry; after that anyone can mark it unsettled.
+const SETTLE_GRACE_SEC: u64 = 86_400;
+/// The settlement print must be a trade observed in the first five minutes after expiry.
+const SETTLE_PRINT_WINDOW_SEC: u64 = 300;
 /// Public spot endpoints the relayer may cite. The contract checks the signature, not the HTTP body.
 const PRICE_SOURCES: [&str; 2] = ["https://api.exchange.coinbase.com/products/BTC-USD/ticker", "https://api.coinbase.com/v2/prices/BTC-USD/spot"];
 const WEEK: u64 = 7 * 86_400;
@@ -87,8 +91,19 @@ pub fn price_message(contract:&AccountId,price_usd_e6:u128,publish_time_sec:u64,
 /// Freshness for posting: not from the future (5 s clock skew), not older than 60 s.
 fn fresh(publish_time_sec:u64,now_ns:u64)->bool{let now=now_ns/NS_SEC;publish_time_sec<=now+5&&now.saturating_sub(publish_time_sec)<=PRICE_MAX_AGE_SEC}
 
-/// A settlement price must be observed at or after expiry, inside the 5-minute window, and still fresh.
-fn settles(p:&RelayerPrice,now_ns:u64,expiry_ns:u64)->bool{let expiry=expiry_ns/NS_SEC;fresh(p.publish_time_sec,now_ns)&&p.publish_time_sec>=expiry&&p.publish_time_sec<=expiry+300}
+/// A settlement print must be observed at or after expiry, within five minutes of it, and not after the block.
+fn observed_at_expiry(publish_time_sec:u64,now_ns:u64,expiry_ns:u64)->bool{let expiry=expiry_ns/NS_SEC;publish_time_sec>=expiry&&publish_time_sec<=expiry+SETTLE_PRINT_WINDOW_SEC&&publish_time_sec<=now_ns/NS_SEC+5}
+
+/// Checks a relayer signature over (contract, price, time, source); returns the relayer key.
+fn verify_relayer(price_usd_e6:U128,publish_time_sec:u64,source_url:&str,signature:&Base64VecU8)->PublicKey{
+    let pk=config().relayer_public_key.expect("Setup required: set_call_config relayer key");
+    require!(PRICE_SOURCES.contains(&source_url),"unknown price source");
+    require!(price_usd_e6.0>0&&price_usd_e6.0<10_000_000_000_000,"price out of range");
+    let sig:[u8;64]=signature.0.as_slice().try_into().expect("64-byte ed25519 signature required");
+    let key:[u8;32]=pk.as_bytes()[1..].try_into().unwrap();
+    require!(env::ed25519_verify(&sig,&price_message(&env::current_account_id(),price_usd_e6.0,publish_time_sec,source_url),&key),"bad relayer signature");
+    pk
+}
 
 fn price(c:&CoveredCall,now:u64)->u128{
     if now>=c.auction_end_ns{return c.minimum_premium_usdc.0;}
@@ -113,13 +128,7 @@ impl Hako {
 
     /// Anyone may submit; only a price signed by the configured relayer key, fresh and newer than the last one, is stored.
     pub fn post_relayer_price(&mut self,price_usd_e6:U128,publish_time_sec:u64,source_url:String,signature:Base64VecU8)->RelayerPrice{
-        let cfg=config();let pk=cfg.relayer_public_key.expect("Setup required: set_call_config relayer key");
-        require!(PRICE_SOURCES.contains(&source_url.as_str()),"unknown price source");
-        require!(price_usd_e6.0>0&&price_usd_e6.0<10_000_000_000_000,"price out of range");
-        let sig:[u8;64]=signature.0.as_slice().try_into().expect("64-byte ed25519 signature required");
-        let key:[u8;32]=pk.as_bytes()[1..].try_into().unwrap();
-        let digest=price_message(&env::current_account_id(),price_usd_e6.0,publish_time_sec,&source_url);
-        require!(env::ed25519_verify(&sig,&digest,&key),"bad relayer signature");
+        let pk=verify_relayer(price_usd_e6,publish_time_sec,&source_url,&signature);
         let now=env::block_timestamp();
         require!(fresh(publish_time_sec,now),"stale or future relayer price");
         if let Some(prev)=stored::<RelayerPrice>(PRICE_KEY){require!(publish_time_sec>prev.publish_time_sec,"relayer price must be newer than the last one");}
@@ -199,16 +208,22 @@ impl Hako {
         c.holder=Some(receiver_id);c.exercise_script_hex=None;write(&token_id,&calls);
     }
 
-    /// Settles at expiry against the latest relayer price (testnet). No fresh post-expiry price, no settlement.
-    pub fn settle_call(&mut self,token_id:String)->CoveredCall{
+    /// Settles a sold call with a relayer-signed BTC-USD print observed in the first five minutes after
+    /// expiry (relayer price, testnet). The signature, not the submission time, attests the price, so a
+    /// slow or rate-limited submitter can still settle until the grace period ends. No such print, no settlement.
+    pub fn settle_call(&mut self,token_id:String,price_usd_e6:U128,publish_time_sec:u64,source_url:String,signature:Base64VecU8)->CoveredCall{
         let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");let now=env::block_timestamp();
-        require!(c.state=="sold"&&now>=c.expiry_ns&&now<=c.expiry_ns+300*NS_SEC,"settlement window closed");
-        let p:RelayerPrice=stored(PRICE_KEY).expect("no relayer price posted");
-        require!(settles(&p,now,c.expiry_ns),"relayer price must be fresh and observed at or after expiry");
-        let value=p.price_usd_e6.0;c.oracle_price_usd_e6=Some(U128(value));
+        require!(c.state=="sold"&&now>=c.expiry_ns&&now<=c.expiry_ns+SETTLE_GRACE_SEC*NS_SEC,"settlement window closed");
+        verify_relayer(price_usd_e6,publish_time_sec,&source_url,&signature);
+        require!(observed_at_expiry(publish_time_sec,now,c.expiry_ns),"relayer print must be observed within 5 minutes after expiry");
+        let value=price_usd_e6.0;c.oracle_price_usd_e6=Some(U128(value));
         if value<=c.strike_usd_e6.0{c.state="otm".into();}else{c.state="itm".into();c.exercise_deadline_ns=Some(now+EXERCISE_WINDOW*NS_SEC);}
+        env::log_str(&format!("EVENT_JSON:{}",near_sdk::serde_json::json!({"standard":"hako","version":"1","event":"call_settled","data":{"token_id":token_id,"state":c.state,"price_usd_e6":price_usd_e6,"publish_time_sec":publish_time_sec,"source_url":source_url,"label":PRICE_LABEL}})));
         let out=c.clone();write(&token_id,&calls);out
     }
+
+    /// Liveness: a sold call nobody settled within the grace period is marked unsettled and stops encumbering the box.
+    pub fn expire_unsettled_call(&mut self,token_id:String){let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");require!(c.state=="sold"&&env::block_timestamp()>c.expiry_ns+SETTLE_GRACE_SEC*NS_SEC,"settlement grace period open");c.state="unsettled".into();write(&token_id,&calls);}
 
     pub fn lapse_call(&mut self,token_id:String){let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");require!(c.state=="itm"&&env::block_timestamp()>c.exercise_deadline_ns.unwrap(),"exercise window open");c.state="lapsed".into();write(&token_id,&calls);}
 
@@ -247,7 +262,6 @@ mod tests {
         assert_eq!(price(&c,200),200_000);
         assert_eq!(price(&c,250),200_000);
     }
-    fn rp(t:u64)->RelayerPrice{RelayerPrice{pair:"BTC-USD".into(),price_usd_e6:U128(74_864_230_000),publish_time_sec:t,source_url:PRICE_SOURCES[0].into(),relayer_public_key:"ed25519:6E8sCci9badyRkXb3JoRpBj5p8C6Tw41ELDZoiihKEtp".parse().unwrap(),posted_ns:0,posted_by:"r.testnet".parse().unwrap(),label:PRICE_LABEL.into()}}
     #[test]
     fn relayer_price_freshness() {
         let t=1_778_000_000u64;
@@ -257,12 +271,13 @@ mod tests {
         assert!(!fresh(t,(t-6)*NS_SEC));
     }
     #[test]
-    fn settlement_needs_post_expiry_fresh_price() {
+    fn settlement_print_must_follow_expiry() {
         let expiry=1_778_000_000u64;
-        assert!(settles(&rp(expiry+10),(expiry+30)*NS_SEC,expiry*NS_SEC));
-        assert!(!settles(&rp(expiry-1),(expiry+30)*NS_SEC,expiry*NS_SEC), "pre-expiry price");
-        assert!(!settles(&rp(expiry+10),(expiry+90)*NS_SEC,expiry*NS_SEC), "stale at settlement");
-        assert!(!settles(&rp(expiry+301),(expiry+301)*NS_SEC,expiry*NS_SEC), "after window");
+        assert!(observed_at_expiry(expiry+2,(expiry+400)*NS_SEC,expiry*NS_SEC), "late submission of an at-expiry print");
+        assert!(observed_at_expiry(expiry+300,(expiry+300)*NS_SEC,expiry*NS_SEC));
+        assert!(!observed_at_expiry(expiry-1,(expiry+30)*NS_SEC,expiry*NS_SEC), "pre-expiry print");
+        assert!(!observed_at_expiry(expiry+301,(expiry+400)*NS_SEC,expiry*NS_SEC), "print too long after expiry");
+        assert!(!observed_at_expiry(expiry+60,(expiry+10)*NS_SEC,expiry*NS_SEC), "print from the future");
     }
     #[test]
     fn price_message_binds_contract_and_source() {
