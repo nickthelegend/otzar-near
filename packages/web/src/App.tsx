@@ -3,6 +3,7 @@ import Landing from './Landing';
 import Dashboard from './Dashboard';
 import VaultPage from './VaultPage';
 import Portfolio from './Portfolio';
+import LiveTape, { ApyChip } from './tape';
 import { contractId, nearblocksAccount, short } from './lib';
 import { Icon, Link, Wordmark } from './ui';
 import { useWallet, type Wallet } from './wallet';
@@ -29,10 +30,11 @@ function AppBar({ page, wallet }: { page: Page; wallet: Wallet }) {
         <Link to="/#how">Learn</Link>
       </nav>
       <div className="bar-end">
+        <ApyChip />
         <span className="net"><i />Testnet</span>
         {wallet.account
           ? <Link to="/you" className="acct-pill" title={wallet.account}><Icon name="user" size={15} />{short(wallet.account, 10, 6)}</Link>
-          : <button className="pill pill-ice pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect</button>}
+          : <button className="pill pill-jade pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect</button>}
       </div>
     </div>
   </header>;
@@ -54,6 +56,7 @@ export default function App() {
   return <div className="app">
     <a className="skip" href="#main">Skip to content</a>
     <AppBar page={page} wallet={wallet} />
+    <LiveTape />
     {banner}
     <main id="main" className="app-main">
       {page === 'vaults' && <Dashboard wallet={wallet} />}

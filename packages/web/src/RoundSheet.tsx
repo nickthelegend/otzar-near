@@ -46,12 +46,12 @@ export function RoundSheet({ r, wallet, onClose }: { r: Round; wallet: Wallet; o
     {ph.phase === 'live' && <div className="sheet-buy">
       <div><p className="lbl">Asking now</p><p className="sheet-ask">{asking ? <Amount e6={asking} unit={TUSDC_SYMBOL} /> : '…'}</p></div>
       {wallet.account ? <button className="pill pill-gold" onClick={buy} disabled={busy || !asking}>{busy ? 'Signing…' : `Buy with ${TUSDC_SYMBOL}`}</button>
-        : <button className="pill pill-ice" onClick={wallet.connect} disabled={!wallet.ready}>Connect to buy</button>}
+        : <button className="pill pill-jade" onClick={wallet.connect} disabled={!wallet.ready}>Connect to buy</button>}
     </div>}
     {err && <p className="err-line" role="alert">{err}</p>}
     {msg && <p className="ok-line" role="status">{msg} {hash && <a href={nearblocksTx(hash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={12} /></a>}</p>}
     <div className="sheet-actions">
-      <Link to={`/vault/${r.token_id}`} className="pill pill-ghost">Open the vault <Icon name="arrow" size={15} /></Link>
+      <Link to={`/vault/${r.token_id}`} className="pill pill-line">Open the vault <Icon name="arrow" size={15} /></Link>
     </div>
     <p className="sheet-note">{ev ? 'Transaction links come from the recorded run (scripts/demo-calls.sh); every figure above is a live contract read.' : 'Every figure above is a live contract read.'} {TUSDC_SYMBOL} is Otzar's own test token with no value; Bitcoin is Core regtest.</p>
   </Sheet>;

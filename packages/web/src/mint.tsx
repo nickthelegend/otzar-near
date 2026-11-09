@@ -32,8 +32,8 @@ export function MintSheet({ wallet, onClose }: { wallet: Wallet; onClose: () => 
         <Field label="Allowlist" hint="Optional, comma separated"><input value={allow} onChange={e => setAllow(e.target.value)} placeholder="0x…" spellCheck={false} /></Field></div>
       {err && <p className="err-line" role="alert">{err}</p>}
       {hash && <p className="ok-line">Minted. <a href={nearblocksTx(hash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={12} /></a></p>}
-      {wallet.account ? <button className="pill pill-ice pill-block" type="submit" disabled={busy}>{busy ? 'Signing…' : 'Mint on NEAR testnet'}</button>
-        : <button className="pill pill-ice pill-block" type="button" onClick={wallet.connect} disabled={!wallet.ready}>Connect a NEAR testnet wallet</button>}
+      {wallet.account ? <button className="pill pill-jade pill-block" type="submit" disabled={busy}>{busy ? 'Signing…' : 'Mint on NEAR testnet'}</button>
+        : <button className="pill pill-jade pill-block" type="button" onClick={wallet.connect} disabled={!wallet.ready}>Connect a NEAR testnet wallet</button>}
     </form>
   </Sheet>;
 }

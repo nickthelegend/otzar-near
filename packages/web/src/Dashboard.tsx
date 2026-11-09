@@ -5,7 +5,10 @@ import { ActivityTable, PositionCard, RoundBars, StatCard, VaultTable, type Vaul
 import { MintSheet } from './mint';
 import { RoundSheet } from './RoundSheet';
 import { pct } from './rounds';
-import { Amount, Glow, Icon, State } from './ui';
+import { Amount, Icon, State } from './ui';
+import { CountUp, Sticker } from './art';
+import { annualisedPct, roundPhase, short, utcDay } from './lib';
+import { PhasePill } from './cards';
 import type { Wallet } from './wallet';
 
 export function RelayerCard() {
@@ -38,15 +41,32 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
         <h1>Vaults <span className="live-pill"><i className="live-dot" />Live · NEAR testnet</span></h1>
         <p className="dash-sub">Each vault is a NEAR NFT holding native Bitcoin. Its owner sells covered calls on it and keeps the premium, signed with a post-quantum key.</p>
       </div>
-      <button className="pill pill-ice" onClick={() => setMint(true)}><Icon name="plus" size={16} /> New vault</button>
-      <Glow name="vault" className="dash-glow" />
+      <button className="pill pill-jade" onClick={() => setMint(true)}><Icon name="plus" size={16} /> New vault</button>
+      <div className="dash-st" aria-hidden="true"><Sticker name="chart" rot={9} className="st-a" /><Sticker name="coins" rot={-7} className="st-b" /></div>
     </header>
 
     <div className="stats4">
-      <StatCard highlight label="Premium earned" icon="coin" value={s ? <Amount e6={s.earned} unit={TUSDC_SYMBOL} /> : rounds.error ? '—' : '…'} sub={s ? `paid to writers across ${s.paid.length} rounds` : rounds.error || 'Reading rounds…'} />
-      <StatCard label="Realised APY" icon="spark" value={s ? <span className="ice">{pct(s.blended, 2)}</span> : '…'} sub="annualised on strike notional" />
+      <StatCard highlight label="Realised APY" icon="spark" value={<span className="jade"><CountUp value={s ? s.blended : null} decimals={2} suffix="%" /></span>} sub="annualised on strike notional" />
+      <StatCard label="Premium earned" icon="coin" value={s ? <Amount e6={s.earned} unit={TUSDC_SYMBOL} /> : rounds.error ? '—' : '…'} sub={s ? `paid to writers across ${s.paid.length} rounds` : rounds.error || 'Reading rounds…'} />
       <StatCard label="BTC written" icon="box" value={written !== null ? <>{btcFromSats(written)}<small> BTC</small></> : '…'} sub="collateral sold in paid rounds · regtest" />
       <StatCard label="Vaults" icon="key" value={boxes.data ? boxes.data.length : boxes.error ? '—' : '…'} sub={sealed !== undefined ? `${sealed} sealed with ML-DSA-65` : boxes.error || 'Reading…'} />
+    </div>
+
+    <div className="hl-row">
+      <section className="hl" aria-label="Highest realised APY">
+        <div className="hl-head"><span>Highest realised APY</span><Icon name="spark" size={15} /></div>
+        {rounds.data ? [...rounds.data].filter(r => r.premium_paid_usdc).sort((a, b) => (annualisedPct(b) ?? 0) - (annualisedPct(a) ?? 0)).slice(0, 3).map(r => <button key={r.key} className="hl-line" onClick={() => setSheet(r.key)}><span><b>{short(r.token_id, 12, 4)}</b><small>#{r.id} · {utcDay(r.opened_ns)}</small></span><em>{pct(annualisedPct(r), 2)}</em></button>) : <p className="hl-empty">{rounds.error || 'Reading rounds…'}</p>}
+        {rounds.data && !rounds.data.some(r => r.premium_paid_usdc) && <p className="hl-empty">No paid rounds yet</p>}
+      </section>
+      <section className="hl" aria-label="Latest settlements">
+        <div className="hl-head"><span>Latest settlements</span><Icon name="check" size={15} /></div>
+        {rounds.data ? rounds.data.filter(r => r.oracle_price_usd_e6).slice(0, 3).map(r => <button key={r.key} className="hl-line" onClick={() => setSheet(r.key)}><span><b>{short(r.token_id, 12, 4)}</b><small>strike ${e6(r.strike_usd_e6, 0)}</small></span><em className="ink">${e6(r.oracle_price_usd_e6!, 0)}</em></button>) : <p className="hl-empty">{rounds.error || 'Reading rounds…'}</p>}
+        {rounds.data && !rounds.data.some(r => r.oracle_price_usd_e6) && <p className="hl-empty">Nothing settled yet</p>}
+      </section>
+      <section className="hl" aria-label="Rounds by state">
+        <div className="hl-head"><span>Rounds by state</span><Icon name="clock" size={15} /></div>
+        {rounds.data ? (['live', 'itm', 'otm', 'unfilled'] as const).map(ph => { const n = rounds.data!.filter(r => roundPhase(r, Date.now()).phase === ph).length; const sample = rounds.data!.find(r => roundPhase(r, Date.now()).phase === ph); return <div key={ph} className="hl-line static"><span>{sample ? <PhasePill c={sample} now={Date.now()} /> : <span className="dim">{ph === 'live' ? 'Auction open' : ph.toUpperCase()}</span>}</span><em className="ink">{n}</em></div>; }) : <p className="hl-empty">{rounds.error || 'Reading rounds…'}</p>}
+      </section>
     </div>
 
     <div className="dash-grid">
@@ -56,7 +76,7 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
           <div><h2>Covered-call vaults</h2><p>Sorted by realised APY. Open one to see its current round, strategy and deposit address.</p></div>
           <div className="filters" role="tablist" aria-label="Filter vaults">{([['rounds', 'With rounds'], ['all', 'All'], ['mine', 'Yours']] as const).map(([f, l]) => <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>{l}<small>{boxes.data ? count(f) : ''}</small></button>)}</div>
         </div>
-        {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-ghost pill-sm" onClick={boxes.reload}>Retry</button>}>{boxes.error}</State>
+        {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={boxes.reload}>Retry</button>}>{boxes.error}</State>
           : !boxes.data ? <div className="vt">{[0, 1, 2, 3].map(i => <div key={i} className="vt-row skeleton" />)}</div>
           : <VaultTable boxes={boxes.data} rounds={rounds.data} account={wallet.account} filter={filter} />}
       </section>

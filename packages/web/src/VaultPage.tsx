@@ -6,7 +6,8 @@ import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
 import { anvilUrl, btcFromSats, contractId, e6, earnedSummary, esploraUrl, formatEth, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, utcTime, ZERO_ETH, type Box, type Round, type Spend } from './lib';
-import { Amount, Chip, Copyable, Empty, Field, Glow, Icon, Link, State, Timeline } from './ui';
+import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Timeline } from './ui';
+import { CountUp, Sticker } from './art';
 import { useNow, useRelayer, useRounds } from './data';
 import { PhasePill, RoundBars, StrikeSpot } from './cards';
 import { RoundSheet } from './RoundSheet';
@@ -104,7 +105,7 @@ export default function VaultPage({ id, wallet }: Props) {
   if (!box) return <div className="page vault">
     <Link to="/app" className="back"><Icon name="back" size={16} /> Vaults</Link>
     {error ? <State kind="error" title="Could not read this vault">{error}</State>
-      : loaded ? <State kind="empty" title={`No vault called ${id}`} action={<Link to="/app" className="pill pill-ghost pill-sm">Back to vaults</Link>}>The contract has no NFT with this ID.</State>
+      : loaded ? <State kind="empty" title={`No vault called ${id}`} action={<Link to="/app" className="pill pill-line pill-sm">Back to vaults</Link>}>The contract has no NFT with this ID.</State>
       : <div className="v-hero skeleton" aria-busy="true" />}
   </div>;
 
@@ -118,23 +119,23 @@ export default function VaultPage({ id, wallet }: Props) {
     <Link to="/app" className="back"><Icon name="back" size={16} /> Vaults</Link>
     <header className="v-hero">
       <div className="v-hero-copy">
-        <div className="v-tags"><span className="vtag vtag-ice">Covered call</span><span className="vtag">Native BTC · regtest</span><span className="vtag">{box.pq_key?.length ? 'ML-DSA-65 sealed' : 'No quantum key'}</span>{mine && <span className="vtag vtag-gold">Your vault</span>}</div>
+        <div className="v-tags"><span className="vtag vtag-jade">Covered call</span><span className="vtag">Native BTC · regtest</span><span className="vtag">{box.pq_key?.length ? 'ML-DSA-65 sealed' : 'No quantum key'}</span>{mine && <span className="vtag vtag-gold">Your vault</span>}</div>
         <h1>{box.token_id}</h1>
         <p className="v-owner">Vault NFT on NEAR · owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 18, 10)}</a></p>
         <dl className="v-stats">
-          <div><dt>Realised APY</dt><dd className="ice">{pct(apy, 2)}</dd></div>
+          <div><dt>Realised APY</dt><dd className="jade">{pct(apy, 2)}</dd></div>
           <div><dt>Premium earned</dt><dd>{rounds.data ? <Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> : '…'}</dd></div>
           <div><dt>Rounds</dt><dd>{rounds.data ? boxRounds.length : '…'}</dd></div>
           <div><dt>Current round</dt><dd>{latest ? <PhasePill c={latest} now={now} /> : <span className="dim">None</span>}</dd></div>
         </dl>
       </div>
-      <Glow name="box" className="v-hero-art" />
+      <div className="v-hero-st" aria-hidden="true"><Sticker name="vault" rot={-8} className="st-a" /><Sticker name="btc" rot={10} className="st-b" /><Sticker name="key" rot={-14} className="st-c" /></div>
     </header>
 
     <div className="v-grid">
       <div className="v-main">
         <section className="card" aria-label="Current round">
-          <div className="card-title"><div><h2>{latest ? `Current round · #${latest.id}` : 'Current round'}</h2><p>{latest ? ph!.label : 'This vault has not written a covered call yet.'}</p></div>{latest && <button className="pill pill-ghost pill-sm" onClick={() => setSheet(latest)}>Round details <Icon name="arrow" size={14} /></button>}</div>
+          <div className="card-title"><div><h2>{latest ? `Current round · #${latest.id}` : 'Current round'}</h2><p>{latest ? ph!.label : 'This vault has not written a covered call yet.'}</p></div>{latest && <button className="pill pill-line pill-sm" onClick={() => setSheet(latest)}>Round details <Icon name="arrow" size={14} /></button>}</div>
           {latest ? <>
             <dl className="cr-grid">
               <div><dt>Strike</dt><dd>${e6(latest.strike_usd_e6, 0)}</dd></div>
@@ -144,7 +145,7 @@ export default function VaultPage({ id, wallet }: Props) {
             </dl>
             <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'Settled at' : 'BTC now (relayer)'} />
             <div className="cr-loop"><Loop c={latest} now={now} horizontal /></div>
-          </> : <State kind="empty" title="No round yet" action={mine ? <button className="pill pill-ice pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from the Earn tab below, signed with the vault's ML-DSA key.</State>}
+          </> : <State kind="empty" title="No round yet" action={mine ? <button className="pill pill-jade pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from the Earn tab below, signed with the vault's ML-DSA key.</State>}
         </section>
 
         <section className="card" aria-label="Vault performance">
@@ -187,11 +188,11 @@ export default function VaultPage({ id, wallet }: Props) {
 
         <section className="manage" id="manage" aria-label="Manage vault">
           <div className="card-title"><div><h2>Manage vault</h2><p>Addresses, rules, spends, rounds, recovery and sale. Signed with your wallet and the vault's ML-DSA key.</p></div></div>
-    {!account && <div className="readonly"><Icon name="lock" /><span>Read-only view of live contract state. Connect a NEAR testnet wallet to sign and spend.</span><button className="pill pill-ghost pill-sm" onClick={connect}>Connect</button></div>}
+    {!account && <div className="readonly"><Icon name="lock" /><span>Read-only view of live contract state. Connect a NEAR testnet wallet to sign and spend.</span><button className="pill pill-line pill-sm" onClick={connect}>Connect</button></div>}
     <div className="keyslot">
       <Icon name="key" />
       <span>{keyFile ? <>Key loaded <code>{short(keyFile.name, 14, 8)}</code></> : box.pq_key?.length ? 'Load your ML-DSA key file to sign actions on this vault' : 'This vault has no ML-DSA key yet'}</span>
-      {box.pq_key?.length ? <label className="pill pill-ghost pill-sm file-btn">{keyFile ? 'Change' : 'Load key'}<input type="file" accept=".json" onChange={e => setKeyFile(e.target.files?.[0] || null)} /></label> : mine && <button className="pill pill-ice pill-sm" onClick={registerKey} disabled={busy}>Generate and register</button>}
+      {box.pq_key?.length ? <label className="pill pill-line pill-sm file-btn">{keyFile ? 'Change' : 'Load key'}<input type="file" accept=".json" onChange={e => setKeyFile(e.target.files?.[0] || null)} /></label> : mine && <button className="pill pill-jade pill-sm" onClick={registerKey} disabled={busy}>Generate and register</button>}
     </div>
         <nav className="vtabs" role="tablist" aria-label="Vault sections">
           {TABS.map(t => <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>{t.label}{t.id === 'send' && pending.length > 0 && <i className="tab-dot" />}</button>)}
@@ -287,9 +288,9 @@ export default function VaultPage({ id, wallet }: Props) {
         <div className="panel">
           <div className="panel-apy">
             <span>Realised APY</span>
-            <b>{pct(apy, 2)}</b>
+            <b><CountUp value={rounds.data ? apy : null} decimals={2} suffix="%" /></b>
             <p>{rounds.data ? <><Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> premium over {earned.paid.length} paid {earned.paid.length === 1 ? 'round' : 'rounds'}</> : 'Reading rounds…'}</p>
-            <Glow name="vault" className="panel-art" />
+            <Sticker name="coins" rot={9} className="panel-st" />
           </div>
           <div className="seg2" role="tablist" aria-label="Deposit or withdraw">
             <button role="tab" aria-selected={side === 'deposit'} className={side === 'deposit' ? 'on' : ''} onClick={() => setSide('deposit')}>Deposit</button>
@@ -307,8 +308,8 @@ export default function VaultPage({ id, wallet }: Props) {
               <div><dt>Current round</dt><dd>{ph ? ph.label : 'None'}</dd></div>
             </dl>
             {live && latest ? <button className="pill pill-gold pill-block" onClick={() => setSheet(latest)}>Buy this round's call</button>
-              : mine ? <button className="pill pill-ice pill-block" onClick={() => goManage('earn')}>Write a covered call</button>
-              : <button className="pill pill-ice pill-block" disabled>{account ? 'Only the owner writes rounds' : 'Read-only'}</button>}
+              : mine ? <button className="pill pill-jade pill-block" onClick={() => goManage('earn')}>Write a covered call</button>
+              : <button className="pill pill-jade pill-block" disabled>{account ? 'Only the owner writes rounds' : 'Read-only'}</button>}
             <button className="link-btn" onClick={() => goManage('earn')}>Deposit from ETH, SOL or USDC · 1Click dry quote <Icon name="arrow" size={13} /></button>
             <p className="panel-note">Addresses are derived live from the NEAR signer for <code>hako/{box.token_id}/{box.epoch}</code>. Anyone can send BTC here; only the vault's quantum key can move it.</p>
           </div> : <div className="panel-body">
@@ -319,8 +320,8 @@ export default function VaultPage({ id, wallet }: Props) {
               <div><dt>Guardian</dt><dd className="mono">{short(box.policy.guardian, 12, 8)}</dd></div>
               <div><dt>Pending spends</dt><dd>{pending.length}</dd></div>
             </dl>
-            {mine ? <button className="pill pill-ice pill-block" onClick={() => goManage('send')} disabled={locked}>{locked ? 'Withdrawals queued until settlement' : 'Withdraw (ML-DSA signed)'}</button>
-              : <button className="pill pill-ice pill-block" disabled>{account ? 'Only the owner can withdraw' : 'Read-only'}</button>}
+            {mine ? <button className="pill pill-jade pill-block" onClick={() => goManage('send')} disabled={locked}>{locked ? 'Withdrawals queued until settlement' : 'Withdraw (ML-DSA signed)'}</button>
+              : <button className="pill pill-jade pill-block" disabled>{account ? 'Only the owner can withdraw' : 'Read-only'}</button>}
             <p className="panel-note">A withdrawal is a spend request signed with the vault's quantum key. It waits out the delay, and the guardian can claw it back to the recovery address during it.</p>
           </div>}
         </div>

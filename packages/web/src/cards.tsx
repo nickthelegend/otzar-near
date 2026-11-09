@@ -14,7 +14,7 @@ export function StatCard({ label, icon, value, sub, highlight = false, children 
   </div>;
 }
 
-export const PHASE_TONE: Record<Phase, string> = { live: 'gold', sold: 'ice', itm: 'ice', otm: 'muted', unfilled: 'dim', other: 'dim' };
+export const PHASE_TONE: Record<Phase, string> = { live: 'gold', sold: 'jade', itm: 'jade', otm: 'muted', unfilled: 'dim', other: 'dim' };
 export function PhasePill({ c, now }: { c: CoveredCall; now: number }) {
   const ph = roundPhase(c, now);
   return <span className={`pp pp-${PHASE_TONE[ph.phase]}`}><i />{ph.label}</span>;
@@ -55,7 +55,7 @@ export function VaultTable({ boxes, rounds, account, filter }: { boxes: Box[]; r
       const r = latest(b.token_id); const apy = r ? annualisedPct(r) : null; const sealed = !!b.pq_key?.length;
       const all = rounds?.filter(x => x.token_id === b.token_id) || [];
       return <Link key={b.token_id} to={`/vault/${b.token_id}`} className={`vt-row ${b.owner_id === account ? 'mine' : ''}`}>
-        <span className="vt-vault" role="cell"><span className="vt-glyph" aria-hidden="true">箱</span><span><b>{b.token_id}</b><small>{b.owner_id === account ? 'Your vault' : short(b.owner_id, 14, 8)} · BTC covered call</small></span></span>
+        <span className="vt-vault" role="cell"><span className="vt-glyph" aria-hidden="true">א</span><span><b>{b.token_id}</b><small>{b.owner_id === account ? 'Your vault' : short(b.owner_id, 14, 8)} · BTC covered call</small></span></span>
         <span className="vt-apy" role="cell" data-label="Realised APY">{apy === null ? <em>{r ? 'no premium' : '—'}</em> : <b>{apy.toFixed(1)}%</b>}</span>
         <span role="cell" data-label="Latest round">{r ? <PhasePill c={r} now={now} /> : <span className="dim">No rounds yet</span>}{all.length > 1 && <small className="dim"> · {all.length} rounds</small>}</span>
         <span className="vt-num" role="cell" data-label="Collateral">{r ? <>{btcFromSats(r.collateral_sats)} <small>BTC</small></> : <span className="dim">—</span>}</span>
@@ -84,7 +84,7 @@ export function PositionCard({ wallet, rounds }: { wallet: Wallet; rounds: Round
       </dl>
     </> : <div className="pos-empty">
       <p>Connect a NEAR testnet wallet to see your vaults, the rounds you wrote and your {TUSDC_SYMBOL} balance.</p>
-      <button className="pill pill-ice pill-block" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>
+      <button className="pill pill-jade pill-block" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>
     </div>}
   </section>;
 }
@@ -109,7 +109,7 @@ export function ActivityTable({ txns, error, loading, limit = 10 }: { txns: Chai
     {txns.slice(0, n).map(t => <a key={t.hash} className="at-row" href={nearblocksTx(t.hash)} target="_blank" rel="noreferrer" role="row">
       <span className="at-act"><b>{actionLabel(t.method)}</b><code>{t.method}</code></span>
       <span className="at-acct mono">{short(t.signer, 14, 8)}</span>
-      <span><span className={`pp ${t.ok ? 'pp-ice' : 'pp-bad'}`}><i />{t.ok ? 'Success' : 'Failed'}</span></span>
+      <span><span className={`pp ${t.ok ? 'pp-jade' : 'pp-bad'}`}><i />{t.ok ? 'Success' : 'Failed'}</span></span>
       <span className="at-time">{ago(t.ns, now)}</span>
       <span className="at-tx mono">{short(t.hash, 6, 4)} <Icon name="external" size={12} /></span>
     </a>)}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+export { Mark, Wordmark } from './art';
 import { countdown, navigate } from './lib';
 
 export type IconName = 'key' | 'lock' | 'clock' | 'coin' | 'shield' | 'arrow' | 'copy' | 'check' | 'external' | 'send' | 'heir' | 'tag' | 'scan' | 'plus' | 'box' | 'spark' | 'x' | 'back' | 'user' | 'grid' | 'wave' | 'refresh' | 'wallet';
@@ -105,18 +106,6 @@ export function Art({ src, label, icon, className = '' }: { src: string; label: 
 export function Link({ to, className, children, ...rest }: { to: string; className?: string; children: ReactNode; 'aria-current'?: 'page' | undefined; 'aria-label'?: string; title?: string }) {
   const onClick = (e: MouseEvent) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); navigate(to); };
   return <a href={to} className={className} onClick={onClick} {...rest}>{children}</a>;
-}
-
-/** The Otzar mark: 箱 ("box") cut into a frosted glass tile. */
-export function Mark({ size = 34 }: { size?: number }) {
-  return <span className="mark" style={{ width: size, height: size, fontSize: size * 0.5 }} aria-hidden="true">箱</span>;
-}
-export function Wordmark() { return <span className="wordmark"><Mark /><span className="wm">Otzar</span></span>; }
-
-/** A glowing object cut out of the generated art. Falls back to a soft orb, never a broken image. */
-export function Glow({ name, className = '' }: { name: 'box' | 'key' | 'dial' | 'vault' | 'trio'; className?: string }) {
-  const [ok, setOk] = useState(true);
-  return <div className={`glow glow-${name} ${className}`} aria-hidden="true">{ok ? <img src={`/art/hako-cut-${name}.webp`} alt="" loading="eager" onError={() => setOk(false)} /> : <span className="glow-orb" />}</div>;
 }
 
 /** Fixed-point 6-decimal amount split into whole and dimmed fraction, e.g. 0.019547 → "0" ".019547". */

@@ -27,14 +27,14 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
         <h1>{acct ? <a href={nearblocksAccount(acct)} target="_blank" rel="noreferrer">{short(acct, 18, 10)}</a> : 'Your position'}</h1>
         <p className="dash-sub">{acct ? 'Your vaults, the rounds you wrote or bought, and your test-token balance, read live from NEAR testnet.' : `Connect a NEAR testnet wallet to see your vaults, rounds and ${TUSDC_SYMBOL} balance. A testnet account is free at testnet.mynearwallet.com.`}</p>
       </div>
-      {acct ? <button className="pill pill-ghost pill-sm" onClick={wallet.disconnect}>Sign out</button> : <button className="pill pill-ice" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>}
+      {acct ? <button className="pill pill-line pill-sm" onClick={wallet.disconnect}>Sign out</button> : <button className="pill pill-jade" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>}
     </header>
 
     {acct ? <>
       <div className="stats4">
         <StatCard highlight label={`${TUSDC_SYMBOL} balance`} icon="wallet" value={bal.data !== null ? <Amount e6={bal.data} unit={TUSDC_SYMBOL} /> : bal.error ? 'Unavailable' : '…'} sub="Otzar test token, no value" />
         <StatCard label="Premium earned" icon="coin" value={rounds.data ? <Amount e6={wrote.earned} /> : '…'} sub={`${wrote.paid.length} paid rounds you wrote`} />
-        <StatCard label="Realised APY" icon="spark" value={<span className="ice">{pct(wrote.blended, 2)}</span>} sub="on your paid rounds" />
+        <StatCard label="Realised APY" icon="spark" value={<span className="jade">{pct(wrote.blended, 2)}</span>} sub="on your paid rounds" />
         <StatCard label="Vaults" icon="key" value={boxes.data ? mine.length : '…'} sub={`${mine.filter(b => b.pq_key?.length).length} sealed with ML-DSA-65`} />
       </div>
 
@@ -53,7 +53,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
             <span data-label="Role">{r.writer === acct ? 'Writer' : 'Buyer'}</span>
             <span data-label="Strike" className="mono">${(Number(r.strike_usd_e6) / 1e6).toLocaleString()}</span>
             <span data-label="Premium">{r.premium_paid_usdc ? <Amount e6={r.premium_paid_usdc} /> : <span className="dim">—</span>}</span>
-            <span data-label="APY" className="ice">{pct(annualisedPct(r))}</span>
+            <span data-label="APY" className="jade">{pct(annualisedPct(r))}</span>
             <span data-label="State"><PhasePill c={r} now={now} /></span>
           </button>)}
         </div> : <State kind="empty" title={rounds.data ? 'No rounds with your account on them' : 'Reading rounds…'}>Write a round from one of your vaults, or buy an open one from a vault page.</State>}
@@ -64,7 +64,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
         <ActivityTable txns={myTx} error={txns.error} loading={txns.loading} />
       </section>
     </> : <section className="card connect-card">
-      <State kind="setup" title="No wallet connected" action={<button className="pill pill-ice pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect with MyNearWallet</button>}>Otzar runs on NEAR testnet. Your vaults, rounds and balances appear here once you connect.</State>
+      <State kind="setup" title="No wallet connected" action={<button className="pill pill-jade pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect with MyNearWallet</button>}>Otzar runs on NEAR testnet. Your vaults, rounds and balances appear here once you connect.</State>
     </section>}
 
     <section className="port-safety" id="safety">
