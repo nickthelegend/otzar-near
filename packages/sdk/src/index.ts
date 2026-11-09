@@ -43,7 +43,9 @@ export function bitcoinAddress(pubkey: Uint8Array, network: 'regtest'|'testnet4'
 
 export async function rpcQuery(accountId: string, method: string, args: object = {}, rpcUrl = TESTNET_RPC): Promise<any> {
   const req = {jsonrpc:'2.0',id:'hako',method:'query',params:{request_type:'call_function',finality:'final',account_id:accountId,method_name:method,args_base64:Buffer.from(JSON.stringify(args)).toString('base64')}};
-  const response = await fetch(rpcUrl,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(req)});
+  let response = await fetch(rpcUrl,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(req)});
+  // Public RPCs rate-limit bursts (HTTP 429); back off a few times before failing loudly.
+  for (let i = 1; response.status === 429 && i <= 4; i++) { await new Promise(r => setTimeout(r, 1500 * i)); response = await fetch(rpcUrl,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(req)}); }
   if (!response.ok) throw new Error(`NEAR RPC ${response.status}`);
   const json = await response.json() as any;
   if (json.error) throw new Error(JSON.stringify(json.error));

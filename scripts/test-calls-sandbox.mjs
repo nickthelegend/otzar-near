@@ -1,7 +1,8 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {Account,KeyPair,KeyPairSigner,JsonRpcProvider,PublicKey,actions,nearToYocto,teraToGas} from 'near-api-js';
-import {deriveAddresses,bitcoinScriptHex,newQuantumKey,signAuthorization,unsignedBitcoinSpend,rpcQuery} from '@hako/sdk';
+import {randomBytes} from 'node:crypto';
+import {deriveAddresses,bitcoinScriptHex,newQuantumKey,signAuthorization,unsignedBitcoinSpend,rpcQuery,fetchCoinbaseBtcUsd,signRelayerPrice,relayerPublicKey} from '@hako/sdk';
 
 const rpc='http://127.0.0.1:3030';const provider=new JsonRpcProvider({url:rpc});
 const rootKey=JSON.parse(readFileSync(process.env.HAKO_ROOT_KEY_FILE||resolve('.demo/sandbox/validator_key.json'),'utf8'));
@@ -15,6 +16,15 @@ async function main(){
   const contract=await child('hako-calls'),owner=await child('calls-owner'),buyer=await child('calls-buyer');
   await send(contract,contract.accountId,actions.deployContract(readFileSync('packages/contract/target/near/hako_contract.wasm')),'deploy covered-call contract');
   await send(contract,contract.accountId,call('new',{mpc_contract:'v1.signer-prod.testnet'}),'initialize covered-call contract');
+  // tUSDC (Hako test) and the price relayer, on the same local chain
+  const token=await child('husdc');
+  await send(token,token.accountId,[actions.deployContract(readFileSync('packages/test-usdc/target/near/hako_test_usdc.wasm')),call('new',{},50)],'deploy tUSDC (Hako test)');
+  for(const a of [contract,owner])await send(owner,token.accountId,call('storage_deposit',{account_id:a.accountId,registration_only:true},30,nearToYocto('0.00125')),`register ${a.accountId} for tUSDC`);
+  await send(buyer,token.accountId,call('mint',{account_id:buyer.accountId,amount:'1000000000'}),'outsider tUSDC mint rejected',true);
+  await send(token,token.accountId,call('mint',{account_id:buyer.accountId,amount:'1000000000'}),'mint 1,000 tUSDC to buyer');
+  const relayerSeed=randomBytes(32);const relayerKey=relayerPublicKey(relayerSeed);
+  await send(owner,contract.accountId,call('set_call_config',{premium_token:token.accountId,relayer_public_key:relayerKey}),'non-contract call config rejected',true);
+  await send(contract,contract.accountId,call('set_call_config',{premium_token:token.accountId,relayer_public_key:relayerKey}),'set premium token and relayer key');
   const policy={daily_eth_wei:'10000000000000000',delay_sec:120,allow_eth:[],guardian:buyer.accountId,recovery_eth:'0x2222222222222222222222222222222222222222',emergency_migration:null};
   await send(owner,contract.accountId,call('mint',{token_id:'earn',policy}),'mint earn box');
   const pq=newQuantumKey();await send(owner,contract.accountId,call('register_pq_key',{token_id:'earn',key:Buffer.from(pq.publicKey).toString('base64')}),'register call writer ML-DSA key');
@@ -34,6 +44,21 @@ async function main(){
   await send(owner,contract.accountId,call('write_call',{...args,signature:Buffer.from(signAuthorization(pq.secretKey,'earn',1,payload)).toString('base64')}),'write ML-DSA authorized covered call');
   const option=await rpcQuery(contract.accountId,'call_state',{token_id:'earn'},rpc);if(option.state!=='auction'||option.size_sats!=='100000')throw new Error('call state mismatch');
   const asking=BigInt(await rpcQuery(contract.accountId,'auction_price',{token_id:'earn'},rpc));if(asking>100000000n||asking<20000000n)throw new Error('Dutch auction price out of range');
+  if(option.premium_token!==token.accountId)throw new Error('call did not fix the configured premium token');
+  await send(buyer,contract.accountId,call('ft_on_transfer',{sender_id:buyer.accountId,amount:asking.toString(),msg:'buy:earn'}),'premium from a non-premium token rejected',true);
+  const writerBefore=BigInt(await rpcQuery(token.accountId,'ft_balance_of',{account_id:owner.accountId},rpc));const price=BigInt(await rpcQuery(contract.accountId,'auction_price',{token_id:'earn'},rpc));
+  await send(buyer,token.accountId,call('ft_transfer_call',{receiver_id:contract.accountId,amount:price.toString(),memo:'Hako call purchase',msg:'buy:earn'},150,1n),'buy call with tUSDC');
+  const sold=await rpcQuery(contract.accountId,'call_state',{token_id:'earn'},rpc);const writerAfter=BigInt(await rpcQuery(token.accountId,'ft_balance_of',{account_id:owner.accountId},rpc));
+  if(sold.state!=='sold'||sold.holder!==buyer.accountId||writerAfter-writerBefore!==price)throw new Error('premium not delivered to writer');record.premiumTusdc=price.toString();
+  const print=await fetchCoinbaseBtcUsd();record.relayerPrint={price:print.price,time:print.time,source:print.sourceUrl};
+  const post=(p,seed)=>call('post_relayer_price',{price_usd_e6:p.priceUsdE6.toString(),publish_time_sec:p.publishTimeSec,source_url:p.sourceUrl,signature:signRelayerPrice(seed,contract.accountId,p)});
+  await send(buyer,contract.accountId,post(print,randomBytes(32)),'price signed by a different key rejected',true);
+  await send(buyer,contract.accountId,post({...print,publishTimeSec:print.publishTimeSec-120},relayerSeed),'stale relayer price rejected',true);
+  await send(buyer,contract.accountId,post({...print,sourceUrl:'https://example.com/btc'},relayerSeed),'unlisted price source rejected',true);
+  await send(buyer,contract.accountId,post(print,relayerSeed),'post signed Coinbase BTC-USD relayer price');
+  await send(buyer,contract.accountId,post(print,relayerSeed),'replayed relayer price rejected',true);
+  const stored=await rpcQuery(contract.accountId,'relayer_price',{},rpc);if(stored.price_usd_e6!==print.priceUsdE6.toString()||stored.label!=='relayer price (testnet)')throw new Error('relayer price not stored');
+  await send(buyer,contract.accountId,call('settle_call',{token_id:'earn'}),'settlement before expiry rejected',true);
   const spend=unsignedBitcoinSpend({txid:funding,vout:vout.n,prevoutSats:sats,destination,amountSats:sats-1000n,feeSats:1000n});const spendPayload=Buffer.concat([Buffer.from(spend.rawHex,'hex'),Buffer.alloc(8)]);spendPayload.writeBigUInt64LE(sats,spendPayload.length-8);
   await send(owner,contract.accountId,call('request_btc_spend',{token_id:'earn',raw_unsigned_hex:spend.rawHex,prevout_sats:sats.toString(),nonce:2,signature:Buffer.from(signAuthorization(pq.secretKey,'earn',2,spendPayload)).toString('base64')}),'encumbered BTC spend rejected',true);
   await send(owner,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'earn'},120,1n),'encumbered box transfer rejected',true);
