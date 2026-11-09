@@ -1,6 +1,7 @@
 use near_sdk::json_types::{Base64VecU8, U128};
-use near_sdk::{env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise, PromiseResult};
+use near_sdk::{env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Promise};
 use std::collections::BTreeMap;
+mod btc;
 
 const NS_SEC: u64 = 1_000_000_000;
 const MPC_GAS: Gas = Gas::from_tgas(40);
@@ -149,8 +150,8 @@ impl Hako {
     pub fn on_eth_signed(&mut self, spend_id: u64) {
         let spend = self.spends.get_mut(&spend_id).expect("spend not found");
         require!(spend.state == "signing", "not signing");
-        match env::promise_result(0) {
-            PromiseResult::Successful(bytes) => {
+        match env::promise_result_checked(0, 4096) {
+            Ok(bytes) => {
                 spend.signature_json = Some(String::from_utf8(bytes).expect("MPC response UTF-8"));
                 spend.state = "signed".into();
             }
@@ -161,6 +162,7 @@ impl Hako {
     pub fn list(&mut self, token_id: String, price: U128) {
         require!(price.0 > 0, "price must be positive");
         require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
+        require!(!btc::btc_pending(&token_id), "pending Bitcoin spend exists");
         let t = self.token_mut(&token_id);
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(!t.ever_signed, "box has issued a signature; cannot safely resell");
@@ -176,6 +178,7 @@ impl Hako {
     #[payable]
     pub fn buy(&mut self, token_id: String) -> Promise {
         require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
+        require!(!btc::btc_pending(&token_id), "pending Bitcoin spend exists");
         let t = self.token_mut(&token_id);
         require!(!t.ever_signed, "box has issued a signature; cannot safely resell");
         let price = t.listed_yocto.expect("not listed").0;
@@ -192,11 +195,15 @@ impl Hako {
     #[payable]
     pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
         require!(env::attached_deposit().as_yoctonear() == 1, "one yocto required");
-        require!(!self_pending_for(&token_id, &self.spends), "pending spend exists");
-        let t = self.token_mut(&token_id);
+        require!(!self.spends.values().any(|s|s.token_id==token_id && s.clawback && s.state=="pending"),"guardian recovery active");
+        require!(!btc::btc_guardian_pending(&token_id),"Bitcoin guardian recovery active");
+        let t = self.tokens.get(&token_id).expect("token not found");
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(!t.ever_signed, "box has issued a signature; cannot safely transfer");
         require!(receiver_id != t.owner_id, "same owner");
+        for s in self.spends.values_mut().filter(|s|s.token_id==token_id && s.state=="pending") {s.state="cancelled".into();}
+        btc::void_pending(&token_id);
+        let t = self.token_mut(&token_id);
         t.owner_id = receiver_id;
         t.pq_key = None;
         t.nonce = 0;
@@ -214,7 +221,7 @@ impl Hako {
     fn token_mut(&mut self, id: &str) -> &mut BoxToken { self.tokens.get_mut(id).expect("token not found") }
 }
 
-fn self_pending_for(id: &str, spends: &BTreeMap<u64, Spend>) -> bool { spends.values().any(|s| s.token_id == id && (s.state == "pending" || s.state == "signing" || s.state == "signed")) }
+fn self_pending_for(id: &str, spends: &BTreeMap<u64, Spend>) -> bool { spends.values().any(|s| s.token_id == id && (s.state == "pending" || s.state == "signing")) }
 fn validate_policy(p: &Policy) { require!(p.delay_sec >= 120 && p.delay_sec <= 7 * 86_400, "delay range 120s..7d"); require!(p.daily_eth_wei.0 > 0, "daily cap required"); require!(is_address(&p.recovery_eth), "recovery ETH address"); require!(p.allow_eth.len() <= 32 && p.allow_eth.iter().all(|a| is_address(a)), "allowlist ETH address"); if let Some(a) = &p.emergency_migration { require!(is_address(a), "migration address"); } }
 fn verify_pq(t: &BoxToken, nonce: u64, request: &[u8], signature: &[u8]) { let pk = t.pq_key.as_ref().expect("Setup required: ML_DSA_KEY"); require!(nonce == t.nonce, "bad nonce"); require!(signature.len() == ML_SIG_LEN, "bad signature length"); let message = format!("hako:v1:{}:{}:{}", t.token_id, nonce, hex_encode(&env::sha256(request))); let digest = env::sha256(message.as_bytes()); require!(env::ml_dsa_verify(signature.try_into().unwrap(), &digest, pk.as_slice().try_into().unwrap()), "bad ML-DSA signature"); }
 fn apply_daily_cap(t: &mut BoxToken, amount: u128, now: u64) { let day = now / (86_400 * NS_SEC); if t.day_index != day { t.day_index = day; t.spent_today_wei = U128(0); } let new = t.spent_today_wei.0.checked_add(amount).expect("cap overflow"); require!(new <= t.policy.daily_eth_wei.0, "daily cap exceeded"); t.spent_today_wei = U128(new); }
@@ -280,7 +287,7 @@ mod tests {
         c.spends.get_mut(&0).unwrap().state="cancelled".into();
         c.list("box1".into(),U128(100));
         context("buyer.testnet",100);
-        c.buy("box1".into());
+        let _ = c.buy("box1".into());
         let t=c.nft_token("box1".into()).unwrap();
         assert_eq!(t.owner_id.as_str(),"buyer.testnet");
         assert!(t.pq_key.is_none());
