@@ -86,4 +86,15 @@ The SDK performs MPC epsilon derivation and verifies it against the signer view.
 
 ## Known verification limits
 
-The production web build passed, but the browser automation host was unavailable, so a measured 375px screenshot and overflow check remain [blocked](BLOCKED.md). No public testnet4 or Sepolia funds were provided. The public scanner cannot prove ETH outgoing signatures from nonce alone after EIP-7702; the UI marks positive-nonce exposure unknown. Full NEP-171 approval/event conformance and post-signature Bitcoin epoch advancement remain unimplemented.
+No public testnet4 or Sepolia funds were provided. The public scanner cannot prove ETH outgoing signatures from nonce alone after EIP-7702; the UI marks positive-nonce exposure unknown. Full NEP-171 approval/event conformance and post-signature Bitcoin epoch advancement remain unimplemented.
+
+## Web browser check (2026-11-09)
+
+Headless Chrome (playwright-core, `channel: 'chrome'`) against the Vite app with `VITE_HAKO_CONTRACT=hako-contract-mw984kpp.testnet`:
+
+| Route | 1440×900 | 390×844 |
+| --- | --- | --- |
+| `/` landing | root rendered, `scrollWidth - innerWidth = 0`, no page errors | same |
+| `/app` (Overview, Rules, Send, Earn, Recovery, Sell tabs) | root rendered, overflow 0 on every tab, no page errors | same |
+
+The only console errors on `/app` are `ERR_CONNECTION_REFUSED` from the local Anvil and Solana nodes, which were not running; the UI shows them as `Setup required: VITE_ANVIL_RPC_URL` / `VITE_SOLANA_RPC_URL`. The landing proof strip read 16 vault NFTs from `nft_tokens` and the contract's recent transactions from the NearBlocks v3 API. A scanner run on a public mainnet Bitcoin address returned live Blockstream data. `vite build` passed.
