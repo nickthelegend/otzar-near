@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-09T17:02:15.909Z",
+  "network": "NEAR testnet",
+  "token": "husdc-3177b477.testnet",
+  "symbol": "tUSDC (Hako test)",
+  "note": "Test token for Hako covered calls. No value, no peg, not redeemable.",
+  "steps": [
+    {
+      "name": "create husdc-3177b477.testnet (2 NEAR from hako-seller-mw984kqa.testnet)",
+      "txHash": "HdzEghGCsETiV9CLp1mLXjso9A8dArdx85oLcGtfibw8",
+      "explorer": "https://testnet.nearblocks.io/txns/HdzEghGCsETiV9CLp1mLXjso9A8dArdx85oLcGtfibw8"
+    },
+    {
+      "name": "deploy and init tUSDC (Hako test)",
+      "txHash": "5Mm6Pezd6CNCbn9638njtnZXPouYM5pGcSqXAQu1Cri",
+      "explorer": "https://testnet.nearblocks.io/txns/5Mm6Pezd6CNCbn9638njtnZXPouYM5pGcSqXAQu1Cri"
+    },
+    {
+      "name": "register hako-contract-mw984kpp.testnet",
+      "txHash": "7hChRvhEvdPKNL3FdtLuWfgvbGQ26Mu8DrdvzBkn1pz4",
+      "explorer": "https://testnet.nearblocks.io/txns/7hChRvhEvdPKNL3FdtLuWfgvbGQ26Mu8DrdvzBkn1pz4"
+    },
+    {
+      "name": "register hako-seller-mw984kqa.testnet",
+      "txHash": "CgXsLMWbHtfM7MG5dC9W2vhqkB7MdFiPboFZAT2BUT5G",
+      "explorer": "https://testnet.nearblocks.io/txns/CgXsLMWbHtfM7MG5dC9W2vhqkB7MdFiPboFZAT2BUT5G"
+    },
+    {
+      "name": "register hako-guardian-mw984kqc.testnet",
+      "txHash": "Gj1n53qJoKwmqwjxJoZkDouBAsVAxB5eRjd4yccvvTy5",
+      "explorer": "https://testnet.nearblocks.io/txns/Gj1n53qJoKwmqwjxJoZkDouBAsVAxB5eRjd4yccvvTy5"
+    },
+    {
+      "name": "mint 1,000,000 tUSDC to hako-buyer-mw984kqb.testnet",
+      "txHash": "7AmCNT4rrM5ULSYBq2cMesXJ9zMK5JuupqVeBwwtRwnD",
+      "explorer": "https://testnet.nearblocks.io/txns/7AmCNT4rrM5ULSYBq2cMesXJ9zMK5JuupqVeBwwtRwnD"
+    }
+  ],
+  "explorer": "https://testnet.nearblocks.io/address/husdc-3177b477.testnet",
+  "wasmSha256": "7777720bb0ff8c05ee6988f295fbd96d12274bbecd8bb04ab3fc41c35ded7967",
+  "metadata": {
+    "spec": "ft-1.0.0",
+    "name": "Hako test USDC (testnet only, no value)",
+    "symbol": "tUSDC (Hako test)",
+    "icon": null,
+    "reference": null,
+    "reference_hash": null,
+    "decimals": 6
+  },
+  "buyerBalance": "1000000000000",
+  "relayerPublicKey": "ed25519:79cyBu1FHUTJUXXdvksqMMapfdFTt8vx8kDE1NFaM5u5"
+}
