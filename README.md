@@ -1,8 +1,8 @@
-# Hako (箱)
+# Hako (箱) — Your Bitcoin dies on Q-day. Hako doesn't.
 
-Hako is a NEAR testnet NFT whose owner controls a Bitcoin regtest P2WPKH address and an Ethereum Anvil address. The NEAR contract holds the ownership, sale, spending rules, and authorization state. NEAR Chain Signatures supplies real secp256k1 signatures for the foreign chains. A buyer can acquire a funded box on NEAR without a Bitcoin or Ethereum transfer at sale time.
+Hako is one wallet for BTC, ETH, and SOL. A vault NFT on NEAR controls addresses on Bitcoin Core regtest, Anvil, and a local Solana validator through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
 
-The problem: selling a funded wallet normally requires moving its coins or trusting the seller; Bitcoin script cannot enforce a daily cap, delay, and guardian recovery on these outputs; and classical public keys become visible when used. Hako applies those rules before its MPC signer can sign. It requires ML-DSA-65 authorization for every ordinary spend and policy change.
+The problem: a classical public key revealed on Bitcoin or Ethereum is a future quantum target. Bitcoin script cannot enforce a daily cap, delay, guardian recovery, or inheritance on these outputs. Hako checks authority and policy on NEAR before asking MPC to sign. The scanner shows exposure using live chain data. The foreign-chain signatures and MPC root remain classical; see [Security boundaries](#limits-and-security-boundaries).
 
 This is a **testnet and local-chain prototype**, not a mainnet vault. The NFT implements NEP-171 ownership and enumeration views used here; approval, metadata events, and full marketplace interoperability are not implemented. See [Limits](#limits-and-security-boundaries).
 
@@ -14,9 +14,11 @@ On macOS arm64 with Node 22+, pnpm 10.22, Rust 1.95, cargo-near 0.22, Foundry An
 corepack pnpm install --frozen-lockfile
 corepack pnpm test
 scripts/demo.sh
+scripts/demo-solana.sh
+node scripts/demo-recovery.mjs
 ```
 
-`pnpm test` builds the four packages, runs unit and live signer/MCP checks, then starts and stops a real NEAR sandbox. `scripts/demo.sh` starts and stops Bitcoin Core regtest and Anvil, deploys to NEAR testnet, mints and funds a box, sells it, registers the buyer's ML-DSA key and policy, rejects attack spends, handles a delayed request through guardian recovery, then broadcasts clean MPC-signed Bitcoin and Ethereum withdrawals. It downloads verified Bitcoin Core 31.2 into ignored `.tools/` if absent. The NEAR testnet helper creates demo accounts and writes keys only to ignored `.near-credentials/`.
+`pnpm test` builds the four packages, runs unit and live signer/MCP/scanner checks, then starts and stops a real NEAR sandbox. `scripts/demo.sh` starts Bitcoin Core regtest and Anvil, performs the NFT sale, rejects attack spends, then broadcasts MPC-signed Bitcoin and Ethereum withdrawals. `scripts/demo-solana.sh` starts and stops a local Solana validator, upgrades the same NEAR testnet contract, and broadcasts a real Ed25519 MPC-signed SOL transfer. `node scripts/demo-recovery.mjs` proves a 2-of-3 ML-DSA key rotation after its two-minute timelock on NEAR testnet. It waits for the full timelock. The scripts use ignored `.near-credentials/` testnet keys; `demo.sh` creates them first.
 
 Do `scripts/demo.sh` → see a new `deployments/testnet-YYYY-MM-DD.json` with NEAR transaction links and local-chain transaction IDs. Do `pnpm web` after creating `packages/web/.env.local` from `.env.example` → see live boxes, addresses, balances, vault rules, pending countdowns, signing and sale controls at `http://127.0.0.1:5173`. The Bitcoin balance and broadcast controls need the local proxy: `node scripts/bitcoin-proxy.mjs`, with `VITE_BITCOIN_ESPLORA_URL=http://127.0.0.1:3007` in the web env file. The proxy reads the real Bitcoin Core regtest node; it is not a fixture service. `scripts/demo.sh` saves Anvil's state to ignored `.demo/anvil-state.json` on exit so local receipts can be reloaded.
 
@@ -26,16 +28,36 @@ The web wallet uses MyNearWallet on testnet. The demo's generated NEAR accounts 
 
 | Package | Purpose |
 | --- | --- |
-| `packages/contract` | Rust contract: NFT ownership and enumeration, atomic NEAR-denominated sale, EIP-1559 and BIP143 parsing/hashing, daily caps, delay/allowlist, guardian recovery, ML-DSA verification, MPC calls. |
-| `packages/sdk` | Exact MPC epsilon derivation from the signer root, BTC/ETH address and transaction assembly, ML-DSA signing, live RPC helpers. |
-| `packages/web` | Responsive box gallery and detail, wallet actions, live BTC/ETH state and pending requests. |
-| `packages/mcp` | stdio tools `box_info`, `request_spend`, `list_box`; writes call the same contract checks as the UI. |
+| `packages/contract` | NFT ownership/sale, BTC/ETH/SOL transaction checks, ML-DSA authorization, 2-of-3 guardian recovery, inheritance, MPC calls. |
+| `packages/sdk` | MPC derivation, BTC/ETH/SOL transaction assembly, scanner reads, ML-DSA signatures and live RPC helpers. |
+| `packages/web` | Landing page, no-wallet exposure scanner, and wallet screen with balances, vault rules, guardian/heir actions, receive/send/sale controls. |
+| `packages/mcp` | stdio `box_info`, `scan_exposure`, `request_spend`, `list_box`; writes call the same contract checks as the UI. |
 
-NEAR features used: **Chain Signatures** to sign real Bitcoin and Ethereum transactions; **NEP-171 core ownership/enumeration methods** for the box; NEAR testnet transactions for sale and vault policy; **`env::ml_dsa_verify`** for post-quantum authorization. Intents, Chain Signatures on mainnet, sub-accounts, NEP-141/245, meta transactions, OutLayer TEE, and Sputnik DAO are not used. NEAR Intents has no testnet; Hako does not claim a live Intents integration.
+NEAR features used: **Chain Signatures** (ECDSA domain 0 for BTC/ETH, EdDSA domain 1 for SOL) to sign foreign transactions; **NEP-171 core ownership/enumeration methods** for the vault NFT; NEAR testnet transactions for sale and vault policy; **`env::ml_dsa_verify`** for owner and guardian authorization. Intents, sub-accounts, NEP-141/245, meta transactions, OutLayer TEE, and Sputnik DAO are not used. NEAR Intents has no testnet; Hako does not claim a live Intents integration.
 
 The MPC testnet signer is `v1.signer-prod.testnet`. Each box uses `hako/<token_id>/<epoch>` as its path. The SDK computes SHA3-256 epsilon according to the [NEAR MPC implementation](https://github.com/near/mpc/blob/main/crates/near-mpc-crypto-types/src/kdf.rs) and verifies the derived key against the signer's `derived_public_key` view. The contract sends `sign` a `payload_v2.Ecdsa` 32-byte digest, `path`, and `domain_id: 0` with one yoctoNEAR. The [NEAR Chain Signatures documentation](https://docs.near.org/chain-abstraction/chain-signatures/implementation) describes the network and signer; the [MPC repository](https://github.com/near/mpc) describes the request schema.
 
 For Ethereum the contract accepts only simple unsigned EIP-1559 type-2 transfers on chain ID 31337 or 11155111 and hashes their typed bytes with Keccak-256. For Bitcoin it accepts one-input, one- or two-output, unsigned P2WPKH transfers and computes BIP143 SIGHASH_ALL itself. The caller never supplies the MPC payload. Bitcoin change must match the registered next-epoch script and wait two minutes after registration; the current-epoch script cannot receive change. Sale and transfer are blocked after any MPC signature is issued, preventing a seller from signing a withdrawal and then selling the still-funded NFT. A buyer must register their own ML-DSA key and policy after sale; the seller's guardian/recovery policy and Bitcoin registration are cleared.
+
+## Scanner, recovery, SOL, and inheritance
+
+The scanner works without a wallet. Enter a BTC address or P2PK public key, or an ETH address, then press **Scan address**. For Bitcoin it reads address balances and paginated transactions through [mempool.space Esplora](https://mempool.space/docs/api/rest), falling back to [Blockstream Esplora](https://github.com/Blockstream/esplora/blob/master/API.md) when mempool.space is unavailable. It checks spent P2PKH/P2WPKH addresses, reused outputs, P2PK scripts, and Taproot addresses. Some public indexers do not index P2PK outputs; in that case Hako reports exposure from the public key itself and marks the balance unavailable. For ETH it reads balance, nonce, and code from a public JSON-RPC. A zero nonce rules out a sent EOA transaction; a positive nonce is marked **unknown** because [EIP-7702 breaks the nonce-as-sent-count assumption](https://ethereum.github.io/execution-apis/api/methods/eth_getTransactionCount/). Contract accounts are also marked unknown for this EOA check. No exposure result is based on fabricated chain data.
+
+Press **Move it into Hako** in **Local demo** mode with a selected vault to build an unsigned sweep to that vault's fresh regtest or Anvil address. The source owner must sign and broadcast it. Public mainnet sweep preparation is [blocked](BLOCKED.md): Hako refuses to build a mainnet spend in this prototype. A regtest source currently needs one UTXO; the builder uses a fixed 500-sat demo fee. The Anvil builder reads the source nonce, balance, and gas price live. The scanner itself requires no NEAR account.
+
+Set 2–5 ML-DSA guardian public keys and a threshold of at least 2 with an owner ML-DSA signature. A guardian recovery requires distinct valid signatures over the vault, owner, recovery nonce, and new key; it waits 2 minutes to 30 days. The owner can cancel. After finalization the old authority key fails. This adapts the ML-DSA recovery pattern from Nick's pre-hackathon `near-qday-recovery` / Phylax library (Q-005 baseline); **Phylax is folded into Hako and is not another entry**. The NFT's heir policy names a NEAR account and visible deadline plus claim delay. Owner check-in extends the deadline; the owner can cancel; after the delay only the heir may claim. Claim clears the old authority and policies. A signed vault cannot transfer to an heir because an already issued foreign-chain signature could still spend after transfer.
+
+The signer contract's [EdDSA domain 1](https://github.com/near/mpc/blob/main/crates/near-mpc-crypto-types/src/sign.rs) derives a Solana address per vault. Hako accepts only a single legacy SystemProgram SOL transfer message, verifies its source and destination fields on NEAR, requires ML-DSA owner authorization, and requests an Ed25519 MPC signature. The SDK verifies the signature against the derived source key before broadcasting. Solana recent blockhashes expire quickly, so this prototype signs SOL immediately; the BTC/ETH delay and daily cap are **not** enforced for SOL. The local validator e2e confirms 0.1 SOL received. The MPC root and Solana Ed25519 signature remain classical.
+
+| New live proof | NEAR transaction | Foreign chain result |
+| --- | --- | --- |
+| Solana address registration | [CtkHMADGR6E2vZmShh5tWLJDdf3Zc8r9ojkCrYZt26EG](https://testnet.nearblocks.io/txns/CtkHMADGR6E2vZmShh5tWLJDdf3Zc8r9ojkCrYZt26EG) | Derived Ed25519 address in [Solana evidence](deployments/solana-2026-11-09.json) |
+| SOL message authorization | [AwwQn9dNKrNXgMZ3pMPn5Qtp7aqiZJmeNHvdaBHYDURJ](https://testnet.nearblocks.io/txns/AwwQn9dNKrNXgMZ3pMPn5Qtp7aqiZJmeNHvdaBHYDURJ) | 0.1 SOL transfer prepared |
+| Ed25519 MPC signature | [AEq9SevVDCWTqAoTecYk8uxybgrxb2c2hQGDG227HE5h](https://testnet.nearblocks.io/txns/AEq9SevVDCWTqAoTecYk8uxybgrxb2c2hQGDG227HE5h) | Local validator signature `4HA5Awa6j9yXgDPDCmTKXf48z426jCcGaMuW1nvwhahhWZqg8cdx2RwzJeVvZtA5azWZwrS5d7xCTcDNpygArrcW` (confirmed) |
+| 2-of-3 PQ recovery initiated | [AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y](https://testnet.nearblocks.io/txns/AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y) | One guardian rejected [on-chain](https://testnet.nearblocks.io/txns/C26pPNCi4RfYH9x2ZTMnzuyNKCHv1XNeo67pz29RHDzn) |
+| PQ recovery finalized after timelock | [GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc](https://testnet.nearblocks.io/txns/GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc) | Early finalization rejected [on-chain](https://testnet.nearblocks.io/txns/5zrAxsiFqBehWMpJFZUbd61FDzZzxg5Fx87ckxFT4zAp) |
+
+The exact final tested wasm was [deployed again](https://testnet.nearblocks.io/txns/5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4); a post-deploy RPC code read matched its SHA-256 hash. Full records: [Solana](deployments/solana-2026-11-09.json), [PQ recovery](deployments/recovery-2026-11-09.json), [final upgrade](deployments/upgrade-2026-11-09.json), and [sandbox attack tests](deployments/sandbox.json). The Solana signature is local-validator evidence, so it has no public explorer URL; reproduce it with `scripts/demo-solana.sh` and query the validator before the script stops.
 
 ## Deployment and evidence
 
@@ -85,10 +107,13 @@ anvil --host 127.0.0.1 --port 8545 --chain-id 31337 --load-state "$PWD/.demo/anv
 # In another terminal:
 .tools/bitcoin-31.2/bin/bitcoind -regtest -datadir="$PWD/.demo/bitcoin" -server=1 -txindex=1 -rpcport=18443 -listen=0 -fallbackfee=0.0001 -daemon
 node scripts/bitcoin-proxy.mjs
+# In another terminal, reload the Solana demo ledger:
+solana-test-validator --ledger "$PWD/.demo/solana" --rpc-port 8899 --faucet-port 9900 --quiet
+# In another terminal, set VITE_HAKO_CONTRACT in packages/web/.env.local and run:
 pnpm web
 ```
 
-Run the proxy and web commands in separate terminals. Stop Anvil with Ctrl-C and Bitcoin Core with `.tools/bitcoin-31.2/bin/bitcoin-cli -regtest -datadir="$PWD/.demo/bitcoin" stop` when done.
+Run the proxy, validator, and web commands in separate terminals. Stop Anvil, the validator, the proxy, and Vite with Ctrl-C and Bitcoin Core with `.tools/bitcoin-31.2/bin/bitcoin-cli -regtest -datadir="$PWD/.demo/bitcoin" stop` when done.
 
 For MCP, build first, then set `HAKO_CONTRACT_ID` and run `node packages/mcp/dist/main.js` as a stdio server. `box_info` reads testnet and local-chain state. Write tools additionally require `NEAR_TESTNET_ACCOUNT`, `NEAR_TESTNET_KEY`, and `ML_DSA_KEY_FILE`; Bitcoin requests also require `BITCOIN_ESPLORA_URL`. The MCP server never receives an MPC signing capability directly. It only submits transactions to Hako's policy checks.
 
@@ -98,17 +123,20 @@ See [TESTING.md](TESTING.md) for commands, actual counts, gas, and negative case
 
 ## Limits and security boundaries
 
-- Hako protects **authority on NEAR** with ML-DSA-65. Bitcoin's secp256k1 ECDSA and the MPC root key remain classical. A spent one-time Bitcoin address exposes its key in the mempool window. A future Bitcoin post-quantum output type would require migration; BIP-360 is a proposal, not an active Bitcoin feature. The policy carries an `emergency_migration` destination field, but automatic migration execution is not implemented.
+- Hako protects **authority on NEAR** with ML-DSA-65, including the guardian quorum and heir policy. Bitcoin and Ethereum secp256k1 signatures, Solana Ed25519 signatures, and both MPC root keys remain classical. One-time addresses reduce Bitcoin public-key exposure to the mempool window on first spend. A future Bitcoin post-quantum output type would require migration; BIP-360 is a proposal, not an active Bitcoin feature. The policy carries an `emergency_migration` destination field, but automatic migration execution is not implemented.
 - One Bitcoin UTXO per spend and simple ETH transfers are supported. Bitcoin next-epoch public keys are registered under an ML-DSA signature, but the contract does **not** prove that a registered key equals the MPC path derivation. The SDK verifies derivation against the signer; an independent client should verify it before sending change. The contract also does not advance epochs after broadcast. The demo sweeps the initial UTXO and creates no change.
 - Bitcoin/ETH balances are live reads from local nodes; a NEAR contract cannot independently verify those foreign balances at sale time. The buyer must inspect them and `0 pending requests` before paying. Once a signature is issued, sale is permanently disabled, including if broadcast later fails.
 - An omitted policy delay defaults to 24 hours; the demo uses the minimum two minutes. The current web UI targets Anvil/regtest and testnet NEAR. Public Bitcoin testnet4 and Sepolia funding is [blocked](BLOCKED.md).
+- SOL signs immediately due to recent-blockhash expiry. It does not inherit the ETH/BTC spending cap or delay. The contract checks only a simple SystemProgram transfer and a registered source; it does not independently prove that the registered Solana key matches the MPC derivation. The SDK checks derivation and signature. A direct caller must check the registered key before funding it.
+- Guardian recovery finalization is live on NEAR testnet. An inheritance claim after a multiday deadline was unit-tested with a later NEAR block timestamp; the sandbox and testnet have not yet naturally advanced to a claim date. The on-chain sandbox rejected early and wrong-heir claims.
+- The no-wallet scanner is an exposure indicator, not a complete cryptographic audit. Bitcoin histories over 500 transactions are marked incomplete. ETH positive nonce remains unknown because of EIP-7702. P2PK output balance is marked unavailable when the public Esplora indexer omits it.
 - This prototype has not had an external security audit. It should not custody valuable funds.
 
 ## Team and other projects
 
 Lead: <TBD by Nick>
 
-Hako is independent of the earlier `near-qday-recovery` / Phylax work. It reuses its NEAR ML-DSA toolchain and local sandbox pattern, with a new NFT sale and foreign-chain wallet contract. Nick must confirm which other project, if any, he submits under Q-015 and disclose that project in each README before publishing. One person may submit at most two independent projects.
+Hako folds the former Phylax ML-DSA recovery concept and Athanatos quantum-safe-wallet concept into one product and one entry. It reuses Nick's pre-hackathon `near-qday-recovery` recovery pattern, ML-DSA toolchain, and sandbox setup as a Q-005 baseline. Nick must identify any *other independent* entry under Q-015 and disclose it here before publishing; Phylax is no longer an entry. One person may submit at most two projects.
 
 ## Submission
 
