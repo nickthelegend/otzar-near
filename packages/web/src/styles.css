@@ -49,3 +49,29 @@ h3,h4,h5{font-weight:600;letter-spacing:-.02em}
 .request,.policy-block{border-radius:14px;background:var(--surface)}
 .warning{color:var(--error)}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+/* hero2 + pillars (Claude, Nov 9) */
+.hero2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:center;gap:3rem;padding:4.5rem clamp(1rem,5vw,5rem) 3rem;max-width:1440px;margin:0 auto}
+.hero2 h1{font-size:clamp(3rem,6.2vw,6.4rem);line-height:.96;margin:.4em 0 .4em}
+.lede{font-size:1.15rem;line-height:1.65;color:var(--muted);max-width:560px}
+.cta-row{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-top:1.8rem}
+.ghost{color:var(--ink);text-decoration:none;border-bottom:1px solid #2c4651;padding:.6rem 0}
+.ghost:hover{border-color:#9fe7f5}
+.hero-stats{display:grid;grid-template-columns:repeat(3,auto);gap:2.4rem;margin:2.6rem 0 0;justify-content:start}
+.hero-stats dt{font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hero-stats dd{margin:.35rem 0 0;font-size:2.4rem;font-weight:300;letter-spacing:-.03em}
+.hero2-art{position:relative}
+.hero2-art img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:28px;border:1px solid #16303a;box-shadow:0 40px 120px rgba(31,127,155,.25);animation:float 9s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;padding:1rem clamp(1rem,5vw,5rem) 5rem;max-width:1440px;margin:0 auto}
+.pillars article{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:1.6rem 1.6rem 1.8rem;display:flex;flex-direction:column;gap:.6rem}
+.pillars img{width:132px;height:132px;object-fit:contain;margin:-.4rem 0 .4rem -.4rem}
+.pillars b{font-family:'Space Mono',monospace;font-weight:400;font-size:.7rem;letter-spacing:.14em;color:#7fd4e6;text-transform:uppercase}
+.pillars h3{font-size:1.5rem;font-weight:500;margin:0}
+.pillars p{color:var(--muted);line-height:1.6;margin:0}
+@media(max-width:900px){.hero2{grid-template-columns:1fr;padding-top:2.5rem}.pillars{grid-template-columns:1fr}.hero-stats{gap:1.4rem}}
+@media(max-width:480px){.hero2 h1{font-size:2.9rem}.hero-stats dd{font-size:1.8rem}}
+@media (prefers-reduced-motion: reduce){.hero2-art img{animation:none}}
+/* full-bleed hero art */
+.hero2{grid-template-columns:minmax(0,640px) 1fr;max-width:none;min-height:760px;background:linear-gradient(90deg,#05090c 0%,#05090c 34%,rgba(5,9,12,.55) 52%,rgba(5,9,12,0) 70%),url('/art/hako-hero.webp') right center/cover no-repeat;border-bottom:1px solid var(--line)}
+.hero2-art{display:none}
+@media(max-width:900px){.hero2{min-height:0;background:#05090c}.hero2-art{display:block;order:-1}.hero2-art img{border-radius:20px;animation:none}}
