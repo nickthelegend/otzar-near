@@ -25,5 +25,13 @@ export default function PortfolioTotals({ boxes, account, contractId, bitcoinPro
     })().catch(e=>{if(!cancelled)setError((e as Error).message);});
     return () => { cancelled = true; };
   },[boxes,account,contractId,bitcoinProxy,anvilRpc]);
-  return <div className="portfolio"><div><p className="eyebrow">YOUR VAULTS</p><h3>Total value</h3><small>Local test coins have no market value. Native balances across your vault NFTs:</small></div><strong>{totals.btc}</strong><strong>{totals.eth}</strong><strong>{totals.sol}</strong>{error&&<small className="portfolio-error">{error}</small>}</div>;
+  return <div className="portfolio">
+    <span className="portfolio-k">Across your boxes</span>
+    {!account ? <p className="portfolio-note">Connect a wallet to total your boxes.</p> : <div className="portfolio-rows">
+      <div><span>BTC</span><strong>{totals.btc.replace(' BTC', '')}</strong></div>
+      <div><span>ETH</span><strong>{totals.eth.replace(' ETH', '')}</strong></div>
+      <div><span>SOL</span><strong>{totals.sol.replace(' SOL', '')}</strong></div>
+    </div>}
+    {error && <small className="portfolio-error">{error}</small>}
+  </div>;
 }

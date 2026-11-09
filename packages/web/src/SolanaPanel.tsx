@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { broadcastSolana, rpcQuery, signAuthorization, signedSolanaTransaction, solanaAddress, solanaBalance, solanaBlockhash, unsignedSolanaTransfer, verifyAuthorization } from '@hako/sdk';
 import bs58 from 'bs58';
+import { Chip, Empty, Field, Icon, Timeline } from './ui';
 
 type Box = { token_id: string; owner_id: string; epoch: number; nonce: number; pq_key: number[] | null };
 type SolState = { public_key: string; spend: null | { message_hex: string; destination: string; lamports: string; state: string; signature_json: string | null } };
-type Props = { box: Box; contractId: string; account: string; keyFile: File | null; busy: boolean; invoke: (method: string, args: object) => Promise<void>; run: (fn: () => Promise<void>) => Promise<void> };
+type Props = { view: 'rules' | 'send'; box: Box; contractId: string; account: string; keyFile: File | null; busy: boolean; invoke: (method: string, args: object) => Promise<void>; run: (fn: () => Promise<void>) => Promise<void> };
 const rpc = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'http://127.0.0.1:8899';
 const base64 = (bytes: Uint8Array) => Buffer.from(bytes).toString('base64');
 
-export default function SolanaPanel({ box, contractId, account, keyFile, busy, invoke, run }: Props) {
+export default function SolanaPanel({ view, box, contractId, account, keyFile, busy, invoke, run }: Props) {
   const [address, setAddress] = useState(''); const [balance, setBalance] = useState('—');
   const [state, setState] = useState<SolState | null>(null); const [destination, setDestination] = useState(''); const [amount, setAmount] = useState('0.01');
   const [message, setMessage] = useState('');
@@ -27,5 +28,34 @@ export default function SolanaPanel({ box, contractId, account, keyFile, busy, i
     if (!verifyAuthorization(Uint8Array.from(box.pq_key || []), signature, box.token_id, box.nonce, data)) throw new Error('Key file does not match this vault');
     return base64(signature);
   }
-  return <div className="solana-panel"><h4>Solana · local validator</h4><div className="balance-line"><strong>{balance}</strong><code>{address || 'Deriving Ed25519 address…'}</code></div>{message && <p className="notice">{message}</p>}{!state && box.owner_id === account && <button disabled={busy || !address} onClick={() => run(async () => { await invoke('register_sol', { token_id: box.token_id, public_key: base64(bs58.decode(address)), nonce: box.nonce, signature: await authorize(bs58.decode(address)) }); await refresh(); })}>Register SOL address</button>}{state && state.public_key !== base64(bs58.decode(address)) && <p className="notice error">Registered SOL key differs from MPC derivation. Do not fund it.</p>}{state && box.owner_id === account && <div className="send"><h5>Send SOL</h5><input aria-label="Solana destination" placeholder="Solana destination" value={destination} onChange={event => setDestination(event.target.value)}/><input aria-label="SOL amount" placeholder="SOL amount" value={amount} onChange={event => setAmount(event.target.value)}/><button disabled={busy} onClick={() => run(async () => { const lamports = BigInt(Math.round(Number(amount) * 1e9)); const messageHex = unsignedSolanaTransfer(address, destination, lamports, await solanaBlockhash(rpc)); await invoke('request_sol_spend', { token_id: box.token_id, message_hex: messageHex, nonce: box.nonce, signature: await authorize(Buffer.from(messageHex, 'hex')) }); await refresh(); })}>Request SOL spend</button></div>}{state?.spend && <div className="request"><span className="request-id">SOL · {state.spend.state}</span><strong>{(Number(BigInt(state.spend.lamports))/1e9).toFixed(6)} SOL → {bs58.encode(Buffer.from(state.spend.destination, 'base64'))}</strong>{state.spend.state === 'pending' && <button disabled={busy} onClick={() => run(async () => { await invoke('execute_sol', { token_id: box.token_id }); await refresh(); })}>Sign via NEAR MPC</button>}{state.spend.state === 'signed' && state.spend.signature_json && <button disabled={busy} onClick={() => run(async () => { const raw = signedSolanaTransaction(state.spend!.message_hex, state.spend!.signature_json!, address); const hash = await broadcastSolana(raw, rpc); setMessage(`Solana validator accepted ${hash}`); await refresh(); })}>Broadcast to validator</button>}</div>}<small>Solana blockhashes expire quickly. SOL transfers sign immediately; the ETH/BTC delay policy does not apply to SOL.</small></div>;
+  const owner = box.owner_id === account;
+  const mismatch = !!state && !!address && state.public_key !== base64(bs58.decode(address));
+  if (view === 'rules') return <div className="card">
+    <div className="card-head"><div><h3>Solana address</h3><p>Registers the box's Ed25519 address, signed by your ML-DSA key. SOL transfers sign immediately: the ETH/BTC delay does not apply.</p></div>{state ? <Chip tone={mismatch ? 'bad' : 'ok'}>{mismatch ? 'Mismatch' : 'Registered'}</Chip> : <Chip tone="warn">Not registered</Chip>}</div>
+    {message && <p className="inline-note">{message}</p>}
+    <dl className="kv"><div><dt>Address</dt><dd><code>{address || 'Deriving Ed25519 address…'}</code></dd></div><div><dt>Balance</dt><dd>{balance}</dd></div></dl>
+    {mismatch && <p className="inline-error">Registered SOL key differs from the MPC derivation. Do not fund it.</p>}
+    {!state && owner && <button className="btn btn-primary" disabled={busy || !address} onClick={() => run(async () => { await invoke('register_sol', { token_id: box.token_id, public_key: base64(bs58.decode(address)), nonce: box.nonce, signature: await authorize(bs58.decode(address)) }); await refresh(); })}>Sign and register SOL address</button>}
+  </div>;
+  const spend = state?.spend;
+  return <>
+    <div className="card">
+      <div className="card-head"><div><h3>Send SOL</h3><p>Solana blockhashes expire quickly, so SOL spends sign right away. Balance {balance}.</p></div></div>
+      {message && <p className="inline-note">{message}</p>}
+      {!state ? <p className="fineprint">Register the Solana address first (Rules tab).</p> : !owner ? <p className="fineprint">Only the owner can request a spend.</p> : <div className="form">
+        <div className="form-grid">
+          <Field label="Destination"><input aria-label="Solana destination" placeholder="Base58 address" value={destination} onChange={event => setDestination(event.target.value)} spellCheck={false} /></Field>
+          <Field label="Amount (SOL)"><input aria-label="SOL amount" value={amount} onChange={event => setAmount(event.target.value)} inputMode="decimal" /></Field>
+        </div>
+        <button className="btn btn-primary" disabled={busy} onClick={() => run(async () => { const lamports = BigInt(Math.round(Number(amount) * 1e9)); const messageHex = unsignedSolanaTransfer(address, destination, lamports, await solanaBlockhash(rpc)); await invoke('request_sol_spend', { token_id: box.token_id, message_hex: messageHex, nonce: box.nonce, signature: await authorize(Buffer.from(messageHex, 'hex')) }); await refresh(); })}><Icon name="send" /> Sign and request spend</button>
+      </div>}
+    </div>
+    <div className="card">
+      <div className="card-head"><div><h3>SOL spend</h3><p>One open SOL request per box.</p></div></div>
+      {!spend ? <Empty icon="clock" title="No SOL spend request" /> : <Timeline clock={Date.now()} items={[{ key: 'sol', chain: 'SOL', state: spend.state, title: `${(Number(BigInt(spend.lamports)) / 1e9).toFixed(6)} SOL → ${bs58.encode(Buffer.from(spend.destination, 'base64'))}`, actions: <>
+        {spend.state === 'pending' && <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => run(async () => { await invoke('execute_sol', { token_id: box.token_id }); await refresh(); })}>Sign via NEAR MPC</button>}
+        {spend.state === 'signed' && spend.signature_json && <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => run(async () => { const raw = signedSolanaTransaction(spend.message_hex, spend.signature_json!, address); const hash = await broadcastSolana(raw, rpc); setMessage(`Solana validator accepted ${hash}`); await refresh(); })}>Broadcast to validator</button>}
+      </> }]} />}
+    </div>
+  </>;
 }

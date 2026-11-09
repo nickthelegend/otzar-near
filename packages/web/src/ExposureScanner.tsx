@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Chip, Field, Icon } from './ui';
 import { scanBitcoin, scanEthereum, unsignedBitcoinSpend, unsignedEthTransfer, type Exposure } from '@hako/sdk';
 
 type Props = { target: { bitcoin: string; ethereum: string } | null; targetUsable: boolean; bitcoinProxy?: string; anvilRpc: string };
@@ -62,5 +63,40 @@ export default function ExposureScanner({ target, targetUsable, bitcoinProxy, an
   }
   const unit = result?.chain === 'bitcoin' ? 'BTC' : 'ETH';
   const divisor = result?.chain === 'bitcoin' ? 1e8 : 1e18;
-  return <section className="scanner" id="scan"><div className="section-head"><div><p className="eyebrow">NO WALLET REQUIRED</p><h2>Quantum exposure scanner</h2></div></div><p>Paste a Bitcoin or Ethereum address, or a P2PK public key. Hako reads the chain to check key exposure and the native balance at risk.</p><div className="scanner-form"><input aria-label="Address to scan" placeholder="bc1… / 0x… / P2PK hex" value={input} onChange={e=>setInput(e.target.value)}/><select aria-label="Scan network" value={network} onChange={e=>setNetwork(e.target.value as 'mainnet'|'local')}><option value="mainnet">Public mainnet</option><option value="local">Local demo</option></select><button onClick={scan} disabled={busy||!input.trim()}>Scan address</button></div>{error&&<div className="notice error" role="alert">{error}</div>}{result&&<div className="scan-result"><strong>{result.exposed === true ? 'Public key exposed' : result.exposed === false ? 'No exposure found' : 'Exposure unknown'}</strong><span>{result.balance === null ? 'Balance unavailable for this P2PK script' : `${(Number(BigInt(result.balance))/divisor).toFixed(result.chain==='bitcoin'?8:6)} ${unit} at this address`}</span><ul>{result.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul><small>Source: {result.source} · {result.scannedTransactions === undefined ? 'live state' : `${result.scannedTransactions} transactions inspected`}</small><div><button onClick={move} disabled={busy}>Move it into Hako</button><small>Builds an unsigned sweep to the selected Hako address. The source owner must sign and broadcast it.</small></div>{unsigned&&<label>Unsigned transaction to sign<textarea readOnly value={unsigned}/></label>}</div>}</section>;
+  const verdict = result?.exposed === true ? 'bad' : result?.exposed === false ? 'ok' : 'warn';
+  return <div className={`scanner ${target ? 'scanner-inline' : ''}`}>
+    <form className="scanner-form" onSubmit={e => { e.preventDefault(); if (input.trim() && !busy) scan(); }}>
+      <Icon name="scan" size={20} />
+      <input aria-label="Address to scan" placeholder="bc1… · 0x… · P2PK public key hex" value={input} onChange={e => setInput(e.target.value)} spellCheck={false} autoComplete="off" />
+      <div className="seg" role="radiogroup" aria-label="Scan network">
+        <button type="button" role="radio" aria-checked={network === 'mainnet'} className={network === 'mainnet' ? 'on' : ''} onClick={() => setNetwork('mainnet')}>Mainnet</button>
+        <button type="button" role="radio" aria-checked={network === 'local'} className={network === 'local' ? 'on' : ''} onClick={() => setNetwork('local')}>Local demo</button>
+      </div>
+      <button className="btn btn-primary" type="submit" disabled={busy || !input.trim()}>{busy ? 'Reading chain…' : 'Scan'}</button>
+    </form>
+    {error && <p className="inline-error" role="alert">{error}</p>}
+    {!result && !error && <p className="scanner-note">Mainnet reads public Bitcoin and Ethereum data; local demo reads the regtest proxy or Anvil.</p>}
+    {result && <div className={`scan-result scan-${verdict}`}>
+      <div className="scan-verdict">
+        <span className="scan-glyph"><Icon name={verdict === 'ok' ? 'shield' : verdict === 'bad' ? 'key' : 'scan'} size={26} /></span>
+        <div>
+          <Chip tone={verdict as 'ok' | 'bad' | 'warn'}>{result.chain}</Chip>
+          <strong>{result.exposed === true ? 'Public key exposed' : result.exposed === false ? 'No exposure found' : 'Exposure unknown'}</strong>
+          <code className="scan-addr">{result.address}</code>
+        </div>
+        <div className="scan-bal">
+          <span>At this address</span>
+          <strong>{result.balance === null ? 'Unavailable' : `${(Number(BigInt(result.balance)) / divisor).toFixed(result.chain === 'bitcoin' ? 8 : 6)}`}</strong>
+          <small>{result.balance === null ? 'P2PK script balance not indexed' : unit}</small>
+        </div>
+      </div>
+      <ul className="scan-reasons">{result.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>
+      <p className="scan-source">Source {result.source} · {result.scannedTransactions === undefined ? 'live state' : `${result.scannedTransactions} transactions inspected`}</p>
+      {target ? <div className="scan-move">
+        <button className="btn btn-ghost" onClick={move} disabled={busy}><Icon name="box" /> Build a sweep into this vault</button>
+        <small>Builds an unsigned transaction to this vault's address. The source owner signs and broadcasts it.</small>
+      </div> : <p className="scan-source">Open the vault app and pick a box to build a sweep into it.</p>}
+      {unsigned && <Field label="Unsigned transaction to sign"><textarea readOnly value={unsigned} /></Field>}
+    </div>}
+  </div>;
 }

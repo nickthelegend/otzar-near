@@ -1,3 +1,4 @@
+import { Chip, Empty, Field, Icon } from './ui';
 import { useEffect, useState } from 'react';
 import { guardianConfigPayload, inheritancePayload, newQuantumKey, rpcQuery, signAuthorization, signGuardianApproval, verifyAuthorization } from '@hako/sdk';
 
@@ -40,5 +41,37 @@ export default function VaultPolicyPanel({ box, contractId, account, keyFile, bu
     if(!Number.isSafeInteger(deadlineSec))throw new Error('Choose a valid heir deadline');
     await invoke('set_inheritance',{token_id:box.token_id,heir,deadline_sec:deadlineSec,delay_sec:delaySec,nonce:box.nonce,signature:await ownerSignature(inheritancePayload(box.token_id,heir,deadlineSec,delaySec))});await refresh();
   }
-  return <div className="vault-policies" id="vault-policy"><h4>Recovery and inheritance</h4>{error&&<p className="notice error">{error}</p>}<div className="policy-block"><h5>ML-DSA guardians</h5>{config?<><p>{config.threshold} of {config.keys.length} guardians · {config.timelock_sec/3600}h timelock</p>{config.pending_key?<><p>Key rotation pending until {new Date((config.ready_ns||0)/1e6).toLocaleString()}.</p><button disabled={busy} onClick={()=>run(async()=>{await invoke('finalize_pq_recovery',{token_id:box.token_id});await refresh();})}>Finalize recovery</button>{box.owner_id===account&&<button disabled={busy} onClick={()=>run(async()=>{await invoke('cancel_pq_recovery',{token_id:box.token_id,nonce:box.nonce,signature:await ownerSignature(Buffer.from('cancel-pq-recovery'))});await refresh();})}>Cancel recovery</button>}</>:<><label>Guardian key files<input type="file" multiple accept=".json" onChange={e=>setFiles(Array.from(e.target.files||[]))}/></label><button disabled={busy} onClick={()=>run(initiate)}>Start guardian recovery</button></>}</>:<p>No guardians configured.</p>}{box.owner_id===account&&<div className="send"><label>Guardian public keys, base64 (one per line)<textarea value={keysText} onChange={e=>setKeysText(e.target.value)}/></label><label>Threshold<input type="number" min="2" max="5" value={threshold} onChange={e=>setThreshold(e.target.value)}/></label><label>Timelock, seconds<input type="number" min="120" value={timelock} onChange={e=>setTimelock(e.target.value)}/></label><button disabled={busy} onClick={()=>run(configure)}>Set guardians</button></div>}</div><div className="policy-block"><h5>Heir</h5>{inheritance?<><p>{inheritance.heir} can claim after {new Date((inheritance.deadline_ns+inheritance.delay_sec*1e9)/1e6).toLocaleString()}.</p>{box.owner_id===account&&<><button disabled={busy} onClick={()=>run(async()=>{await invoke('check_in',{token_id:box.token_id,nonce:box.nonce,signature:await ownerSignature(Buffer.from('inheritance-check-in'))});await refresh();})}>Check in</button><button disabled={busy} onClick={()=>run(async()=>{await invoke('cancel_inheritance',{token_id:box.token_id,nonce:box.nonce,signature:await ownerSignature(Buffer.from('inheritance-cancel'))});await refresh();})}>Cancel heir</button></>}{inheritance.heir===account&&<button disabled={busy} onClick={()=>run(async()=>{await invoke('claim_inheritance',{token_id:box.token_id});await refresh();})}>Claim inherited NFT</button>}</>:<p>No heir set.</p>}{box.owner_id===account&&<div className="send"><input placeholder="Heir NEAR account" value={heir} onChange={e=>setHeir(e.target.value)}/><label>Check-in deadline<input type="datetime-local" value={deadline} onChange={e=>setDeadline(e.target.value)}/></label><label>Claim delay, days<input type="number" min="1" max="30" value={delay} onChange={e=>setDelay(e.target.value)}/></label><button disabled={busy} onClick={()=>run(configureHeir)}>Set heir</button></div>}</div></div>;
+  const owner = box.owner_id === account;
+  return <>
+    {error && <p className="inline-error">{error}</p>}
+    <div className="card">
+      <div className="card-head"><div><h3>Post-quantum guardians</h3><p>M-of-N guardians, each with their own ML-DSA key, can rotate a lost authority key after a timelock. You can cancel during the timelock.</p></div>{config ? <Chip tone={config.pending_key ? 'warn' : 'ok'}>{config.pending_key ? 'Rotation pending' : `${config.threshold} of ${config.keys.length}`}</Chip> : <Chip>Not set</Chip>}</div>
+      {config ? <>
+        <dl className="kv"><div><dt>Threshold</dt><dd>{config.threshold} of {config.keys.length} guardians</dd></div><div><dt>Timelock</dt><dd>{config.timelock_sec / 3600}h</dd></div><div><dt>Recovery nonce</dt><dd>{config.recovery_nonce}</dd></div></dl>
+        {config.pending_key ? <div className="form"><p className="warn-line"><Icon name="clock" /> Key rotation pending until {new Date((config.ready_ns || 0) / 1e6).toLocaleString()}.</p><div className="btn-row"><button className="btn btn-primary" disabled={busy} onClick={() => run(async () => { await invoke('finalize_pq_recovery', { token_id: box.token_id }); await refresh(); })}>Finalize recovery</button>{owner && <button className="btn btn-danger" disabled={busy} onClick={() => run(async () => { await invoke('cancel_pq_recovery', { token_id: box.token_id, nonce: box.nonce, signature: await ownerSignature(Buffer.from('cancel-pq-recovery')) }); await refresh(); })}>Cancel recovery</button>}</div></div>
+          : <div className="form"><Field label="Guardian key files" hint="Select at least the threshold of guardian ML-DSA key files. A fresh owner key downloads first."><input type="file" multiple accept=".json" onChange={e => setFiles(Array.from(e.target.files || []))} /></Field><button className="btn btn-ghost" disabled={busy} onClick={() => run(initiate)}>Start guardian recovery</button></div>}
+      </> : <Empty icon="shield" title="No guardians configured" />}
+      {owner && <div className="form">
+        <h4>{config ? 'Replace guardians' : 'Set guardians'}</h4>
+        <Field label="Guardian public keys (base64, one per line)"><textarea value={keysText} onChange={e => setKeysText(e.target.value)} spellCheck={false} /></Field>
+        <div className="form-grid"><Field label="Threshold"><input type="number" min="2" max="5" value={threshold} onChange={e => setThreshold(e.target.value)} /></Field><Field label="Timelock (seconds)"><input type="number" min="120" value={timelock} onChange={e => setTimelock(e.target.value)} /></Field></div>
+        <button className="btn btn-primary" disabled={busy} onClick={() => run(configure)}>Sign and set guardians</button>
+      </div>}
+    </div>
+    <div className="card">
+      <div className="card-head"><div><h3>Heir</h3><p>Check in before your deadline. If you don't, the heir can claim the NFT after the delay.</p></div>{inheritance ? <Chip tone="ok">Set</Chip> : <Chip>Not set</Chip>}</div>
+      {inheritance ? <>
+        <dl className="kv"><div><dt>Heir</dt><dd><code>{inheritance.heir}</code></dd></div><div><dt>Can claim after</dt><dd>{new Date((inheritance.deadline_ns + inheritance.delay_sec * 1e9) / 1e6).toLocaleString()}</dd></div></dl>
+        <div className="btn-row">
+          {owner && <><button className="btn btn-primary" disabled={busy} onClick={() => run(async () => { await invoke('check_in', { token_id: box.token_id, nonce: box.nonce, signature: await ownerSignature(Buffer.from('inheritance-check-in')) }); await refresh(); })}>Check in</button><button className="btn btn-danger" disabled={busy} onClick={() => run(async () => { await invoke('cancel_inheritance', { token_id: box.token_id, nonce: box.nonce, signature: await ownerSignature(Buffer.from('inheritance-cancel')) }); await refresh(); })}>Remove heir</button></>}
+          {inheritance.heir === account && <button className="btn btn-primary" disabled={busy} onClick={() => run(async () => { await invoke('claim_inheritance', { token_id: box.token_id }); await refresh(); })}>Claim inherited box</button>}
+        </div>
+      </> : <Empty icon="heir" title="No heir set" />}
+      {owner && <div className="form">
+        <h4>{inheritance ? 'Change heir' : 'Set an heir'}</h4>
+        <div className="form-grid form-grid-3"><Field label="Heir NEAR account"><input placeholder="heir.testnet" value={heir} onChange={e => setHeir(e.target.value)} /></Field><Field label="Check-in deadline"><input type="datetime-local" value={deadline} onChange={e => setDeadline(e.target.value)} /></Field><Field label="Claim delay (days)"><input type="number" min="1" max="30" value={delay} onChange={e => setDelay(e.target.value)} /></Field></div>
+        <button className="btn btn-primary" disabled={busy} onClick={() => run(configureHeir)}>Sign and set heir</button>
+      </div>}
+    </div>
+  </>;
 }

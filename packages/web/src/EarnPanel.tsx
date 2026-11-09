@@ -1,3 +1,4 @@
+import { Chip, Empty, Field, Icon } from './ui';
 import { useEffect, useMemo, useState } from 'react';
 import { bitcoinAddress, deriveAddresses, dryBitcoinQuote, oneClickTokens, rpcQuery, signAuthorization, verifyAuthorization, type OneClickAsset } from '@hako/sdk';
 
@@ -27,5 +28,58 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
   async function buy(){await run(async()=>{if(!asking)throw new Error('Auction closed');if(usdcBalance===null||BigInt(usdcBalance)<BigInt(asking))throw new Error('Setup required: TESTNET_USDC_FUNDS');await invoke('ft_transfer_call',{receiver_id:contractId,amount:asking,msg:`buy:${box.token_id}`},'1',USDC);setNotice('Check the USDC transfer and covered-call state after the callback settles.');});}
   async function preview(){setError('');setQuote(null);setNotice('');try{if(!contractId)throw new Error('Setup required: VITE_HAKO_CONTRACT');const selected=previewAssets.find(a=>a.assetId===asset);if(!selected)throw new Error('Select a live 1Click asset');const derived=await deriveAddresses(contractId,box.token_id,box.epoch+1);const recipient=bitcoinAddress(Buffer.from(derived.bitcoinPublicKey,'hex'),'mainnet');const result=await dryBitcoinQuote({originAsset:asset,amount:units(amount,selected.decimals),recipient,refundTo:refund});setQuote(result);setNotice('Dry quote only. No deposit address was issued and no swap was started.');}catch(e){setError((e as Error).message);}}
 
-  return <section id="earn" className="earn-panel"><div className="earn-heading"><div><p className="eyebrow">COVERED CALLS · NEAR TESTNET</p><h4>Earn</h4></div><span className="pill">{call?.state||'No auctions yet'}</span></div><p>Option buyers pay a USDC premium for the right to buy this box’s BTC at the strike by expiry. The premium is yours; BTC upside above the strike is capped.</p>{error&&<p className="notice error" role="alert">{error}</p>}{notice&&<p className="notice">{notice}</p>}{!call?<p className="empty">No auctions yet.</p>:<><div className="earn-stats"><div><small>Current premium</small><strong>{asking?`${decimal(asking)} USDC`:call.premium_paid_usdc?`${decimal(call.premium_paid_usdc)} USDC paid`:'—'}</strong></div><div><small>Annualized premium yield · paid premium / strike notional × 365d / term</small><strong>{annualized(call)}</strong></div><div><small>Strike / Pyth BTC price</small><strong>${decimal(call.strike_usd_e6)} / {oracle?`$${oracle}`:'Price unavailable'}</strong></div><div><small>Time to expiry</small><strong>{Math.max(0,Math.ceil((call.expiry_ns/1e6-clock)/1000))}s · {date(call.expiry_ns)}</strong></div><div><small>Encumbrance</small><strong>{['auction','purchasing','sold','settling','itm','paying','paid','signing','signed'].includes(call.state)?`${call.size_sats} sats locked`:'Released'}</strong></div><div><small>Holder</small><strong>{call.holder||'No buyer yet'}</strong></div></div>{call.state==='auction'&&account&&(!usdcBalance||BigInt(usdcBalance)<BigInt(asking||'0'))&&<p className="warning">Setup required: TESTNET_USDC_FUNDS. Fund this testnet account at <a href="https://app.usetidepool.tech/faucet" target="_blank">Tidepool faucet</a>.</p>}{call.state==='auction'&&account&&<button onClick={buy} disabled={busy||!asking||!usdcBalance||BigInt(usdcBalance)<BigInt(asking)}>Buy call with testnet USDC</button>}{call.state==='itm'&&<p className="notice">Exercise window ends {date(call.exercise_deadline_ns!)}. The holder pays the strike in testnet USDC, then requests an MPC signed Bitcoin transfer.</p>}{call.state==='sold'&&<p className="empty">Settlement reads a fresh BTC/USD update from Pyth on NEAR at expiry. No fresh update means settlement remains pending.</p>}</>}{box.owner_id===account&&box.pq_key&&(!call||['unfilled','otm','lapsed'].includes(call.state))&&<div className="earn-form"><h5>Write a call</h5><div><label>Strike USD<input value={strike} onChange={e=>setStrike(e.target.value)}/></label><label>Size sats<input value={size} onChange={e=>setSize(e.target.value)}/></label><label>Opening premium USDC<input value={opening} onChange={e=>setOpening(e.target.value)}/></label><label>Minimum premium USDC<input value={minimum} onChange={e=>setMinimum(e.target.value)}/></label><label>Term hours<input value={hours} onChange={e=>setHours(e.target.value)}/></label></div><p className="warning">A covered call limits BTC upside above the strike. The contract blocks owner BTC spends while this call is open. Bitcoin collateral is checked by this browser against the live UTXO service; NEAR cannot independently verify it.</p><button onClick={write} disabled={busy}>Sign and write call</button></div>}{history.length>0&&<div className="earn-history"><h5>History</h5>{history.slice().reverse().map(c=><p key={c.id}>#{c.id} · {c.state} · {c.premium_paid_usdc?`${decimal(c.premium_paid_usdc)} USDC paid`:'no premium paid'} · {date(c.opened_ns)}</p>)}</div>}<div className="earn-quote"><h5>Deposit anything · quote preview</h5><p>Live 1Click quote for ETH, SOL, or USDC from a supported chain into the box’s next epoch native BTC address. Mainnet settlement needs <code>NEAR_MAINNET_ACCOUNT</code> and funded assets.</p><div><label>Origin asset<select value={asset} onChange={e=>setAsset(e.target.value)}>{previewAssets.map(a=><option key={a.assetId} value={a.assetId}>{a.symbol} · {a.blockchain}</option>)}</select></label><label>Amount<input value={amount} onChange={e=>setAmount(e.target.value)}/></label><label>Refund address on origin chain<input value={refund} onChange={e=>setRefund(e.target.value)} placeholder="Your origin-chain address"/></label></div><button onClick={preview} disabled={!asset}>Get dry quote</button>{quote&&<p className="notice">1Click quoted {quote.quote?.amountOutFormatted||decimal(quote.quote?.amountOut||'0',8)} BTC. Minimum {quote.quote?.minAmountOut?decimal(quote.quote.minAmountOut,8):'unavailable'} BTC. Quote ID {quote.correlationId||'unavailable'}. No deposit address or swap was created.</p>}</div></section>;
+  const locked=!!call&&['auction','purchasing','sold','settling','itm','paying','paid','signing','signed'].includes(call.state);
+  const canWrite=box.owner_id===account&&!!box.pq_key&&(!call||['unfilled','otm','lapsed'].includes(call.state));
+  const short=!!account&&(!usdcBalance||BigInt(usdcBalance)<BigInt(asking||'0'));
+  return <>
+    {error&&<p className="inline-error" role="alert">{error}</p>}
+    {notice&&<p className="inline-note">{notice}</p>}
+    <div className="card earn-hero">
+      <div className="card-head"><div><h3>Covered call</h3><p>A buyer pays a USDC premium for the right to buy this box's sats at the strike before expiry. The premium is yours; upside above the strike is capped.</p></div><Chip tone={call?(call.state==='auction'?'ice':locked?'warn':'idle'):'idle'}>{call?.state||'No auctions yet'}</Chip></div>
+      {!call?<Empty icon="coin" title="No call written on this box yet">{canWrite?'Write one below.':'The owner can write a call once the box has an ML-DSA key and a registered Bitcoin UTXO.'}</Empty>:<>
+        <div className="metrics">
+          <div><span>Asking premium</span><strong>{asking?decimal(asking):call.premium_paid_usdc?decimal(call.premium_paid_usdc):'—'}</strong><small>{asking?'USDC · falling':call.premium_paid_usdc?'USDC paid':'auction closed'}</small></div>
+          <div><span>Annualised yield</span><strong>{annualized(call)}</strong><small>paid premium ÷ strike notional × 365d ÷ term</small></div>
+          <div><span>Strike</span><strong>${decimal(call.strike_usd_e6)}</strong><small>Pyth BTC/USD {oracle?`$${oracle}`:'· no fresh price'}</small></div>
+          <div><span>Expiry</span><strong>{Math.max(0,Math.ceil((call.expiry_ns/1e6-clock)/3600000))}h</strong><small>{date(call.expiry_ns)}</small></div>
+          <div><span>Collateral</span><strong>{Number(call.size_sats).toLocaleString()}</strong><small>sats {locked?'locked':'released'}</small></div>
+          <div><span>Holder</span><strong className="metric-text">{call.holder||'No buyer yet'}</strong><small>writer {call.writer}</small></div>
+        </div>
+        {call.state==='auction'&&short&&<p className="warn-line"><Icon name="coin"/> Setup required: TESTNET_USDC_FUNDS. Fund this account at the <a href="https://app.usetidepool.tech/faucet" target="_blank" rel="noreferrer">Tidepool faucet</a>.</p>}
+        {call.state==='auction'&&account&&<button className="btn btn-primary" onClick={buy} disabled={busy||!asking||!usdcBalance||BigInt(usdcBalance)<BigInt(asking)}>Buy call with testnet USDC</button>}
+        {call.state==='itm'&&<p className="inline-note">Exercise window ends {date(call.exercise_deadline_ns!)}. The holder pays the strike in testnet USDC, then requests an MPC-signed Bitcoin transfer.</p>}
+        {call.state==='sold'&&<p className="fineprint">Settlement reads a fresh BTC/USD update from Pyth on NEAR at expiry. No fresh update means settlement stays pending.</p>}
+      </>}
+    </div>
+    {canWrite&&<div className="card">
+      <div className="card-head"><div><h3>Write a call</h3><p>Signed with your ML-DSA key. While it is open the contract blocks BTC spends, listing and transfer of this box.</p></div></div>
+      <div className="form">
+        <div className="form-grid form-grid-3">
+          <Field label="Strike (USD)"><input value={strike} onChange={e=>setStrike(e.target.value)} inputMode="decimal"/></Field>
+          <Field label="Size (sats)"><input value={size} onChange={e=>setSize(e.target.value)} inputMode="numeric"/></Field>
+          <Field label="Term (hours)"><input value={hours} onChange={e=>setHours(e.target.value)} inputMode="numeric"/></Field>
+          <Field label="Opening premium (USDC)"><input value={opening} onChange={e=>setOpening(e.target.value)} inputMode="decimal"/></Field>
+          <Field label="Minimum premium (USDC)"><input value={minimum} onChange={e=>setMinimum(e.target.value)} inputMode="decimal"/></Field>
+        </div>
+        <p className="warn-line"><Icon name="shield"/> This browser checks the Bitcoin collateral against the live UTXO service. NEAR cannot independently verify Bitcoin ownership.</p>
+        <button className="btn btn-primary" onClick={write} disabled={busy}>Sign and write call</button>
+      </div>
+    </div>}
+    {history.length>0&&<div className="card">
+      <div className="card-head"><div><h3>Call history</h3></div></div>
+      <ul className="history">{history.slice().reverse().map(c=><li key={c.id}><b>#{c.id}</b><Chip tone={c.state==='paid'?'ok':'idle'}>{c.state}</Chip><span>{c.premium_paid_usdc?`${decimal(c.premium_paid_usdc)} USDC paid`:'no premium paid'}</span><small>{date(c.opened_ns)}</small></li>)}</ul>
+    </div>}
+    <div className="card">
+      <div className="card-head"><div><h3>Deposit anything</h3><p>A live NEAR Intents 1Click quote from ETH, SOL or USDC into this box's next-epoch native BTC address. Dry quote only: no deposit address, no swap. Execution needs <code>NEAR_MAINNET_ACCOUNT</code>.</p></div><Chip tone="warn">Dry quote</Chip></div>
+      <div className="form">
+        <div className="form-grid form-grid-3">
+          <Field label="Origin asset"><select value={asset} onChange={e=>setAsset(e.target.value)}>{previewAssets.length===0&&<option value="">Loading 1Click assets…</option>}{previewAssets.map(a=><option key={a.assetId} value={a.assetId}>{a.symbol} · {a.blockchain}</option>)}</select></Field>
+          <Field label="Amount"><input value={amount} onChange={e=>setAmount(e.target.value)} inputMode="decimal"/></Field>
+          <Field label="Refund address (origin chain)"><input value={refund} onChange={e=>setRefund(e.target.value)} placeholder="Your origin-chain address" spellCheck={false}/></Field>
+        </div>
+        <button className="btn btn-ghost" onClick={preview} disabled={!asset}>Get dry quote</button>
+        {quote&&<div className="quote"><div><span>You would receive</span><strong>{quote.quote?.amountOutFormatted||decimal(quote.quote?.amountOut||'0',8)} BTC</strong></div><div><span>Minimum</span><strong>{quote.quote?.minAmountOut?decimal(quote.quote.minAmountOut,8):'unavailable'} BTC</strong></div><div><span>Quote ID</span><code>{quote.correlationId||'unavailable'}</code></div></div>}
+      </div>
+    </div>
+  </>;
 }
