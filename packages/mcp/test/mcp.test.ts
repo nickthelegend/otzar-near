@@ -12,7 +12,7 @@ describe('live MCP server',()=>{
     await client.connect(transport);
     try{
       const tools=await client.listTools();
-      expect(tools.tools.map(t=>t.name).sort()).toEqual(['box_info','list_box','request_spend','scan_exposure']);
+      expect(tools.tools.map(t=>t.name).sort()).toEqual(['box_info','call_info','dry_deposit_quote','list_box','request_spend','scan_exposure']);
       const info=await client.callTool({name:'box_info',arguments:{token_id:deployment.tokenId}});
       expect(info.isError).not.toBe(true);
       const box=JSON.parse((info.content[0] as {text:string}).text);

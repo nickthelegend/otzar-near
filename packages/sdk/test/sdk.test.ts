@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js';
-import { ethereumAddress, bitcoinAddress, derivePublicKey, rootPublicKey, verifyDerivation, newQuantumKey, signAuthorization, authorizationMessage, unsignedEthTransfer, solanaAddress, unsignedSolanaTransfer, scanBitcoin, scanEthereum, guardianConfigPayload, recoveryMessage } from '../src/index.js';
+import { ethereumAddress, bitcoinAddress, derivePublicKey, rootPublicKey, verifyDerivation, newQuantumKey, signAuthorization, authorizationMessage, unsignedEthTransfer, solanaAddress, unsignedSolanaTransfer, scanBitcoin, scanEthereum, guardianConfigPayload, recoveryMessage, deriveAddresses, oneClickTokens } from '../src/index.js';
 import { Keypair } from '@solana/web3.js';
 
 describe('live testnet MPC key derivation', () => {
@@ -60,4 +60,17 @@ describe('Solana MPC', () => {
     expect(guardianConfigPayload('box',[a.publicKey,b.publicKey],2,120)).not.toEqual(guardianConfigPayload('box',[a.publicKey,b.publicKey],1,120));
     expect(recoveryMessage('box','owner.testnet',0,next.publicKey)).not.toEqual(recoveryMessage('box','owner.testnet',1,next.publicKey));
   });
+});
+
+describe('live 1Click supported assets', () => {
+  it('lists native BTC and an ETH origin and derives a real MPC mainnet Bitcoin recipient', async () => {
+    const tokens=await oneClickTokens();
+    expect(tokens.some(t=>t.assetId==='nep141:btc.omft.near'&&t.blockchain==='btc')).toBe(true);
+    const source=tokens.find(t=>t.blockchain==='eth'&&t.symbol==='ETH');
+    expect(source).toBeDefined();
+    const derived=await deriveAddresses('hako-contract-mw984kpp.testnet','box-mw99z867',1);
+    const recipient=bitcoinAddress(Buffer.from(derived.bitcoinPublicKey,'hex'),'mainnet');
+    expect(recipient).toMatch(/^bc1q/);
+    expect(derived.ethereum).toMatch(/^0x[0-9a-f]{40}$/);
+  },30_000);
 });

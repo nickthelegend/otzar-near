@@ -9,6 +9,7 @@ import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js';
 import { serializeTransaction, parseTransaction, type TransactionSerializableEIP1559, type Hex } from 'viem';
 import { Message, PublicKey, SystemProgram, Transaction as SolanaTransaction } from '@solana/web3.js';
 export { scanBitcoin, scanEthereum, scanExposure, type Exposure } from './exposure.js';
+export { oneClickTokens, dryBitcoinQuote, type OneClickAsset, type DryBitcoinQuoteInput } from './intents.js';
 
 export const TESTNET_RPC = 'https://test.rpc.fastnear.com';
 export const TESTNET_MPC = 'v1.signer-prod.testnet';
@@ -35,8 +36,8 @@ export function ethereumAddress(pubkey: Uint8Array): `0x${string}` {
   return `0x${bytesToHex(keccak_256(uncompressed).slice(-20))}`;
 }
 
-export function bitcoinAddress(pubkey: Uint8Array, network: 'regtest'|'testnet4' = 'regtest'): string {
-  return payments.p2wpkh({pubkey: Buffer.from(pubkey), network: network === 'regtest' ? networks.regtest : networks.testnet}).address!;
+export function bitcoinAddress(pubkey: Uint8Array, network: 'regtest'|'testnet4'|'mainnet' = 'regtest'): string {
+  return payments.p2wpkh({pubkey: Buffer.from(pubkey), network: network === 'regtest' ? networks.regtest : network === 'testnet4' ? networks.testnet : networks.bitcoin}).address!;
 }
 
 export async function rpcQuery(accountId: string, method: string, args: object = {}, rpcUrl = TESTNET_RPC): Promise<any> {

@@ -4,7 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
-  bitcoinSighash, deriveAddresses, ethBalance, rpcQuery, scanExposure, signAuthorization,
+  bitcoinAddress, bitcoinSighash, deriveAddresses, dryBitcoinQuote, ethBalance, rpcQuery, scanExposure, signAuthorization,
   solanaAddress, solanaBalance, solanaBlockhash, unsignedBitcoinSpend, unsignedEthTransfer, unsignedSolanaTransfer, verifyAuthorization,
 } from '@hako/sdk';
 
@@ -61,6 +61,8 @@ async function bitcoinUtxos(address: string): Promise<{txid:string,vout:number,s
 const server = new Server({ name: 'hako', version: '0.1.0' }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [
   { name: 'box_info', description: 'Read a live Hako NFT, BTC and ETH addresses, policies, and pending requests.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' } }, required: ['token_id'] } },
+  { name: 'call_info', description: 'Read the live covered call, auction asking premium, and history for a box.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' } }, required: ['token_id'] } },
+  { name: 'dry_deposit_quote', description: 'Get a real 1Click dry quote from a supported origin asset into the box next epoch native BTC address. No swap or deposit address is created.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' }, origin_asset: { type: 'string' }, amount: { type: 'string' }, refund_to: { type: 'string' } }, required: ['token_id', 'origin_asset', 'amount', 'refund_to'] } },
   { name: 'scan_exposure', description: 'Read live Bitcoin or Ethereum public-key exposure and native balance with no wallet.', inputSchema: { type: 'object', properties: { address: { type: 'string' } }, required: ['address'] } },
   { name: 'request_spend', description: 'Submit a Bitcoin, Ethereum, or local Solana spend through NEAR ML-DSA policy checks. Amount uses sats, wei, or lamports.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' }, asset: { type: 'string', enum: ['bitcoin', 'ethereum', 'solana'] }, destination: { type: 'string' }, amount: { type: 'string' } }, required: ['token_id', 'asset', 'destination', 'amount'] } },
   { name: 'list_box', description: 'List an owned, unsigned box for testnet NEAR. The contract rejects pending spends.', inputSchema: { type: 'object', properties: { token_id: { type: 'string' }, price_yocto: { type: 'string' } }, required: ['token_id', 'price_yocto'] } },
@@ -71,6 +73,14 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
     let result: unknown;
     if (request.params.name === 'scan_exposure') {
       result = await scanExposure(args.address ?? '');
+    } else if (request.params.name === 'call_info') {
+      result = {call:await rpcQuery(contractId!,'call_state',{token_id:args.token_id}),askingPremiumUsdc:await rpcQuery(contractId!,'auction_price',{token_id:args.token_id}),history:await rpcQuery(contractId!,'call_history',{token_id:args.token_id})};
+    } else if (request.params.name === 'dry_deposit_quote') {
+      const box=await rpcQuery(contractId!,'nft_token',{token_id:args.token_id});
+      if(!box)throw new Error('box not found');
+      const derived=await deriveAddresses(contractId!,args.token_id,box.epoch+1);
+      const recipient=bitcoinAddress(Buffer.from(derived.bitcoinPublicKey,'hex'),'mainnet');
+      result={recipient,quote:await dryBitcoinQuote({originAsset:args.origin_asset,amount:args.amount,recipient,refundTo:args.refund_to,jwt:process.env.ONECLICK_JWT})};
     } else if (request.params.name === 'box_info') {
       const box = await rpcQuery(contractId!, 'nft_token', { token_id: args.token_id });
       if (!box) throw new Error('box not found');

@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-09T14:17:01.790Z",
+  "api": "https://1click.chaindefuser.com/v0/quote",
+  "dry": true,
+  "status": "verified",
+  "originAsset": "nep141:eth.omft.near",
+  "destinationAsset": "nep141:btc.omft.near",
+  "recipient": "bc1q3mwvn684w3rfnep9gnpf89j2zn8j62kal8n4ms",
+  "amountIn": "10000000000000000",
+  "amountOut": "26474",
+  "correlationId": "66608ed2-5e7c-4198-a5f4-e73f34c71b97",
+  "signature": "ed25519:42EeewipAF1EtF3XADgbo7pmcvbefMcDcAiN7Qbtyr554RybAEsNLbWXtwprM3dxyYR9LeiANVmqtyreDYAH7WRv"
+}
