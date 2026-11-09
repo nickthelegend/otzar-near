@@ -1,0 +1,51 @@
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { Account, KeyPair, KeyPairSigner, JsonRpcProvider, PublicKey, actions, nearToYocto, teraToGas } from 'near-api-js';
+import { newQuantumKey, signAuthorization, unsignedEthTransfer, rpcQuery } from '@hako/sdk';
+
+const rpcUrl='http://127.0.0.1:3030';
+const keyFile=process.env.HAKO_ROOT_KEY_FILE||resolve('.demo/sandbox/validator_key.json');
+const rootKey=JSON.parse(readFileSync(keyFile,'utf8'));
+const provider=new JsonRpcProvider({url:rpcUrl});
+const root=new Account('test.near',provider,new KeyPairSigner(KeyPair.fromString(rootKey.secret_key)));
+const wasm=readFileSync(resolve('packages/contract/target/near/hako_contract.wasm'));
+const evidence={network:'sandbox',steps:[],accounts:{}};
+async function tx(actor,receiver,action,name,expectFailure=false){const r=await actor.signAndSendTransaction({receiverId:receiver,actions:[action],throwOnFailure:false,waitUntil:'FINAL'});const failed=!!r.status?.Failure;if(failed!==expectFailure)throw new Error(`${name}: ${failed?JSON.stringify(r.status.Failure):'attack accepted'}`);const gas=[r.transaction_outcome,...r.receipts_outcome].reduce((n,x)=>n+BigInt(x.outcome.gas_burnt),0n);evidence.steps.push({name,ok:true,rejected:failed,txHash:r.transaction.hash,gasTgas:(Number(gas)/1e12).toFixed(2)});console.log(`${name}: ${failed?'rejected':'ok'} ${r.transaction.hash}`);return r;}
+async function child(label){const key=KeyPair.fromRandom('ed25519');const id=`${label}.test.near`;const r=await root.signAndSendTransaction({receiverId:id,actions:[actions.createAccount(),actions.transfer(nearToYocto('10')),actions.addFullAccessKey(PublicKey.fromString(key.getPublicKey().toString()))],throwOnFailure:false,waitUntil:'FINAL'});if(r.status?.Failure)throw new Error(`create ${label}: ${JSON.stringify(r.status.Failure)}`);evidence.steps.push({name:`create ${label}`,ok:true,rejected:false,txHash:r.transaction.hash});console.log(`create ${label}: ok ${r.transaction.hash}`);evidence.accounts[label]=id;return new Account(id,provider,new KeyPairSigner(key));}
+const call=(method,args,gas=120,deposit=0n)=>actions.functionCall(method,args,teraToGas(gas),deposit);
+async function main(){const [contract,seller,buyer,guardian]=[await child('hako'),await child('seller'),await child('buyer'),await child('guardian')];
+  await tx(contract,contract.accountId,actions.deployContract(wasm),'deploy contract');
+  await tx(contract,contract.accountId,call('new',{mpc_contract:'v1.signer-prod.testnet'}),'initialize contract');
+  const policy={daily_eth_wei:'10000000000000000',delay_sec:120,allow_eth:['0x1111111111111111111111111111111111111111'],guardian:guardian.accountId,recovery_eth:'0x2222222222222222222222222222222222222222',emergency_migration:null};
+  await tx(seller,contract.accountId,call('mint',{token_id:'sale',policy}),'mint sale box');
+  await tx(seller,contract.accountId,call('list',{token_id:'sale',price:'10000000000000000000000'}),'list sale box');
+  await tx(buyer,contract.accountId,call('buy',{token_id:'sale'},120,10000000000000000000000n),'buy sale box');
+  const key=newQuantumKey();await tx(buyer,contract.accountId,call('register_pq_key',{token_id:'sale',key:Buffer.from(key.publicKey).toString('base64')}),'buyer quantum-locks');
+  const raw=unsignedEthTransfer({chainId:31337,nonce:0,to:'0x3333333333333333333333333333333333333333',value:1000000000000000n,maxFeePerGas:2000000000n,maxPriorityFeePerGas:1000000000n});
+  const auth=(secret,tokenId,nonce,transaction)=>Buffer.from(signAuthorization(secret,tokenId,nonce,Buffer.from(transaction.slice(2),'hex'))).toString('base64');
+  await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'sale',raw_unsigned_hex:raw,nonce:0,signature:auth(key.secretKey,'sale',0,raw)}),'spend before buyer policy rejected',true);
+  const policySig=Buffer.from(signAuthorization(key.secretKey,'sale',0,Buffer.from(JSON.stringify(policy)))).toString('base64');
+  await tx(buyer,contract.accountId,call('set_policy',{token_id:'sale',policy,nonce:0,signature:policySig}),'buyer sets policy');
+  await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'sale',raw_unsigned_hex:raw,nonce:1,signature:auth(newQuantumKey().secretKey,'sale',1,raw)}),'wrong key rejected',true);
+  const over=unsignedEthTransfer({chainId:31337,nonce:0,to:policy.allow_eth[0],value:20000000000000000n,maxFeePerGas:2000000000n,maxPriorityFeePerGas:1000000000n});
+  await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'sale',raw_unsigned_hex:over,nonce:1,signature:auth(key.secretKey,'sale',1,over)}),'over cap rejected',true);
+  await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'sale',raw_unsigned_hex:raw,nonce:1,signature:auth(key.secretKey,'sale',1,raw)}),'request delayed spend');
+  const spend=(await rpcQuery(contract.accountId,'spends_for_box',{token_id:'sale'},rpcUrl))[0];
+  if(spend.ready_ns<=spend.created_ns)throw new Error('delay not enforced');
+  await tx(buyer,contract.accountId,call('list',{token_id:'sale',price:'10000000000000000000000'}),'pending listing rejected',true);
+  await tx(seller,contract.accountId,call('request_eth_spend',{token_id:'sale',raw_unsigned_hex:raw,nonce:1,signature:auth(key.secretKey,'sale',1,raw)}),'seller front run rejected',true);
+  const recovery=unsignedEthTransfer({chainId:31337,nonce:0,to:policy.recovery_eth,value:1000000000000000n,maxFeePerGas:2000000000n,maxPriorityFeePerGas:1000000000n});
+  const diversion=unsignedEthTransfer({chainId:31337,nonce:0,to:policy.allow_eth[0],value:1000000000000000n,maxFeePerGas:2000000000n,maxPriorityFeePerGas:1000000000n});
+  await tx(guardian,contract.accountId,call('guardian_clawback_eth',{spend_id:spend.id,recovery_tx_hex:diversion}),'guardian diversion rejected',true);
+  await tx(guardian,contract.accountId,call('guardian_clawback_eth',{spend_id:spend.id,recovery_tx_hex:recovery}),'guardian clawback');
+  await tx(buyer,contract.accountId,call('nft_transfer',{receiver_id:seller.accountId,token_id:'sale'},120,1n),'guardian recovery transfer blocked',true);
+  await tx(seller,contract.accountId,call('mint',{token_id:'transfer',policy}),'mint transfer box');
+  const transferKey=newQuantumKey();await tx(seller,contract.accountId,call('register_pq_key',{token_id:'transfer',key:Buffer.from(transferKey.publicKey).toString('base64')}),'lock transfer box');
+  await tx(seller,contract.accountId,call('request_eth_spend',{token_id:'transfer',raw_unsigned_hex:raw,nonce:0,signature:auth(transferKey.secretKey,'transfer',0,raw)}),'request before transfer');
+  await tx(seller,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'transfer'},120,1n),'transfer voids request');
+  const transferred=await rpcQuery(contract.accountId,'nft_token',{token_id:'transfer'},rpcUrl);const voided=await rpcQuery(contract.accountId,'spends_for_box',{token_id:'transfer'},rpcUrl);
+  if(transferred.owner_id!==buyer.accountId||transferred.pq_key!==null||voided[0].state!=='cancelled')throw new Error('transfer did not void request and reset PQ key');
+  await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'transfer',raw_unsigned_hex:raw,nonce:0,signature:auth(transferKey.secretKey,'transfer',0,raw)}),'old PQ key rejected after transfer',true);
+  mkdirSync('deployments',{recursive:true});writeFileSync('deployments/sandbox.json',JSON.stringify(evidence,null,2)+'\n');console.log(`${evidence.steps.length} sandbox transactions passed`);
+}
+main().catch(e=>{console.error(e.message);process.exitCode=1;});

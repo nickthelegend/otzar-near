@@ -1,0 +1,182 @@
+{
+  "network": "sandbox",
+  "steps": [
+    {
+      "name": "create hako",
+      "ok": true,
+      "rejected": false,
+      "txHash": "CtQkJLnjm6UKgg9M4SzuqaxCvQTfCea7Tq9JkCvWx7Vc"
+    },
+    {
+      "name": "create seller",
+      "ok": true,
+      "rejected": false,
+      "txHash": "97BVrAW6PAbuizVkkF75DaPruLLCCpMa73V28qXgUaaV"
+    },
+    {
+      "name": "create buyer",
+      "ok": true,
+      "rejected": false,
+      "txHash": "B5m4fWnihMqeEwQ4x19m2DW39ijW7j3EE4Lx1sGGhHtm"
+    },
+    {
+      "name": "create guardian",
+      "ok": true,
+      "rejected": false,
+      "txHash": "6ddjAMyJgkXF7R5K2yeKuPBhmLC8SneeDmtSucfzpv9k"
+    },
+    {
+      "name": "deploy contract",
+      "ok": true,
+      "rejected": false,
+      "txHash": "B4HmWc1aZtEuXME1UodPWehuip5CQRNkcbFiRQ8Tjqsa",
+      "gasTgas": "19.61"
+    },
+    {
+      "name": "initialize contract",
+      "ok": true,
+      "rejected": false,
+      "txHash": "9KKFQB8wEytquwoPnxNNg8gZDgQvzpPCkgM9MwQSJ91X",
+      "gasTgas": "1.86"
+    },
+    {
+      "name": "mint sale box",
+      "ok": true,
+      "rejected": false,
+      "txHash": "Gb1R6kXFRNt4vso93tQgyeUNdfLD3bX6o7J1zYdHKnyc",
+      "gasTgas": "1.99"
+    },
+    {
+      "name": "list sale box",
+      "ok": true,
+      "rejected": false,
+      "txHash": "7bPJjeSHCNr9dbXfC1Yrc11TUGmbRBh3Kzn5twU6G7uq",
+      "gasTgas": "2.00"
+    },
+    {
+      "name": "buy sale box",
+      "ok": true,
+      "rejected": false,
+      "txHash": "bTYqXy6HSHqvF3QQmRHqEKHtLjcZnB7AcqnRq5fTuPh",
+      "gasTgas": "2.75"
+    },
+    {
+      "name": "buyer quantum-locks",
+      "ok": true,
+      "rejected": false,
+      "txHash": "5xPNNom86buLwWouFFLBdzUWbDCGSjToveJtokanSP9M",
+      "gasTgas": "2.27"
+    },
+    {
+      "name": "spend before buyer policy rejected",
+      "ok": true,
+      "rejected": true,
+      "txHash": "3QTbojSqPDqT9mDuDgjE47rTz5rURRfPfyWKN7umxobZ",
+      "gasTgas": "2.38"
+    },
+    {
+      "name": "buyer sets policy",
+      "ok": true,
+      "rejected": false,
+      "txHash": "37gESitYekVsdTL36mtcRGQrLjYSzpdvnLXLdUCpU6DG",
+      "gasTgas": "3.26"
+    },
+    {
+      "name": "wrong key rejected",
+      "ok": true,
+      "rejected": true,
+      "txHash": "7GXei8JNo1s7cuayBctnTJaDBnaD1ogCvWeAYwDShYim",
+      "gasTgas": "3.02"
+    },
+    {
+      "name": "over cap rejected",
+      "ok": true,
+      "rejected": true,
+      "txHash": "EXT1ttvRjchV2Q1P7fscodeYoNLU9wa4ieTPrPmSu2NS",
+      "gasTgas": "3.02"
+    },
+    {
+      "name": "request delayed spend",
+      "ok": true,
+      "rejected": false,
+      "txHash": "HGMhCYdNP1bccxg8AFn2Yw9Wr5xsUryub6S9WFZGSnx1",
+      "gasTgas": "3.38"
+    },
+    {
+      "name": "pending listing rejected",
+      "ok": true,
+      "rejected": true,
+      "txHash": "EAbvXqgNDsV1QHzK7UKy8MT2Djhpjy96c8e4bGLu9rF4",
+      "gasTgas": "1.87"
+    },
+    {
+      "name": "seller front run rejected",
+      "ok": true,
+      "rejected": true,
+      "txHash": "74Q3yAVp3Hx4iet71J13i3zpAemiRprVFqaqv4WFhsFi",
+      "gasTgas": "2.37"
+    },
+    {
+      "name": "guardian diversion rejected",
+      "ok": true,
+      "rejected": true,
+      "txHash": "2fVeXTN6sxfAdkW7omxyuEwSyAEYHeYv1MRSVSpZYCM8",
+      "gasTgas": "1.93"
+    },
+    {
+      "name": "guardian clawback",
+      "ok": true,
+      "rejected": false,
+      "txHash": "9duizFFqT4R2GAya3TWKwMpAgN8McLtz3Pdja4eonaKk",
+      "gasTgas": "2.32"
+    },
+    {
+      "name": "guardian recovery transfer blocked",
+      "ok": true,
+      "rejected": true,
+      "txHash": "J2ZVRh45Wgkr7tJ2YJ4pyrtGrbj32sznvJDbTEhJgALg",
+      "gasTgas": "2.11"
+    },
+    {
+      "name": "mint transfer box",
+      "ok": true,
+      "rejected": false,
+      "txHash": "8WqEm2Y6i17yX19xmwRGBVFEoWVdTxgNxQ2WGwSe9ktW",
+      "gasTgas": "2.28"
+    },
+    {
+      "name": "lock transfer box",
+      "ok": true,
+      "rejected": false,
+      "txHash": "4A6uXqhWhohRa4J1jvwTBu8jsVWtULx9RqmYWBK521az",
+      "gasTgas": "2.56"
+    },
+    {
+      "name": "request before transfer",
+      "ok": true,
+      "rejected": false,
+      "txHash": "2xaCeuZ4Yd2ZNM386qFcmuWMVm3xWDX7FvtQsmf3zn9V",
+      "gasTgas": "3.66"
+    },
+    {
+      "name": "transfer voids request",
+      "ok": true,
+      "rejected": false,
+      "txHash": "4tLBK276jUi7p6b74idxbVLxbjNagRyi1EGkSjYWDfrw",
+      "gasTgas": "2.55"
+    },
+    {
+      "name": "old PQ key rejected after transfer",
+      "ok": true,
+      "rejected": true,
+      "txHash": "9ZidBXayVniUehvaFTrWQC3mWNCnh5TbSo9xcg6kb254",
+      "gasTgas": "2.43"
+    }
+  ],
+  "accounts": {
+    "hako": "hako.test.near",
+    "seller": "seller.test.near",
+    "buyer": "buyer.test.near",
+    "guardian": "guardian.test.near"
+  }
+}
