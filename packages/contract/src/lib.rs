@@ -13,6 +13,7 @@ const ML_SIG_LEN: usize = 3309;
 #[derive(Clone)]
 pub struct Policy {
     pub daily_eth_wei: U128,
+    #[serde(default)]
     pub delay_sec: u64,
     pub allow_eth: Vec<String>,
     pub guardian: AccountId,
@@ -68,9 +69,10 @@ impl Hako {
         Self { tokens: BTreeMap::new(), spends: BTreeMap::new(), next_spend: 0, mpc_contract }
     }
 
-    pub fn mint(&mut self, token_id: String, policy: Policy) -> BoxToken {
+    pub fn mint(&mut self, token_id: String, mut policy: Policy) -> BoxToken {
         require!(!token_id.is_empty() && token_id.len() <= 64 && token_id.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-'), "invalid token id");
         require!(!self.tokens.contains_key(&token_id), "token exists");
+        if policy.delay_sec == 0 { policy.delay_sec = 86_400; }
         validate_policy(&policy);
         let token = BoxToken { token_id: token_id.clone(), owner_id: env::predecessor_account_id(), epoch: 0, policy, pq_key: None, nonce: 0, spent_today_wei: U128(0), day_index: env::block_timestamp() / (86_400 * NS_SEC), listed_yocto: None, ever_signed: false };
         self.tokens.insert(token_id, token.clone());
@@ -85,9 +87,10 @@ impl Hako {
         t.pq_key = Some(key.0);
     }
 
-    pub fn set_policy(&mut self, token_id: String, policy: Policy, nonce: u64, signature: Base64VecU8) {
-        validate_policy(&policy);
+    pub fn set_policy(&mut self, token_id: String, mut policy: Policy, nonce: u64, signature: Base64VecU8) {
         let policy_bytes = near_sdk::serde_json::to_vec(&policy).expect("policy JSON");
+        if policy.delay_sec == 0 { policy.delay_sec = 86_400; }
+        validate_policy(&policy);
         let t = self.token_mut(&token_id);
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         verify_pq(t, nonce, &policy_bytes, &signature.0);
@@ -283,6 +286,19 @@ mod tests {
         let index=raw.len()-2; raw[index]=0x01;
         assert!(std::panic::catch_unwind(||parse_eth_tx(&raw)).is_err());
         assert!(std::panic::catch_unwind(||parse_eth_tx(&[2,0xc1,0x81])).is_err());
+    }
+
+    #[test]
+    fn mint_defaults_to_one_day_and_keeps_future_migration_destination() {
+        context("owner.testnet",0);
+        let mut supplied=near_sdk::serde_json::to_value(policy()).unwrap();
+        supplied.as_object_mut().unwrap().remove("delay_sec");
+        supplied["emergency_migration"]="bip360:future-output".into();
+        let policy:Policy=near_sdk::serde_json::from_value(supplied).unwrap();
+        let mut c=Hako::new("v1.signer-prod.testnet".parse().unwrap());
+        let box_token=c.mint("box-default".into(),policy);
+        assert_eq!(box_token.policy.delay_sec,86_400);
+        assert_eq!(box_token.policy.emergency_migration.as_deref(),Some("bip360:future-output"));
     }
 
     #[test]
