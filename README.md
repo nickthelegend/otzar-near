@@ -82,7 +82,9 @@ scripts/demo-calls.sh
 
 Do `scripts/demo.sh` → see a new `deployments/testnet-YYYY-MM-DD.json` with NEAR transaction links and local-chain transaction IDs. Do `pnpm web` after creating `packages/web/.env.local` from `.env.example` → see live boxes, addresses, balances, vault rules, pending countdowns, signing and sale controls at `http://127.0.0.1:5173`. The Bitcoin balance and broadcast controls need the local proxy: `node scripts/bitcoin-proxy.mjs`, with `VITE_BITCOIN_ESPLORA_URL=http://127.0.0.1:3007` in the web env file. The proxy reads the real Bitcoin Core regtest node; it is not a fixture service. `scripts/demo.sh` saves Anvil's state to ignored `.demo/anvil-state.json` on exit so local receipts can be reloaded.
 
-The web wallet uses MyNearWallet on testnet. The demo's generated NEAR accounts are for the CLI flow; browser actions require a testnet wallet you control. If a setting is missing, the interface reports `Setup required: <VAR>`.
+The web wallet is [Meteor Wallet](https://wallet.meteorwallet.app) on testnet, through NEAR Wallet Selector 10.1.4. The demo's generated NEAR accounts are for the CLI flow; browser actions require a testnet wallet you control.
+
+**Connecting a wallet.** You need a `.testnet` account in Meteor Wallet (create or import one there; NEAR's guide is [Create an account](https://docs.near.org/getting-started/create-account), and free testnet NEAR comes from [near-faucet.io](https://near-faucet.io)). **Connect wallet** opens Meteor in a pop-up (or its browser extension) at `wallet.meteorwallet.app/connect/testnet/login`, asking for a function-call key on `hako-contract-mw984kpp.testnet`; the result is posted back to the page, so there is no redirect. Calls with no deposit to the Otzar contract are then signed by that key; buying a round (a 1-yocto `ft_transfer_call`) opens Meteor for approval. A blocked pop-up or a closed wallet window shows a plain banner. MyNearWallet was removed on 2026-11-10: its testnet pop-up now answers "MyNearWallet can't connect to apps anymore" and points to Meteor. If a setting is missing, the interface reports `Setup required: <VAR>`.
 
 ## Architecture and NEAR features
 

@@ -126,3 +126,16 @@ Headless Chrome (playwright-core, `channel: 'chrome'`) against the Vite app with
 | `/app` (Overview, Rules, Send, Earn, Recovery, Sell tabs) | root rendered, overflow 0 on every tab, no page errors | same |
 
 The only console errors on `/app` are `ERR_CONNECTION_REFUSED` from the local Anvil and Solana nodes, which were not running; the UI shows them as `Setup required: VITE_ANVIL_RPC_URL` / `VITE_SOLANA_RPC_URL`. The landing proof strip read 16 vault NFTs from `nft_tokens` and the contract's recent transactions from the NearBlocks v3 API. A scanner run on a public mainnet Bitcoin address returned live Blockstream data. `vite build` passed.
+
+## Wallet: Meteor Wallet replaces MyNearWallet (2026-11-10)
+
+MyNearWallet's testnet pop-up now refuses every app ("MyNearWallet can't connect to apps anymore … no longer accepts new app connections"), so the old **Connect** dead-ended. The web app now uses `@near-wallet-selector/core` 10.1.4 with `@near-wallet-selector/meteor-wallet` 10.1.4; MyNearWallet is removed. `pnpm-workspace.yaml` gives the wallet packages their own near-api-js 6.2.5 (Meteor's SDK peer) and `@near-js/utils` 2.5.1 (the `@near-js` 2.x peer); `packages/web` keeps near-api-js 5.0.0.
+
+Checked against `vite build && vite preview` in headless Chrome at 1440×900 and 375×812:
+
+- `/app` → **Connect** opens a pop-up at `https://wallet.meteorwallet.app/connect/testnet/login?…`. The request the app posts into it reads `actionType: login`, `network: testnet`, `contract_id: hako-contract-mw984kpp.testnet`, `type: ALL_METHODS` with a fresh public key.
+- Closing the pop-up shows the banner "The wallet closed before you signed in." With pop-ups blocked (`window.open` returning null) it reads "Your browser blocked the wallet window. Allow pop-ups for this site, then try again."
+- 0 console errors, no horizontal overflow at 375. The portfolio's connect card says it connects with Meteor Wallet.
+
+Not done: a full Meteor sign-in and approval. Meteor's site sits behind Cloudflare, which shows headless Chrome "Sorry, you have been blocked", and signing in needs a person with a Meteor testnet account.
+
