@@ -34,8 +34,11 @@ export type ChainTx = { hash: string; method: string; signer: string; ok: boolea
 /** Recent transactions to the Otzar contract, read from the NearBlocks v3 public API (testnet). */
 export async function recentContractTxns(limit = 6): Promise<ChainTx[]> {
   if (!contractId) throw new Error('Setup required: VITE_HAKO_CONTRACT');
-  const r = await fetch(`https://api-testnet.nearblocks.io/v3/accounts/${contractId}/txns?per_page=${limit}`);
-  if (!r.ok) throw new Error(`NearBlocks HTTP ${r.status}`);
+  const url = `https://api-testnet.nearblocks.io/v3/accounts/${contractId}/txns?per_page=${limit}`;
+  let r = await fetch(url);
+  // The public API rate-limits bursts; wait once and retry before failing loudly.
+  for (let i = 0; r.status === 429 && i < 2; i++) { await new Promise(res => setTimeout(res, 2500 * (i + 1))); r = await fetch(url); }
+  if (!r.ok) throw new Error(r.status === 429 ? 'NearBlocks is rate-limiting this browser (HTTP 429). It retries every 45 seconds.' : `NearBlocks HTTP ${r.status}`);
   const body = await r.json();
   if (!Array.isArray(body.data)) throw new Error(body.errors?.[0]?.message || 'NearBlocks returned no data');
   return body.data.slice(0, limit).map((t: any) => ({
