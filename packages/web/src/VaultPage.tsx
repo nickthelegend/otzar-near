@@ -12,7 +12,7 @@ import { useNow, useRelayer, useRounds } from './data';
 import { PhasePill, PLAIN, roundSentence, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
 import { RoundSheet } from './RoundSheet';
 import { Loop, pct } from './rounds';
-import type { Wallet } from './wallet';
+import { signAndSend, type Wallet } from './wallet';
 
 const gas = '120000000000000';
 const solRpc = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'http://127.0.0.1:8899';
@@ -61,8 +61,7 @@ export default function VaultPage({ id, wallet }: Props) {
   async function invoke(method: string, args: object, deposit = '0', receiver?: string) {
     if (!contractId) throw new Error('Setup required: VITE_HAKO_CONTRACT');
     if (!selector || !account) throw new Error('Connect a NEAR testnet wallet first');
-    const wallet = await selector.wallet('my-near-wallet');
-    const result = await wallet.signAndSendTransaction({ receiverId: receiver || contractId, actions: [{ type: 'FunctionCall', params: { methodName: method, args, gas, deposit } }] });
+    const result = await signAndSend(selector, receiver || contractId, method, args, deposit, gas);
     if (!result) { setStatus('Complete the transaction in your wallet, then refresh.'); return; }
     if (result.status?.Failure) throw new Error(JSON.stringify(result.status.Failure));
     const hash = result.transaction?.hash; if (hash) setTxHash(hash); setStatus(`${method} confirmed on NEAR`); await refresh();

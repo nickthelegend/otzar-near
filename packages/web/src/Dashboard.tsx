@@ -17,7 +17,7 @@ function StartCard({ wallet, onMint }: { wallet: Wallet; onMint: () => void }) {
     <h2>Connect a NEAR testnet wallet</h2>
     <p>To mint a vault and write rounds. Browsing needs no wallet.</p>
     <button className="pill pill-gold pill-block" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>
-    <p className="s-widget-note">A testnet account is free at testnet.mynearwallet.com.</p>
+    <p className="s-widget-note">Connects with Meteor Wallet. A testnet account is free at wallet.meteorwallet.app.</p>
   </aside>;
   return <aside className="s-widget" aria-label="Your position">
     <p className="s-widget-k">Your {TUSDC_SYMBOL} <span className="mono">{short(wallet.account, 12, 6)}</span></p>
