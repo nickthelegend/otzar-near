@@ -66,6 +66,10 @@ The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testn
 
 `vite build` passed. Same harness on port 5202 with the hero render, logo B and the vault, coins, key and hourglass stickers in place: `/`, `/app`, `/you`, `/vault/call-itm-mw9irlhd` and `/vault/sol-mw9amrrr` at 1440, 390 and 375, plus the round, withdraw and mint sheets: horizontal overflow 0, no page errors. Gold yield numbers use #a06a00 on light surfaces (4.2:1) and #f2b33d on deep forest; body text on the forest band is ivory (7.1:1) and on the soft blush band ink (15.6:1).
 
+### Web QA (2026-11-10, simplified Otzar)
+
+`vite build` passed. Headless Chrome (shared lock) against `vite preview` on port 5733: `/`, `/how`, `/app`, `/vault/call-itm-mw9irlhd` and `/you` at 1440×900 and 375×812: horizontal overflow 0 on every route (including the vault page with Owner tools open and a term tooltip showing), no page errors. Console errors were FastNEAR and NearBlocks HTTP 429s (reads fail over to dRPC; NearBlocks now retries twice, then shows "rate-limiting" in the activity table) and the offline local Anvil and Solana nodes, which the vault page labels `Setup required`. With `prefers-reduced-motion: reduce` the hero and count-up animations are off. Tab reaches a visible 3px focus ring on every route. Controls are 44px or taller except inline links inside sentences and the skip link. On the vault page the Deposit/Withdraw switch, the Owner tools disclosure (all six tabs: Overview, Rules, Send, Rounds, Recovery, Sell) and the term tooltips work. Every figure is a live read: `nft_tokens`, `call_history`, `relayer_price`, `ft_balance_of`, the MPC root and NearBlocks v3.
+
 ## Negative checks
 
 | Attack or invariant | Where rejected |
