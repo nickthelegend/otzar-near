@@ -95,7 +95,7 @@ export default function ExposureScanner({ target, targetUsable, bitcoinProxy, an
       {target ? <div className="scan-move">
         <button className="btn btn-ghost" onClick={move} disabled={busy}><Icon name="box" /> Build a sweep into this vault</button>
         <small>Builds an unsigned transaction to this vault's address. The source owner signs and broadcasts it.</small>
-      </div> : <p className="scan-source">Open the vault app and pick a box to build a sweep into it.</p>}
+      </div> : <p className="scan-source">Open the vault app and pick a vault to build a sweep into it.</p>}
       {unsigned && <Field label="Unsigned transaction to sign"><textarea readOnly value={unsigned} /></Field>}
     </div>}
   </div>;

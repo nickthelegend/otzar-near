@@ -1,99 +1,74 @@
 import { useState } from 'react';
-import { useBoxes, useNow, useRelayer, useRounds, useTxns } from './data';
-import { ago, btcFromSats, e6, earnedSummary, TUSDC_SYMBOL } from './lib';
-import { ActivityTable, PositionCard, RoundBars, StatCard, VaultTable, type VaultFilter } from './cards';
+import { useBoxes, useRounds, useTusdc } from './data';
+import { earnedSummary, short, TUSDC_SYMBOL } from './lib';
+import { RoundBars, VaultTable, type VaultFilter } from './cards';
 import { MintSheet } from './mint';
 import { RoundSheet } from './RoundSheet';
-import { pct } from './rounds';
-import { Amount, Icon, State } from './ui';
+import { Amount, Icon, Link, State, Term, TERMS } from './ui';
 import { CountUp } from './art';
-import { annualisedPct, roundPhase, short, utcDay } from './lib';
-import { PhasePill } from './cards';
 import type { Wallet } from './wallet';
 
-export function RelayerCard() {
-  const relayer = useRelayer(); const now = useNow(10000); const p = relayer.data;
-  return <section className="card relayer" aria-label="Settlement price">
-    <div className="card-title"><h2>Settlement price</h2><span className="tag">relayer price (testnet)</span></div>
-    {p ? <>
-      <p className="relayer-px">${e6(p.price_usd_e6, 2)}</p>
-      <p className="relayer-meta">BTC-USD · Coinbase last trade · {ago(p.publish_time_sec * 1e9, now)}</p>
-      <p className="relayer-src">Signed by the Otzar relayer key and checked on-chain by <code>post_relayer_price</code> before a round can settle.</p>
-    </> : relayer.error ? <p className="err-line">{relayer.error}</p> : relayer.loading ? <p className="relayer-meta"><i className="pulse" /> Reading…</p> : <p className="relayer-meta">No price posted yet.</p>}
-  </section>;
+/** The one action widget beside the vault list: connect, or your balance with a way to mint. */
+function StartCard({ wallet, onMint }: { wallet: Wallet; onMint: () => void }) {
+  const bal = useTusdc(wallet.account); const boxes = useBoxes(); const rounds = useRounds();
+  const owned = boxes.data?.filter(b => b.owner_id === wallet.account).length;
+  const earned = rounds.data ? earnedSummary(rounds.data.filter(r => r.writer === wallet.account)).earned : null;
+  if (!wallet.account) return <aside className="s-widget" aria-label="Get started">
+    <h2>Connect a NEAR testnet wallet</h2>
+    <p>To mint a vault and write rounds. Browsing needs no wallet.</p>
+    <button className="pill pill-gold pill-block" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>
+    <p className="s-widget-note">A testnet account is free at testnet.mynearwallet.com.</p>
+  </aside>;
+  return <aside className="s-widget" aria-label="Your position">
+    <p className="s-widget-k">Your {TUSDC_SYMBOL} <span className="mono">{short(wallet.account, 12, 6)}</span></p>
+    <p className="s-widget-big">{bal.data !== null ? <Amount e6={bal.data} /> : bal.error ? <span className="dim" title={bal.error}>Unavailable</span> : '…'}</p>
+    <dl className="s-widget-kv">
+      <div><dt>Vaults you own</dt><dd>{owned ?? '…'}</dd></div>
+      <div><dt>Premium you earned</dt><dd>{earned !== null ? <Amount e6={earned} /> : '…'}</dd></div>
+    </dl>
+    <button className="pill pill-gold pill-block" onClick={onMint}><Icon name="plus" size={16} /> New vault</button>
+    <Link to="/you" className="s-textlink s-textlink-light">Your portfolio <Icon name="arrow" size={14} /></Link>
+  </aside>;
 }
 
 export default function Dashboard({ wallet }: { wallet: Wallet }) {
-  const boxes = useBoxes(); const rounds = useRounds(); const txns = useTxns();
+  const boxes = useBoxes(); const rounds = useRounds();
   const [filter, setFilter] = useState<VaultFilter>('rounds');
   const [mint, setMint] = useState(false);
   const [sheet, setSheet] = useState<string | null>(null);
   const s = rounds.data ? earnedSummary(rounds.data) : null;
-  const written = s ? s.paid.reduce((a, c) => a + Number(c.size_sats), 0) : null;
-  const sealed = boxes.data?.filter(b => b.pq_key?.length).length;
   const count = (f: VaultFilter) => (boxes.data || []).filter(b => f === 'all' || (f === 'mine' ? b.owner_id === wallet.account : rounds.data?.some(r => r.token_id === b.token_id))).length;
   const open = rounds.data?.find(r => `${r.token_id}#${r.id}` === sheet);
 
-  return <div className="page dash">
-    <header className="dash-head">
-      <div>
-        <p className="lbl">Otzar · BTC covered-call vaults</p>
-        <h1>Vaults <span className="live-pill"><i className="live-dot" />Live · NEAR testnet</span></h1>
-        <p className="dash-sub">Each vault is a NEAR NFT holding native Bitcoin. Its owner sells covered calls on it and keeps the premium, signed with a post-quantum key.</p>
-      </div>
-      <button className="pill pill-jade" onClick={() => setMint(true)}><Icon name="plus" size={16} /> New vault</button>
+  return <div className="page s-app">
+    <header className="s-page-head">
+      <div><h1>Vaults</h1><p>Each vault holds Bitcoin and sells covered calls on it.</p></div>
+      {wallet.account && <button className="pill pill-line pill-sm" onClick={() => setMint(true)}><Icon name="plus" size={15} /> New vault</button>}
     </header>
 
-    <div className="stats4">
-      <StatCard highlight label="Realised APY" icon="spark" value={<span className="jade"><CountUp value={s ? s.blended : null} decimals={2} suffix="%" /></span>} sub="annualised on strike notional" />
-      <StatCard label="Premium earned" icon="coin" value={s ? <Amount e6={s.earned} unit={TUSDC_SYMBOL} /> : rounds.error ? '—' : '…'} sub={s ? `paid to writers across ${s.paid.length} rounds` : rounds.error || 'Reading rounds…'} />
-      <StatCard label="BTC written" icon="box" value={written !== null ? <>{btcFromSats(written)}<small> BTC</small></> : '…'} sub="collateral sold in paid rounds · regtest" />
-      <StatCard label="Vaults" icon="key" value={boxes.data ? boxes.data.length : boxes.error ? '—' : '…'} sub={sealed !== undefined ? `${sealed} sealed with ML-DSA-65` : boxes.error || 'Reading…'} />
-    </div>
-
-    <div className="hl-row">
-      <section className="hl" aria-label="Highest realised APY">
-        <div className="hl-head"><span>Highest realised APY</span><Icon name="spark" size={15} /></div>
-        {rounds.data ? [...rounds.data].filter(r => r.premium_paid_usdc).sort((a, b) => (annualisedPct(b) ?? 0) - (annualisedPct(a) ?? 0)).slice(0, 3).map(r => <button key={r.key} className="hl-line" onClick={() => setSheet(r.key)}><span><b>{short(r.token_id, 12, 4)}</b><small>#{r.id} · {utcDay(r.opened_ns)}</small></span><em>{pct(annualisedPct(r), 2)}</em></button>) : <p className="hl-empty">{rounds.error || 'Reading rounds…'}</p>}
-        {rounds.data && !rounds.data.some(r => r.premium_paid_usdc) && <p className="hl-empty">No paid rounds yet</p>}
-      </section>
-      <section className="hl" aria-label="Latest settlements">
-        <div className="hl-head"><span>Latest settlements</span><Icon name="check" size={15} /></div>
-        {rounds.data ? rounds.data.filter(r => r.oracle_price_usd_e6).slice(0, 3).map(r => <button key={r.key} className="hl-line" onClick={() => setSheet(r.key)}><span><b>{short(r.token_id, 12, 4)}</b><small>strike ${e6(r.strike_usd_e6, 0)}</small></span><em className="ink">${e6(r.oracle_price_usd_e6!, 0)}</em></button>) : <p className="hl-empty">{rounds.error || 'Reading rounds…'}</p>}
-        {rounds.data && !rounds.data.some(r => r.oracle_price_usd_e6) && <p className="hl-empty">Nothing settled yet</p>}
-      </section>
-      <section className="hl" aria-label="Rounds by state">
-        <div className="hl-head"><span>Rounds by state</span><Icon name="clock" size={15} /></div>
-        {rounds.data ? (['live', 'itm', 'otm', 'unfilled'] as const).map(ph => { const n = rounds.data!.filter(r => roundPhase(r, Date.now()).phase === ph).length; const sample = rounds.data!.find(r => roundPhase(r, Date.now()).phase === ph); return <div key={ph} className="hl-line static"><span>{sample ? <PhasePill c={sample} now={Date.now()} /> : <span className="dim">{ph === 'live' ? 'Auction open' : ph.toUpperCase()}</span>}</span><em className="ink">{n}</em></div>; }) : <p className="hl-empty">{rounds.error || 'Reading rounds…'}</p>}
-      </section>
-    </div>
-
-    <div className="dash-grid">
-      <div className="dash-main">
-      <section className="card vaults-card" aria-label="Vaults">
-        <div className="card-title">
-          <div><h2>Covered-call vaults</h2><p>Sorted by realised APY. Open one to see its current round, strategy and deposit address.</p></div>
-          <div className="filters" role="tablist" aria-label="Filter vaults">{([['rounds', 'With rounds'], ['all', 'All'], ['mine', 'Yours']] as const).map(([f, l]) => <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>{l}<small>{boxes.data ? count(f) : ''}</small></button>)}</div>
+    <div className="s-top">
+      <section className="s-summary" aria-label="What Otzar vaults earned">
+        <div className="s-summary-num">
+          <p className="s-k"><Term tip={TERMS.apy}>Realised APY</Term>, all vaults</p>
+          <b className="gold-num"><CountUp value={s ? s.blended : null} decimals={2} suffix="%" /></b>
+          <p className="s-summary-line">{s ? <><Amount e6={s.earned} unit={TUSDC_SYMBOL} /> premium paid over {s.paid.length} {s.paid.length === 1 ? 'round' : 'rounds'} · {boxes.data ? `${boxes.data.length} vaults` : '…'}</> : rounds.error ? <span className="bad">{rounds.error}</span> : 'Reading the rounds…'}</p>
         </div>
-        {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={boxes.reload}>Retry</button>}>{boxes.error}</State>
-          : !boxes.data ? <div className="vt">{[0, 1, 2, 3].map(i => <div key={i} className="vt-row skeleton" />)}</div>
-          : <VaultTable boxes={boxes.data} rounds={rounds.data} account={wallet.account} filter={filter} />}
+        <div className="s-summary-chart">
+          {rounds.data && rounds.data.length ? <RoundBars rounds={rounds.data} height={132} onPick={k => setSheet(k)} /> : <p className="dim small">{rounds.error || (rounds.data ? 'No rounds yet.' : 'Reading rounds…')}</p>}
+        </div>
       </section>
-    <section className="card act-card" aria-label="Activity">
-      <div className="card-title"><div><h2>Activity</h2><p>Transactions to the vault contract, from NearBlocks.</p></div></div>
-      <ActivityTable txns={txns.data} error={txns.error} loading={txns.loading} />
-    </section>
-      </div>
-      <aside className="dash-rail">
-        <PositionCard wallet={wallet} rounds={rounds.data} />
-        <section className="card" aria-label="APY by round">
-          <div className="card-title"><h2>APY by round</h2><span className="dim small">tap a bar</span></div>
-          {rounds.data && rounds.data.length ? <RoundBars rounds={rounds.data} onPick={k => setSheet(k)} /> : rounds.error ? <p className="err-line">{rounds.error}</p> : <p className="dim small">{rounds.data ? 'No rounds yet.' : 'Reading rounds…'}</p>}
-        </section>
-        <RelayerCard />
-      </aside>
+      <StartCard wallet={wallet} onMint={() => setMint(true)} />
     </div>
 
+    <section className="card s-list" aria-label="Vaults">
+      <div className="s-list-head">
+        <h2>{filter === 'rounds' ? 'Earning vaults' : filter === 'mine' ? 'Your vaults' : 'All vaults'}</h2>
+        <div className="filters" role="tablist" aria-label="Filter vaults">{([['rounds', 'Earning'], ['all', 'All'], ['mine', 'Yours']] as const).map(([f, l]) => <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>{l}<small>{boxes.data ? count(f) : ''}</small></button>)}</div>
+      </div>
+      {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={boxes.reload}>Retry</button>}>{boxes.error}</State>
+        : !boxes.data ? <div className="vt">{[0, 1, 2, 3].map(i => <div key={i} className="vt-row skeleton" />)}</div>
+        : <VaultTable boxes={boxes.data} rounds={rounds.data} account={wallet.account} filter={filter} />}
+    </section>
 
     {mint && <MintSheet wallet={wallet} onClose={() => setMint(false)} />}
     {open && <RoundSheet r={open} wallet={wallet} onClose={() => setSheet(null)} />}

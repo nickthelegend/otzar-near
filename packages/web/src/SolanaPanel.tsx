@@ -31,7 +31,7 @@ export default function SolanaPanel({ view, box, contractId, account, keyFile, b
   const owner = box.owner_id === account;
   const mismatch = !!state && !!address && state.public_key !== base64(bs58.decode(address));
   if (view === 'rules') return <div className="card">
-    <div className="card-head"><div><h3>Solana address</h3><p>Registers the box's Ed25519 address, signed by your ML-DSA key. SOL transfers sign immediately: the ETH/BTC delay does not apply.</p></div>{state ? <Chip tone={mismatch ? 'bad' : 'ok'}>{mismatch ? 'Mismatch' : 'Registered'}</Chip> : <Chip tone="warn">Not registered</Chip>}</div>
+    <div className="card-head"><div><h3>Solana address</h3><p>Registers the vault's Ed25519 address, signed by your ML-DSA key. SOL transfers sign immediately: the ETH/BTC delay does not apply.</p></div>{state ? <Chip tone={mismatch ? 'bad' : 'ok'}>{mismatch ? 'Mismatch' : 'Registered'}</Chip> : <Chip tone="warn">Not registered</Chip>}</div>
     {message && <p className="inline-note">{message}</p>}
     <dl className="kv"><div><dt>Address</dt><dd><code>{address || 'Deriving Ed25519 address…'}</code></dd></div><div><dt>Balance</dt><dd>{balance}</dd></div></dl>
     {mismatch && <p className="inline-error">Registered SOL key differs from the MPC derivation. Do not fund it.</p>}
@@ -51,7 +51,7 @@ export default function SolanaPanel({ view, box, contractId, account, keyFile, b
       </div>}
     </div>
     <div className="card">
-      <div className="card-head"><div><h3>SOL spend</h3><p>One open SOL request per box.</p></div></div>
+      <div className="card-head"><div><h3>SOL spend</h3><p>One open SOL request per vault.</p></div></div>
       {!spend ? <Empty icon="clock" title="No SOL spend request" /> : <Timeline clock={Date.now()} items={[{ key: 'sol', chain: 'SOL', state: spend.state, title: `${(Number(BigInt(spend.lamports)) / 1e9).toFixed(6)} SOL → ${bs58.encode(Buffer.from(spend.destination, 'base64'))}`, actions: <>
         {spend.state === 'pending' && <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => run(async () => { await invoke('execute_sol', { token_id: box.token_id }); await refresh(); })}>Sign via NEAR MPC</button>}
         {spend.state === 'signed' && spend.signature_json && <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => run(async () => { const raw = signedSolanaTransaction(spend.message_hex, spend.signature_json!, address); const hash = await broadcastSolana(raw, rpc); setMessage(`Solana validator accepted ${hash}`); await refresh(); })}>Broadcast to validator</button>}

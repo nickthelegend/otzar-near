@@ -110,9 +110,11 @@ export function Link({ to, className, children, ...rest }: { to: string; classNa
 }
 
 /** Fixed-point 6-decimal amount split into whole and dimmed fraction, e.g. 0.019547 → "0" ".019547". */
-export function Amount({ e6, unit, digits = 6, className = '' }: { e6: bigint | string | null | undefined; unit?: string; digits?: number; className?: string }) {
+export function Amount({ e6, unit, digits = 4, className = '' }: { e6: bigint | string | null | undefined; unit?: string; digits?: number; className?: string }) {
   if (e6 === null || e6 === undefined) return <span className={`amt amt-empty ${className}`}>—</span>;
-  const n = BigInt(e6); const whole = (n / 1_000_000n).toLocaleString('en-US'); const frac = (n % 1_000_000n).toString().padStart(6, '0').slice(0, digits);
+  // Round half up to `digits` decimals, so 0.010369 shows as 0.0104, matching the sentences and the wallet.
+  const step = 10n ** BigInt(6 - digits); const n = (BigInt(e6) + step / 2n) / step * step;
+  const whole = (n / 1_000_000n).toLocaleString('en-US'); const frac = (n % 1_000_000n).toString().padStart(6, '0').slice(0, digits);
   return <span className={`amt ${className}`}>{whole}<span className="amt-frac">.{frac}</span>{unit && <small className="amt-unit">{unit}</small>}</span>;
 }
 
@@ -133,6 +135,23 @@ export function Sheet({ label, onClose, children }: { label: string; onClose: ()
     </aside>
   </div>;
 }
+
+/** A word with its one-line plain meaning: a dotted underline and an i; the meaning shows on hover, focus or tap. */
+export function Term({ children, tip }: { children: ReactNode; tip: string }) {
+  return <span className="term" tabIndex={0} role="note" aria-label={`${typeof children === 'string' ? children : ''}: ${tip}`} data-tip={tip}>{children}</span>;
+}
+
+/** Plain-language meanings for the few terms the app cannot avoid. */
+export const TERMS = {
+  apy: 'Realised APY: the premium a vault actually earned, scaled to a year, as a share of the BTC it offered.',
+  premium: 'Premium: what a buyer pays you up front for the right to buy your BTC at a set price. You keep it either way.',
+  strike: 'Strike: the set price a buyer may pay for your BTC when the round ends.',
+  call: 'Covered call: you offer to sell BTC you already hold at a set price, and get paid now for the offer.',
+  round: 'Round: one offer, from writing it to settling it. Each one runs until its end date.',
+  relayer: 'Relayer price: a Coinbase BTC-USD trade signed by the Otzar relayer key and checked on-chain (testnet).',
+  tusdc: 'tUSDC: Otzar’s own test token on NEAR testnet, deployed as “tUSDC (Hako test)”. It has no value.',
+  mldsa: 'ML-DSA-65: a post-quantum signature. Only this key can ask to move the vault’s coins.',
+} as const;
 
 export function State({ kind, title, children, action }: { kind: 'loading' | 'empty' | 'error' | 'setup'; title: string; children?: ReactNode; action?: ReactNode }) {
   const empty = (kind === 'empty' || kind === 'setup') && artSrc('otzar2-empty');

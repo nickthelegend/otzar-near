@@ -73,11 +73,3 @@ export function CountUp({ value, decimals = 2, suffix = '', duration = 1200 }: {
   if (value === null) return <span className="count count-wait">…</span>;
   return <span className="count">{(shown ?? 0).toFixed(decimals)}{suffix}</span>;
 }
-
-export type TickerItem = { k: string; v: ReactNode; tone?: 'jade' | 'gold' | 'ink' };
-/** A slow tape of live facts, duplicated once for a seamless loop; static and scrollable when motion is reduced. */
-export function Ticker({ items, empty }: { items: TickerItem[]; empty: ReactNode }) {
-  if (!items.length) return <div className="ticker ticker-empty"><span className="tick-item">{empty}</span></div>;
-  const row = (dup: boolean) => items.map((t, i) => <span key={`${dup}-${i}`} className={`tick-item tick-${t.tone || 'ink'}`} aria-hidden={dup || undefined}><em>{t.k}</em>{t.v}</span>);
-  return <div className="ticker" role="marquee" aria-label="Live from NEAR testnet"><div className="ticker-track" style={{ animationDuration: `${Math.max(36, items.length * 7)}s` }}>{row(false)}{row(true)}</div></div>;
-}

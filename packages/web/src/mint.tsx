@@ -13,7 +13,7 @@ export function MintSheet({ wallet, onClose }: { wallet: Wallet; onClose: () => 
     setBusy(true); setErr('');
     try {
       if (!contractId) throw new Error('Setup required: VITE_HAKO_CONTRACT');
-      if (!/^[a-z0-9-]{3,48}$/.test(id)) throw new Error('Box ID: 3–48 lowercase letters, digits and dashes');
+      if (!/^[a-z0-9-]{3,48}$/.test(id)) throw new Error('Vault ID: 3–48 lowercase letters, digits and dashes');
       if (!guardian || !/^0x[0-9a-fA-F]{40}$/.test(recovery)) throw new Error('Enter a guardian account and a valid recovery ETH address');
       const policy = { daily_eth_wei: toWei(cap), delay_sec: 120, allow_eth: allow ? allow.split(',').map(x => x.trim()).filter(Boolean) : [], guardian, recovery_eth: recovery, emergency_migration: null };
       const h = await sendCall(wallet, contractId, 'mint', { token_id: id, policy });
@@ -22,10 +22,10 @@ export function MintSheet({ wallet, onClose }: { wallet: Wallet; onClose: () => 
   }
   return <Sheet label="Mint a vault" onClose={onClose}>
     <p className="lbl">New vault NFT</p>
-    <h2 className="sheet-h">Mint a box<span> with its own BTC, ETH and SOL addresses</span></h2>
+    <h2 className="sheet-h">Mint a vault<span> with its own BTC, ETH and SOL addresses</span></h2>
     <p className="sheet-note">Seal it with an ML-DSA-65 key right after minting, from the vault page. The rules below bind the Ethereum side first; Bitcoin rules are set on the vault.</p>
     <form className="sheet-form" onSubmit={e => { e.preventDefault(); mint(); }}>
-      <Field label="Box ID" hint="Lowercase letters, digits and dashes"><input value={id} onChange={e => setId(e.target.value.toLowerCase())} placeholder="my-box" autoComplete="off" /></Field>
+      <Field label="Vault ID" hint="Lowercase letters, digits and dashes"><input value={id} onChange={e => setId(e.target.value.toLowerCase())} placeholder="my-vault" autoComplete="off" /></Field>
       <Field label="Guardian NEAR account"><input value={guardian} onChange={e => setGuardian(e.target.value)} placeholder="guardian.testnet" autoComplete="off" /></Field>
       <Field label="Recovery ETH address"><input value={recovery} onChange={e => setRecovery(e.target.value)} placeholder="0x…" spellCheck={false} /></Field>
       <div className="form-grid"><Field label="Daily cap (ETH)"><input value={cap} onChange={e => setCap(e.target.value)} inputMode="decimal" /></Field>

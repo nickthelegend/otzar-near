@@ -1,27 +1,39 @@
-import { useState, type ReactNode } from 'react';
-import { useBoxes, useNow, useTusdc } from './data';
-import { ago, annualisedPct, btcFromSats, e6, earnedSummary, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type ChainTx, type CoveredCall, type Phase, type Round } from './lib';
+import { useState } from 'react';
+import { useNow } from './data';
+import { ago, annualisedPct, btcFromSats, e6, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, type Box, type ChainTx, type CoveredCall, type Phase, type Round } from './lib';
 import { pct } from './rounds';
-import { Amount, Icon, Link, State, type IconName } from './ui';
-import type { Wallet } from './wallet';
-
-export function StatCard({ label, icon, value, sub, highlight = false, children }: { label: string; icon?: IconName; value: ReactNode; sub?: ReactNode; highlight?: boolean; children?: ReactNode }) {
-  return <div className={`stat ${highlight ? 'stat-hi' : ''}`}>
-    <div className="stat-top"><span>{label}</span>{icon && <i className="stat-ic"><Icon name={icon} size={15} /></i>}</div>
-    <div className="stat-v">{value}</div>
-    {sub && <div className="stat-sub">{sub}</div>}
-    {children}
-  </div>;
-}
+import { Icon, Link, State, Term, TERMS } from './ui';
 
 export type VaultType = 'call' | 'qsafe' | 'any';
 /** The vault's product type, shown by colour: covered call (has rounds), any-chain (holds a Solana address), quantum-safe custody. */
 export const vaultType = (id: string, hasRounds: boolean): VaultType => (hasRounds ? 'call' : id.startsWith('sol-') ? 'any' : 'qsafe');
 export const TYPE_LABEL: Record<VaultType, string> = { call: 'BTC covered call', qsafe: 'Quantum-safe vault', any: 'Any-chain vault' };
 export const PHASE_TONE: Record<Phase, string> = { live: 'gold', sold: 'jade', itm: 'jade', otm: 'blush', unfilled: 'dim', other: 'dim' };
-export function PhasePill({ c, now }: { c: CoveredCall; now: number }) {
+/** What happened in a round, in words a first-time visitor reads without a glossary. */
+export const PLAIN: Record<Phase, string> = { live: 'Open for a buyer', sold: 'Sold, running', itm: 'Buyer took the BTC', otm: 'Expired, BTC kept', unfilled: 'No buyer', other: 'In progress' };
+export function PhasePill({ c, now, plain = false }: { c: CoveredCall; now: number; plain?: boolean }) {
   const ph = roundPhase(c, now);
-  return <span className={`pp pp-${PHASE_TONE[ph.phase]}`}><i />{ph.label}</span>;
+  return <span className={`pp pp-${PHASE_TONE[ph.phase]}`} title={plain ? ph.label : undefined}><i />{plain ? (ph.phase === 'other' ? ph.label : PLAIN[ph.phase]) : ph.label}</span>;
+}
+
+/** Token amounts the way a wallet shows them: four decimals at most, two at least. */
+export const money = (v: string | bigint) => (Number(v) / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+/** One round as a sentence: who paid what for which right, and how it ended. */
+export function roundSentence(c: CoveredCall, now: number): string {
+  const ph = roundPhase(c, now);
+  const usd = (v: string) => `$${Math.round(Number(v) / 1e6).toLocaleString('en-US')}`;
+  const size = `${btcFromSats(c.size_sats)} BTC`, strike = usd(c.strike_usd_e6);
+  const paid = c.premium_paid_usdc ? `${money(c.premium_paid_usdc)} ${TUSDC_SYMBOL}` : '';
+  const settled = c.oracle_price_usd_e6 ? usd(c.oracle_price_usd_e6) : '';
+  switch (ph.phase) {
+    case 'itm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, above that price, so the buyer bought it. The vault kept the premium.`;
+    case 'otm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, below that price, so the vault kept its BTC and the premium.`;
+    case 'sold': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. The round is running; the premium is the vault's either way.`;
+    case 'live': return `The vault is offering ${size} at ${strike}. The asking premium falls until a buyer pays it.`;
+    case 'unfilled': return `The vault offered ${size} at ${strike}, but no buyer paid the premium before the auction ended. Nothing was sold.`;
+    default: return `${ph.label}: ${size} at ${strike}.`;
+  }
 }
 
 /** Annualised yield per round, oldest first; the chosen round is highlighted and labelled. */
@@ -47,51 +59,26 @@ export function RoundBars({ rounds, selected, onPick, height = 168 }: { rounds: 
 
 export type VaultFilter = 'all' | 'rounds' | 'mine';
 /** The vault list (Ribbon's product catalog as a table): realised APY, latest round, collateral, owner. */
-export function VaultTable({ boxes, rounds, account, filter }: { boxes: Box[]; rounds: Round[] | null; account: string; filter: VaultFilter }) {
+export function VaultTable({ boxes, rounds, account, filter, limit }: { boxes: Box[]; rounds: Round[] | null; account: string; filter: VaultFilter; limit?: number }) {
   const now = useNow(15000);
   const latest = (id: string) => rounds?.find(r => r.token_id === id);
   const list = boxes.filter(b => filter === 'all' || (filter === 'mine' ? b.owner_id === account : !!latest(b.token_id)))
     .sort((a, b) => (annualisedPct(latest(b.token_id) || ({} as CoveredCall)) ?? -1) - (annualisedPct(latest(a.token_id) || ({} as CoveredCall)) ?? -1) || Number(!!latest(b.token_id)) - Number(!!latest(a.token_id)));
   if (!list.length) return <State kind="empty" title={filter === 'mine' ? (account ? 'You own no vaults yet' : 'Connect to see your vaults') : 'No vaults here'}>Each vault is an NFT on NEAR that owns a native Bitcoin address through Chain Signatures.</State>;
-  return <div className="vt" role="table" aria-label="Vaults">
-    <div className="vt-head" role="row"><span role="columnheader">Vault</span><span role="columnheader">Realised APY</span><span role="columnheader">Latest round</span><span role="columnheader">Collateral</span><span role="columnheader">Security</span><span /></div>
-    {list.map(b => {
-      const r = latest(b.token_id); const apy = r ? annualisedPct(r) : null; const sealed = !!b.pq_key?.length;
+  return <div className="vt vt-simple" role="table" aria-label="Vaults">
+    <div className="vt-head" role="row"><span role="columnheader">Vault</span><span role="columnheader"><Term tip={TERMS.apy}>Earned</Term></span><span role="columnheader">Last round</span><span /></div>
+    {list.slice(0, limit ?? list.length).map(b => {
+      const r = latest(b.token_id); const apy = r ? annualisedPct(r) : null;
       const all = rounds?.filter(x => x.token_id === b.token_id) || [];
       const t = vaultType(b.token_id, all.length > 0);
       return <Link key={b.token_id} to={`/vault/${b.token_id}`} className={`vt-row vt-${t} ${b.owner_id === account ? 'mine' : ''}`}>
-        <span className="vt-vault" role="cell"><span className="vt-glyph" aria-hidden="true">א</span><span><b>{b.token_id}</b><small>{TYPE_LABEL[t]} · {b.owner_id === account ? 'yours' : short(b.owner_id, 12, 6)}</small></span></span>
-        <span className="vt-apy" role="cell" data-label="Realised APY">{apy === null ? <em>{r ? 'no premium' : '—'}</em> : <b>{apy.toFixed(1)}%</b>}</span>
-        <span role="cell" data-label="Latest round">{r ? <PhasePill c={r} now={now} /> : <span className="dim">No rounds yet</span>}{all.length > 1 && <small className="dim"> · {all.length} rounds</small>}</span>
-        <span className="vt-num" role="cell" data-label="Collateral">{r ? <>{btcFromSats(r.collateral_sats)} <small>BTC</small></> : <span className="dim">—</span>}</span>
-        <span className="vt-sec" role="cell" data-label="Security"><i className={sealed ? 'on' : ''} title="ML-DSA key" /><i className={b.policy.recovery_eth !== ZERO_ETH ? 'on' : ''} title="Spending rules" /><i className={b.policy.guardian ? 'on' : ''} title="Guardian" />{sealed ? 'ML-DSA' : 'No key'}</span>
-        <span className="vt-go" aria-hidden="true">Open <Icon name="arrow" size={14} /></span>
+        <span className="vt-vault" role="cell"><span className="vt-glyph" aria-hidden="true">א</span><span><b>{b.token_id}</b><small>{TYPE_LABEL[t]}{b.owner_id === account ? ' · yours' : ''}{all.length > 1 ? ` · ${all.length} rounds` : ''}</small></span></span>
+        <span className="vt-apy" role="cell" data-label="Earned">{apy === null ? <em>{r ? 'nothing yet' : '—'}</em> : <><b>{apy.toFixed(1)}%</b><small>APY</small></>}</span>
+        <span role="cell" data-label="Last round">{r ? <PhasePill c={r} now={now} plain /> : <span className="dim">No rounds yet</span>}</span>
+        <span className="vt-go" aria-hidden="true"><Icon name="arrow" size={16} /></span>
       </Link>;
     })}
   </div>;
-}
-
-/** Your position: live tUSDC balance, vaults you own and premium your rounds earned. */
-export function PositionCard({ wallet, rounds }: { wallet: Wallet; rounds: Round[] | null }) {
-  const bal = useTusdc(wallet.account); const boxes = useBoxes();
-  const mine = rounds?.filter(r => r.writer === wallet.account) || [];
-  const s = earnedSummary(mine);
-  const owned = boxes.data?.filter(b => b.owner_id === wallet.account).length;
-  return <section className="card pos" aria-label="Your position">
-    <div className="card-title"><h2>Your position</h2>{wallet.account && <Link to="/you" className="mini-link">Portfolio <Icon name="arrow" size={13} /></Link>}</div>
-    {wallet.account ? <>
-      <p className="pos-acct mono">{short(wallet.account, 16, 10)}</p>
-      <p className="pos-v">{bal.data !== null ? <Amount e6={bal.data} unit={TUSDC_SYMBOL} /> : bal.error ? <span className="dim" title={bal.error}>Unavailable</span> : <span className="dim">Loading…</span>}</p>
-      <dl className="pos-kv">
-        <div><dt>Vaults you own</dt><dd>{owned ?? '…'}</dd></div>
-        <div><dt>Rounds you wrote</dt><dd>{rounds ? mine.length : '…'}</dd></div>
-        <div><dt>Premium earned</dt><dd>{rounds ? <Amount e6={s.earned} /> : '…'}</dd></div>
-      </dl>
-    </> : <div className="pos-empty">
-      <p>Connect a NEAR testnet wallet to see your vaults, the rounds you wrote and your {TUSDC_SYMBOL} balance.</p>
-      <button className="pill pill-jade pill-block" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button>
-    </div>}
-  </section>;
 }
 
 const ACTION: Record<string, string> = {
@@ -110,13 +97,13 @@ export function ActivityTable({ txns, error, loading, limit = 10 }: { txns: Chai
   if (loading || !txns) return <div className="at at-skel" aria-busy="true">{[0, 1, 2, 3].map(i => <div key={i} className="at-row skeleton" />)}</div>;
   if (!txns.length) return <State kind="empty" title="No contract activity yet" />;
   return <div className="at" role="table" aria-label="Contract activity">
-    <div className="at-head" role="row"><span>Action</span><span>Account</span><span>Status</span><span>Time</span><span>Transaction</span></div>
+    <div className="at-head" role="row"><span>Action</span><span>Account</span><span>Status</span><span>Time</span><span /></div>
     {txns.slice(0, n).map(t => <a key={t.hash} className="at-row" href={nearblocksTx(t.hash)} target="_blank" rel="noreferrer" role="row">
-      <span className="at-act"><b>{actionLabel(t.method)}</b><code>{t.method}</code></span>
+      <span className="at-act" title={t.method}><b>{actionLabel(t.method)}</b></span>
       <span className="at-acct mono">{short(t.signer, 14, 8)}</span>
       <span><span className={`pp ${t.ok ? 'pp-jade' : 'pp-bad'}`}><i />{t.ok ? 'Success' : 'Failed'}</span></span>
       <span className="at-time">{ago(t.ns, now)}</span>
-      <span className="at-tx mono">{short(t.hash, 6, 4)} <Icon name="external" size={12} /></span>
+      <span className="at-tx">View <Icon name="external" size={12} /></span>
     </a>)}
     {txns.length > n && <button className="at-more" onClick={() => setN(txns.length)}>Show {txns.length - n} more</button>}
   </div>;

@@ -35,8 +35,8 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
     {error&&<p className="inline-error" role="alert">{error}</p>}
     {notice&&<p className="inline-note">{notice}</p>}
     <div className="card earn-hero">
-      <div className="card-head"><div><h3>Covered call</h3><p>A buyer pays a premium in {TUSDC_SYMBOL} (Otzar test token, no value) for the right to buy this box's sats at the strike before expiry. The premium is yours either way; upside above the strike is capped.</p></div><Chip tone={call?(call.state==='auction'?'ice':['signed','otm'].includes(call.state)?'ok':locked?'warn':'idle'):'idle'}>{call?callStateLabel[call.state]||call.state:'No auctions yet'}</Chip></div>
-      {!call?<Empty icon="coin" title="No call written on this box yet">{canWrite?'Write one below.':'The owner can write a call once the box has an ML-DSA key and a registered Bitcoin UTXO.'}</Empty>:<>
+      <div className="card-head"><div><h3>Covered call</h3><p>A buyer pays a premium in {TUSDC_SYMBOL} (Otzar test token, no value) for the right to buy this vault's sats at the strike before expiry. The premium is yours either way; upside above the strike is capped.</p></div><Chip tone={call?(call.state==='auction'?'ice':['signed','otm'].includes(call.state)?'ok':locked?'warn':'idle'):'idle'}>{call?callStateLabel[call.state]||call.state:'No auctions yet'}</Chip></div>
+      {!call?<Empty icon="coin" title="No call written on this vault yet">{canWrite?'Write one below.':'The owner can write a call once the vault has an ML-DSA key and a registered Bitcoin UTXO.'}</Empty>:<>
         <div className="metrics">
           <div><span>{asking?'Asking premium':'Premium'}</span><strong>{asking?decimal(asking):call.premium_paid_usdc?decimal(call.premium_paid_usdc):'—'}</strong><small>{asking?`${TUSDC_SYMBOL} · falling`:call.premium_paid_usdc?`${TUSDC_SYMBOL} paid to writer`:'auction closed'}</small></div>
           <div><span>Annualised yield</span><strong>{annualized(call)}</strong><small>premium ÷ (strike × size) × 365 d ÷ {tenorLabel((call.expiry_ns-call.opened_ns)/1e9)}</small></div>
@@ -48,11 +48,11 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
         {call.state==='auction'&&short&&<p className="warn-line"><Icon name="coin"/> Setup required: {TUSDC_SYMBOL} balance. {token?<>The test token <a href={nearblocksAccount(token)} target="_blank" rel="noreferrer"><code>{token}</code></a> is minted by its own account (<code>scripts/deploy-test-usdc.mjs</code>); it has no faucet page.</>:'No premium token configured.'}</p>}
         {call.state==='auction'&&account&&<button className="btn btn-primary" onClick={buy} disabled={busy||!asking||!usdcBalance||BigInt(usdcBalance)<BigInt(asking)}>Buy call with {TUSDC_SYMBOL}</button>}
         {call.state==='itm'&&<p className="inline-note">Exercise window ends {date(call.exercise_deadline_ns!)}. The holder pays the strike in {TUSDC_SYMBOL}, then the contract MPC-signs the Bitcoin transfer.</p>}
-        {call.state==='sold'&&<p className="fineprint">After expiry anyone can submit the Coinbase BTC-USD print that the Otzar relayer signed in the first five minutes after expiry (relayer price, testnet); the contract checks the signature and the time. Unsettled after 24 hours, the call stops encumbering the box.</p>}
+        {call.state==='sold'&&<p className="fineprint">After expiry anyone can submit the Coinbase BTC-USD print that the Otzar relayer signed in the first five minutes after expiry (relayer price, testnet); the contract checks the signature and the time. Unsettled after 24 hours, the call stops encumbering the vault.</p>}
       </>}
     </div>
     {canWrite&&<div className="card">
-      <div className="card-head"><div><h3>Write a call</h3><p>Signed with your ML-DSA key. While it is open the contract blocks BTC spends, listing and transfer of this box.</p></div></div>
+      <div className="card-head"><div><h3>Write a call</h3><p>Signed with your ML-DSA key. While it is open the contract blocks BTC spends, listing and transfer of this vault.</p></div></div>
       <div className="form">
         <div className="form-grid form-grid-3">
           <Field label="Strike (USD)"><input value={strike} onChange={e=>setStrike(e.target.value)} inputMode="decimal"/></Field>
@@ -70,7 +70,7 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
       <ul className="history">{history.slice().reverse().map(c=><li key={c.id}><b>#{c.id}</b><Chip tone={['signed','otm','paid'].includes(c.state)?'ok':'idle'}>{callStateLabel[c.state]||c.state}</Chip><span>{c.premium_paid_usdc?`${decimal(c.premium_paid_usdc)} ${TUSDC_SYMBOL} paid`:'no premium paid'}</span><small>{date(c.opened_ns)}</small></li>)}</ul>
     </div>}
     <div className="card">
-      <div className="card-head"><div><h3>Deposit anything</h3><p>A live NEAR Intents 1Click quote from ETH, SOL or USDC into this box's next-epoch native BTC address. Dry quote only: no deposit address, no swap. Execution needs <code>NEAR_MAINNET_ACCOUNT</code>.</p></div><Chip tone="warn">Dry quote</Chip></div>
+      <div className="card-head"><div><h3>Deposit anything</h3><p>A live NEAR Intents 1Click quote from ETH, SOL or USDC into this vault's next-epoch native BTC address. Dry quote only: no deposit address, no swap. Execution needs <code>NEAR_MAINNET_ACCOUNT</code>.</p></div><Chip tone="warn">Dry quote</Chip></div>
       <div className="form">
         <div className="form-grid form-grid-3">
           <Field label="Origin asset"><select value={asset} onChange={e=>setAsset(e.target.value)}>{previewAssets.length===0&&<option value="">Loading 1Click assets…</option>}{previewAssets.map(a=><option key={a.assetId} value={a.assetId}>{a.symbol} · {a.blockchain}</option>)}</select></Field>
