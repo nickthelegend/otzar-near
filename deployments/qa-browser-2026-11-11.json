@@ -1,0 +1,535 @@
+{
+  "date": "2026-11-11",
+  "network": "NEAR testnet + Bitcoin Core regtest",
+  "capNEAR": 0.3,
+  "runs": [
+    {
+      "id": "mwcex7o3",
+      "started": "2026-11-11T17:48:23.187Z",
+      "status": "STOPPED_BEFORE_WRITES",
+      "tokenId": "qa-web-mwcex7o3",
+      "resaleTokenId": "qa-sale-mwc9xla0",
+      "steps": [],
+      "screenshots": [],
+      "checks": [
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings"
+      ],
+      "consoleErrors": [],
+      "failures": [],
+      "budget": {
+        "gasNetYocto": "33531118247636700000008",
+        "addedStorageYocto": "180350000000000000000000",
+        "grossDepositsYocto": "1000000000000000000000",
+        "totalYocto": "214881118247636700000008",
+        "totalNEAR": 0.2148811182476367,
+        "remainingNEAR": 0.0851188817523633,
+        "includesPriorQA": true
+      },
+      "note": "Preflight stopped to place the Bitcoin RPC on an allowed QA port; no transactions sent."
+    },
+    {
+      "id": "mwceyvr1",
+      "started": "2026-11-11T17:49:41.053Z",
+      "status": "FAILED",
+      "tokenId": "qa-web-mwceyvr1",
+      "resaleTokenId": "qa-sale-mwc9xla0",
+      "steps": [],
+      "screenshots": [
+        {
+          "label": "seller-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwceyvr1-1440-seller-before-connect.png"
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwceyvr1-375-seller-before-connect.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwceyvr1-1440-seller-connected.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwceyvr1-375-seller-connected.png"
+        }
+      ],
+      "checks": [
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
+        "Mainnet account and mainnet RPC rejected before signing"
+      ],
+      "consoleErrors": [],
+      "failures": [],
+      "budget": {
+        "gasNetYocto": "33531118247636700000008",
+        "addedStorageYocto": "180350000000000000000000",
+        "grossDepositsYocto": "1000000000000000000000",
+        "totalYocto": "214881118247636700000008",
+        "totalNEAR": 0.2148811182476367,
+        "remainingNEAR": 0.0851188817523633,
+        "includesPriorQA": true
+      },
+      "error": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Vault ID', { exact: true })\u001b[22m\n"
+    },
+    {
+      "id": "mwcf3wze",
+      "started": "2026-11-11T17:53:35.930Z",
+      "status": "STOPPED_BEFORE_WRITES",
+      "tokenId": "qa-web-mwcf3wze",
+      "resaleTokenId": "qa-sale-mwc9xla0",
+      "steps": [],
+      "screenshots": [],
+      "checks": [
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings"
+      ],
+      "consoleErrors": [],
+      "failures": [],
+      "budget": {
+        "gasNetYocto": "33531118247636700000008",
+        "addedStorageYocto": "180350000000000000000000",
+        "grossDepositsYocto": "1000000000000000000000",
+        "totalYocto": "214881118247636700000008",
+        "totalNEAR": 0.2148811182476367,
+        "remainingNEAR": 0.0851188817523633,
+        "includesPriorQA": true
+      },
+      "note": "Stopped while waiting for Chrome to replace a deprecated/rate-limited RPC with tested testnet endpoints. No transactions sent."
+    },
+    {
+      "id": "mwcfh3em",
+      "started": "2026-11-11T18:03:50.782Z",
+      "status": "FAILED",
+      "tokenId": "qa-web-mwcfh3em",
+      "resaleTokenId": "qa-sale-mwc9xla0",
+      "steps": [],
+      "screenshots": [
+        {
+          "label": "seller-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-1440-seller-before-connect.png"
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-375-seller-before-connect.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-1440-seller-connected.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-375-seller-connected.png"
+        },
+        {
+          "label": "mint-form-qa-web-mwcfh3em",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-1440-mint-form-qa-web-mwcfh3em.png"
+        },
+        {
+          "label": "mint-form-qa-web-mwcfh3em",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-375-mint-form-qa-web-mwcfh3em.png"
+        },
+        {
+          "label": "failure",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-1440-failure.png"
+        },
+        {
+          "label": "failure",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfh3em-375-failure.png"
+        }
+      ],
+      "checks": [
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
+        "Mainnet account and mainnet RPC rejected before signing"
+      ],
+      "consoleErrors": [],
+      "failures": [],
+      "budget": {
+        "gasNetYocto": "33531118247636700000008",
+        "addedStorageYocto": "180350000000000000000000",
+        "grossDepositsYocto": "1000000000000000000000",
+        "totalYocto": "214881118247636700000008",
+        "totalNEAR": 0.2148811182476367,
+        "remainingNEAR": 0.0851188817523633,
+        "includesPriorQA": true
+      },
+      "error": "No final browser receipt for mint"
+    },
+    {
+      "id": "mwcfmzun",
+      "started": "2026-11-11T18:08:26.111Z",
+      "status": "FAILED",
+      "tokenId": "qa-web-mwcfmzun",
+      "resaleTokenId": "qa-sale-mwc9xla0",
+      "steps": [],
+      "screenshots": [],
+      "checks": [],
+      "consoleErrors": [],
+      "failures": [],
+      "budget": {
+        "gasNetYocto": "33531118247636700000008",
+        "addedStorageYocto": "180350000000000000000000",
+        "grossDepositsYocto": "1000000000000000000000",
+        "totalYocto": "214881118247636700000008",
+        "totalNEAR": 0.2148811182476367,
+        "remainingNEAR": 0.0851188817523633,
+        "includesPriorQA": true
+      },
+      "adapterChecks": {
+        "status": "PASS",
+        "transactions": 0,
+        "checks": [
+          "Wallet Selector 10 native action",
+          "legacy selector action",
+          "unsupported action rejected",
+          "mainnet receiver rejected",
+          "deposit cap",
+          "negative deposit rejected",
+          "getAccounts/signIn/signOut",
+          "public selection survives reload",
+          "injection removed and no key in storage",
+          "mainnet account/RPC refused"
+        ]
+      },
+      "error": "Command failed: pnpm --filter @hako/web exec vite build --mode production --outDir /private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/production-build --emptyOutDir\n[plugin vite:resolve] Module \"util\" has been externalized for browser compatibility, imported by \"/Volumes/Extreme SSD/Projects/grokbot/projects/hako/node_modules/.pnpm/generate-function@2.3.1/node_modules/generate-function/index.js\". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.\n../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment\n\n\"/** Anchors a pattern source. The interpolation lives here rather than at the call site because\n * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it\n * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */\"\n\nin \"../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js\" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.\n../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment\n\n\"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle.\"\n\nin \"../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js\" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.\n"
+    },
+    {
+      "id": "mwcfqfc2",
+      "started": "2026-11-11T18:11:06.146Z",
+      "status": "FAILED",
+      "tokenId": "qa-web-mwcfqfc2",
+      "resaleTokenId": "qa-sale-mwc9xla0",
+      "steps": [
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "mint"
+          ],
+          "txHash": "5QX4AhPHw2pqGKCLkNZkAYnKZPbPgZ2s2EfGZzcQwwD5",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/5QX4AhPHw2pqGKCLkNZkAYnKZPbPgZ2s2EfGZzcQwwD5",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "register_pq_key"
+          ],
+          "txHash": "2Kh9XHoFfz2iRYy2FR8dFpoNNWw684KUyXmHR4nm3Gio",
+          "gas": "120000000000000",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "independentlyVerified": true,
+          "source": "browser; hash recovered from NearBlocks after dRPC HTTP 408",
+          "explorer": "https://testnet.nearblocks.io/txns/2Kh9XHoFfz2iRYy2FR8dFpoNNWw684KUyXmHR4nm3Gio"
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "list"
+          ],
+          "txHash": "4LDoR6si3YHa7PuadUwcxD5abmfLoU5eqbf1fxyUs7oZ",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/4LDoR6si3YHa7PuadUwcxD5abmfLoU5eqbf1fxyUs7oZ",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "buy"
+          ],
+          "txHash": "A5rxE39YCCHgB9DfT6H42TWspRS8tQZoHC1GyTk7P8cM",
+          "deposit": "1000000000000000000",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/A5rxE39YCCHgB9DfT6H42TWspRS8tQZoHC1GyTk7P8cM",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "register_pq_key"
+          ],
+          "txHash": "gcaC5bAAwjGMYNn3RzC5swS5w7cXG2CeNygLsGhzJTY",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/gcaC5bAAwjGMYNn3RzC5swS5w7cXG2CeNygLsGhzJTY",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "register_btc"
+          ],
+          "txHash": "Dybe9UH9J18iFBdz9zuWmL5W4qVWWVvxLoicU6Cx6hhS",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/Dybe9UH9J18iFBdz9zuWmL5W4qVWWVvxLoicU6Cx6hhS",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "write_call"
+          ],
+          "txHash": "5MKjGCdP5B81eUf39EYHieTRRd48JiCnh6UUrvD1ND5e",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/5MKjGCdP5B81eUf39EYHieTRRd48JiCnh6UUrvD1ND5e",
+          "independentlyVerified": true
+        }
+      ],
+      "screenshots": [
+        {
+          "label": "seller-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-1440-seller-before-connect.png"
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-375-seller-before-connect.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-1440-seller-connected.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-375-seller-connected.png"
+        },
+        {
+          "label": "mint-form-qa-web-mwcfqfc2",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-1440-mint-form-qa-web-mwcfqfc2.png"
+        },
+        {
+          "label": "mint-form-qa-web-mwcfqfc2",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-375-mint-form-qa-web-mwcfqfc2.png"
+        },
+        {
+          "label": "minted-qa-web-mwcfqfc2",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-1440-minted-qa-web-mwcfqfc2.png"
+        },
+        {
+          "label": "minted-qa-web-mwcfqfc2",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-375-minted-qa-web-mwcfqfc2.png"
+        },
+        {
+          "label": "before-register-key",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-1440-before-register-key.png"
+        },
+        {
+          "label": "before-register-key",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-375-before-register-key.png"
+        },
+        {
+          "label": "failure",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-1440-failure.png"
+        },
+        {
+          "label": "failure",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-375-failure.png"
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-seller-before-connect.png"
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-seller-before-connect.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-seller-connected.png"
+        },
+        {
+          "label": "seller-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-seller-connected.png"
+        },
+        {
+          "label": "before-register-key",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-before-register-key.png"
+        },
+        {
+          "label": "before-register-key",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-before-register-key.png"
+        },
+        {
+          "label": "key-registered-loaded",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-key-registered-loaded.png"
+        },
+        {
+          "label": "key-registered-loaded",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-key-registered-loaded.png"
+        },
+        {
+          "label": "bitcoin-rules-registered",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-bitcoin-rules-registered.png"
+        },
+        {
+          "label": "bitcoin-rules-registered",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-bitcoin-rules-registered.png"
+        },
+        {
+          "label": "funded-vault",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-funded-vault.png"
+        },
+        {
+          "label": "funded-vault",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-funded-vault.png"
+        },
+        {
+          "label": "covered-call-form",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-covered-call-form.png"
+        },
+        {
+          "label": "covered-call-form",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-covered-call-form.png"
+        },
+        {
+          "label": "call-written-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-call-written-receipt.png"
+        },
+        {
+          "label": "call-written-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-call-written-receipt.png"
+        },
+        {
+          "label": "buyer-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-buyer-before-connect.png"
+        },
+        {
+          "label": "failure",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-failure.png"
+        },
+        {
+          "label": "failure",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-375-failure.png"
+        },
+        {
+          "label": "failure",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-failure.png"
+        }
+      ],
+      "checks": [
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
+        "Mainnet account and mainnet RPC rejected before signing",
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
+        "Mainnet account and mainnet RPC rejected before signing",
+        "Unfunded QA NFT key reset by a 0.000001 NEAR self-purchase after the old download was lost"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()"
+      ],
+      "failures": [],
+      "budget": {
+        "gasNetYocto": "39937581305164700000008",
+        "addedStorageYocto": "212890000000000000000000",
+        "grossDepositsYocto": "1001000000000000000000",
+        "totalYocto": "253828581305164700000008",
+        "totalNEAR": 0.2538285813051647,
+        "remainingNEAR": 0.0461714186948353,
+        "includesPriorQA": true
+      },
+      "adapterChecks": {
+        "status": "PASS",
+        "transactions": 0,
+        "checks": [
+          "Wallet Selector 10 native action",
+          "legacy selector action",
+          "unsupported action rejected",
+          "mainnet receiver rejected",
+          "deposit cap",
+          "negative deposit rejected",
+          "getAccounts/signIn/signOut",
+          "public selection survives reload",
+          "injection removed and no key in storage",
+          "mainnet account/RPC refused"
+        ]
+      },
+      "recoveryNote": "Registration was final despite dRPC HTTP 408. The temporary ML-DSA download was not saved before the test stopped; this unfunded NFT will reset its key via the real sale UI before continuing.",
+      "attempts": [
+        {
+          "started": "2026-11-11T18:20:01.599Z",
+          "previousStatus": "FAILED",
+          "previousError": "No final browser receipt for register_pq_key"
+        }
+      ],
+      "bitcoin": {
+        "address": "bcrt1q7hn9tdy9yh3sv9m32hx6mztyf9g07fur7k388p",
+        "destination": "bcrt1qve99zvjv2zhzj999vddhrvzcmqd0x95p78f5s4",
+        "fundingTx": "c7cd308e1e6bc0eeb069857fa1d90b38104b3750acde949b730e8a518742716d"
+      },
+      "strikeSource": {
+        "price": "74398.24",
+        "source": "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+        "time": "2026-11-11T18:21:16.522579189Z"
+      },
+      "error": "Horizontal overflow: buyer-before-connect at 375"
+    }
+  ]
+}
