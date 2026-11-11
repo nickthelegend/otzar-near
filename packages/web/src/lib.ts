@@ -22,6 +22,10 @@ export const nearblocksTx = (hash: string) => `https://testnet.nearblocks.io/txn
 export const nearblocksAccount = (id: string) => `https://testnet.nearblocks.io/address/${id}`;
 
 export function formatEth(wei: bigint | string) { return (Number(BigInt(wei)) / 1e18).toFixed(6); }
+export function formatNear(yocto: bigint | string) {
+  const n = BigInt(yocto), unit = 10n ** 24n;
+  return `${n / unit}.${((n % unit) / (10n ** 18n)).toString().padStart(6, '0')}`;
+}
 export function short(value: string, head = 6, tail = 4) { return value.length > head + tail + 1 ? `${value.slice(0, head)}…${value.slice(-tail)}` : value; }
 
 export async function loadBoxes(): Promise<Box[]> {

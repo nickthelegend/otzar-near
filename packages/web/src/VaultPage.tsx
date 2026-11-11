@@ -5,7 +5,7 @@ import EarnPanel from './EarnPanel';
 import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
-import { annualisedPct, anvilUrl, contractId, e6, earnedSummary, esploraUrl, formatEth, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
+import { annualisedPct, anvilUrl, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Term, TERMS, Timeline } from './ui';
 import { CountUp } from './art';
 import { useNow, useRelayer, useRounds } from './data';
@@ -278,7 +278,7 @@ export default function VaultPage({ id, wallet }: Props) {
                   <div className="card-head"><div><h3>Sell the whole vault</h3><p>The buyer receives the NFT, and with it the addresses and coins. No foreign-chain transfer at sale time.</p></div>{box.listed_yocto ? <Chip tone="ice">Listed</Chip> : <Chip>Not listed</Chip>}</div>
                   {box.ever_signed && <p className="warn-line"><Icon name="shield" /> This vault has issued a NEAR signature, so the contract will not let it be resold.</p>}
                   {box.listed_yocto ? <div className="sale">
-                    <div className="sale-price"><span>Asking</span><strong>{formatEth(box.listed_yocto)}</strong><small>NEAR</small></div>
+                    <div className="sale-price"><span>Asking</span><strong>{formatNear(box.listed_yocto)}</strong><small>NEAR</small></div>
                     <button className="btn btn-primary" onClick={() => run(() => invoke('buy', { token_id: box.token_id }, box.listed_yocto!))} disabled={busy || !account || pending.length > 0}>Buy this vault</button>
                   </div> : mine && !box.ever_signed ? <div className="form">
                     <div className="form-grid"><Field label="Price (NEAR)"><input value={price} onChange={e => setPrice(e.target.value)} inputMode="decimal" /></Field></div>
