@@ -50,7 +50,12 @@ function TabBar({ page }: { page: Page }) {
 export default function App() {
   const path = usePath();
   const wallet = useWallet();
-  const vaultId = path.match(/^\/vault\/([^/]+)/)?.[1];
+  const vaultSegment = path.match(/^\/vault\/([^/]+)/)?.[1];
+  let vaultId = vaultSegment;
+  if (vaultSegment) {
+    try { vaultId = decodeURIComponent(vaultSegment); }
+    catch { /* An invalid escape is an unknown token, handled by the existing empty state. */ }
+  }
   const page: Page = vaultId ? 'vault' : path.startsWith('/app') || path.startsWith('/vaults') ? 'vaults' : path.startsWith('/you') ? 'you' : path.startsWith('/how') ? 'how' : 'home';
   useEffect(() => {
     const t: Record<Page, string> = { home: 'Otzar · Earn on your Bitcoin', how: 'Otzar · How it works', vaults: 'Otzar · Vaults', vault: `Otzar · ${vaultId}`, you: 'Otzar · Portfolio' };
@@ -66,7 +71,7 @@ export default function App() {
     {banner}
     <main id="main" className="app-main">
       {page === 'vaults' && <Dashboard wallet={wallet} />}
-      {page === 'vault' && <VaultPage id={decodeURIComponent(vaultId!)} wallet={wallet} />}
+      {page === 'vault' && <VaultPage id={vaultId!} wallet={wallet} />}
       {page === 'you' && <Portfolio wallet={wallet} />}
     </main>
     <footer className="app-foot">
