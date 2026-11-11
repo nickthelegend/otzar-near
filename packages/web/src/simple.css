@@ -169,7 +169,9 @@
 .s-balance { display: grid; gap: 14px; padding-top: 12px; }
 .s-balance-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .s-acct { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; }
-.s-balance-big { font-size: clamp(56px, 8vw, 104px); font-weight: 800; letter-spacing: -.06em; line-height: .95; }
+.s-balance-big { min-width: 0; font-size: clamp(56px, 8vw, 104px); font-weight: 800; letter-spacing: -.06em; line-height: .95; }
+.s-balance-big .amt { white-space: normal; }
+.s-balance-big .amt-unit { display: inline-block; }
 .s-balance-kv { margin: 10px 0 0; display: flex; flex-wrap: wrap; }
 .s-balance-kv div { display: grid; gap: 6px; padding: 0 32px; border-left: 1px solid var(--line-2); }
 .s-balance-kv div:first-child { padding-left: 0; border-left: 0; }
