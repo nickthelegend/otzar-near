@@ -43,7 +43,10 @@ export function useWallet(): Wallet {
   const [account, setAccount] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
-    setupWalletSelector({ network: 'testnet', modules: [setupMeteorWallet()] })
+    const setup = import.meta.env.MODE === 'qa' && import.meta.env.VITE_QA_SIGNER === '1'
+      ? import('./qa-signer').then(m => m.setupQaSelector())
+      : setupWalletSelector({ network: 'testnet', modules: [setupMeteorWallet()] });
+    setup
       .then(s => { setSelector(s); const a = s.store.getState().accounts; setAccount(a.find(a => a.active)?.accountId || ''); })
       .catch(e => setError(e.message));
   }, []);
