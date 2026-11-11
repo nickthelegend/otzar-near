@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 /** No writes: every valid action must reach a budget hook that deliberately refuses signing. */
 export async function checkQaSigner(out) {
   const require = createRequire(resolve('packages/web/package.json'));
+  const meteorRequire = createRequire(require.resolve('@near-wallet-selector/meteor-wallet'));
+  const sdkDist = dirname(meteorRequire.resolve('@meteorwallet/sdk'));
+  assert.equal(JSON.parse(readFileSync(join(sdkDist, '../package.json'), 'utf8')).version, '1.0.24');
+  for (const entry of ['index.js', 'index.cjs']) assert(!/console\.log\(accessKey\)/.test(readFileSync(join(sdkDist, entry), 'utf8')), 'Meteor access-key debug print is present');
   const esbuild = createRequire(require.resolve('vite'))('esbuild');
   const file = join(out, 'adapter-unit.cjs');
   await esbuild.build({ entryPoints: ['packages/web/src/qa-signer.ts'], bundle: true, platform: 'node', format: 'cjs', define: { 'import.meta.env.MODE': '"qa"', 'import.meta.env.VITE_QA_SIGNER': '"1"' }, outfile: file, logLevel: 'error' });
@@ -37,7 +41,7 @@ export async function checkQaSigner(out) {
     const restored = await inject(); assert.equal((await (await restored.wallet()).getAccounts())[0].accountId, accounts[0].accountId);
     assert.deepEqual([...storage.values()], [accounts[0].accountId]); await (await restored.wallet()).signOut(); assert.equal(storage.size, 0);
     for (const data of [{ accountId: 'refuse.near', privateKey: 'invalid', rpcUrl: 'https://near-testnet.drpc.org' }, { accountId: accounts[0].accountId, privateKey: 'invalid', rpcUrl: 'https://rpc.mainnet.near.org' }]) { window.__OTZAR_QA_SIGNER__ = data; await assert.rejects(setupQaSelector, /requires a \.testnet account/); }
-    const result = { status: 'PASS', transactions: 0, checks: ['Wallet Selector 10 native action', 'legacy selector action', 'unsupported action rejected', 'mainnet receiver rejected', 'deposit cap', 'negative deposit rejected', 'getAccounts/signIn/signOut', 'public selection survives reload', 'injection removed and no key in storage', 'mainnet account/RPC refused'] };
+    const result = { status: 'PASS', transactions: 0, checks: ['Meteor 1.0.24 access-key print removed in ESM and CJS', 'Wallet Selector 10 native action', 'legacy selector action', 'unsupported action rejected', 'mainnet receiver rejected', 'deposit cap', 'negative deposit rejected', 'getAccounts/signIn/signOut', 'public selection survives reload', 'injection removed and no key in storage', 'mainnet account/RPC refused'] };
     writeFileSync(join(out, 'adapter-unit.json'), JSON.stringify(result, null, 2)); return result;
   } finally { if (previous.window === undefined) delete globalThis.window; else globalThis.window = previous.window; if (previous.sessionStorage === undefined) delete globalThis.sessionStorage; else globalThis.sessionStorage = previous.sessionStorage; }
 }

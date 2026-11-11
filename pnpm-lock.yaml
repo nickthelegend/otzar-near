@@ -6,6 +6,11 @@ settings:
 
 packageExtensionsChecksum: sha256-RpzlO7s+/p4QpN9+OtBoMAIEOWyu5nt8UnasBxXzbBA=
 
+patchedDependencies:
+  '@meteorwallet/sdk@1.0.24':
+    hash: 0cd7a695e86bf22dd012bb151a0534af81023de84c70a3f5dab7db1e1991ec45
+    path: patches/@meteorwallet__sdk@1.0.24.patch
+
 importers:
 
   .:
@@ -1944,7 +1949,7 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.6.0': {}
 
-  '@meteorwallet/sdk@1.0.24(@near-js/tokens@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1))(near-api-js@6.2.5(ad718e172ff610cb8eb6e7ed3667c0ee))':
+  '@meteorwallet/sdk@1.0.24(patch_hash=0cd7a695e86bf22dd012bb151a0534af81023de84c70a3f5dab7db1e1991ec45)(@near-js/tokens@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1))(near-api-js@6.2.5(ad718e172ff610cb8eb6e7ed3667c0ee))':
     dependencies:
       '@near-js/accounts': 2.2.5(6bbd0db52e2d42f7eb4ffa1598405fe2)
       '@near-js/crypto': 2.2.5(@near-js/types@2.2.5)(@near-js/utils@2.5.1(@near-js/types@2.5.1))
@@ -2238,7 +2243,7 @@ snapshots:
 
   '@near-wallet-selector/meteor-wallet@10.1.4(c484d2a3c739a8cabe9738a84b8cef50)':
     dependencies:
-      '@meteorwallet/sdk': 1.0.24(@near-js/tokens@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1))(near-api-js@6.2.5(ad718e172ff610cb8eb6e7ed3667c0ee))
+      '@meteorwallet/sdk': 1.0.24(patch_hash=0cd7a695e86bf22dd012bb151a0534af81023de84c70a3f5dab7db1e1991ec45)(@near-js/tokens@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1))(near-api-js@6.2.5(ad718e172ff610cb8eb6e7ed3667c0ee))
       '@near-js/keystores-browser': 2.3.0(@near-js/crypto@2.5.1(@near-js/types@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1)))(@near-js/keystores@2.2.5(@near-js/crypto@2.5.1(@near-js/types@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1)))(@near-js/types@2.5.1))
       '@near-js/utils': 2.5.1(@near-js/types@2.5.1)
       '@near-wallet-selector/core': 10.1.4(@near-js/keystores@2.2.5(@near-js/crypto@2.5.1(@near-js/types@2.5.1)(@near-js/utils@2.5.1(@near-js/types@2.5.1)))(@near-js/types@2.5.1))

@@ -15,3 +15,7 @@ packageExtensions:
     dependencies:
       "@near-js/utils": 2.5.1
       near-api-js: 6.2.5
+
+# Remove Meteor's access-key debug print in both published module formats.
+patchedDependencies:
+  '@meteorwallet/sdk@1.0.24': patches/@meteorwallet__sdk@1.0.24.patch
