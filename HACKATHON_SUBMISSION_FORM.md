@@ -29,6 +29,6 @@ bitcoin vault rules + covered-call premiums, checked on NEAR. Otzar was built at
 
 Post character count: **187** (limit: 280; attachment note excluded).
 
-attach: video TBD
+attach: /Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/otzar-near-film-share.mp4
 
-Neither `/Volumes/Extreme SSD/Projects/grokbot/videos/hako-near/` nor `/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/` exists at this check. Add the video before publishing and replace `demoUrl` with the resulting X post URL. Nick must also fill the other-project disclosure in [README.md](README.md#hackathon-disclosures).
+The 1280×720 share video is ready at the path above. The 1920×1080 master is beside it as `otzar-near-film.mp4`; the scene list, transaction index, judge audit, and QA are in `otzar-near/film/REPORT.md`. Attach the video when publishing and replace `demoUrl` with the resulting X post URL. Nick must also fill the other-project disclosure in [README.md](README.md#hackathon-disclosures).
