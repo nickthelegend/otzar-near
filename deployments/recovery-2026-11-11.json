@@ -1,0 +1,54 @@
+{
+  "tokenId": "recover-mwcaoess",
+  "contract": "hako-contract-mw984kpp.testnet",
+  "steps": [
+    {
+      "method": "mint",
+      "rejected": false,
+      "txHash": "CGk7DQygDRRYDgeyFhbt7MMvbPg8FbBgF5qNqe88vHsw",
+      "explorer": "https://testnet.nearblocks.io/txns/CGk7DQygDRRYDgeyFhbt7MMvbPg8FbBgF5qNqe88vHsw"
+    },
+    {
+      "method": "register_pq_key",
+      "rejected": false,
+      "txHash": "7hN5uWGLb5xe2Q6Nxp9YHcdPsyDoq1qq7SByb3iXa7ST",
+      "explorer": "https://testnet.nearblocks.io/txns/7hN5uWGLb5xe2Q6Nxp9YHcdPsyDoq1qq7SByb3iXa7ST"
+    },
+    {
+      "method": "set_guardians",
+      "rejected": false,
+      "txHash": "5Y58gVzSmgosmV2FdzmBWGWdyrg4HfQoTSUxLrQmqp3M",
+      "explorer": "https://testnet.nearblocks.io/txns/5Y58gVzSmgosmV2FdzmBWGWdyrg4HfQoTSUxLrQmqp3M"
+    },
+    {
+      "method": "initiate_pq_recovery",
+      "rejected": true,
+      "txHash": "3ddQphAExJurG5scYEzqZFau6rgpnCzwdnES2shcXage",
+      "explorer": "https://testnet.nearblocks.io/txns/3ddQphAExJurG5scYEzqZFau6rgpnCzwdnES2shcXage"
+    },
+    {
+      "method": "initiate_pq_recovery",
+      "rejected": false,
+      "txHash": "2sGeXvABMzmwbaLYAhXu5uNQv8rTBcTWnt7vkhEYgGCC",
+      "explorer": "https://testnet.nearblocks.io/txns/2sGeXvABMzmwbaLYAhXu5uNQv8rTBcTWnt7vkhEYgGCC"
+    },
+    {
+      "method": "finalize_pq_recovery",
+      "rejected": true,
+      "txHash": "DvqvfkU5dPoBiBTz8aagACdmhFW2bAPmSbKAfpffZurT",
+      "explorer": "https://testnet.nearblocks.io/txns/DvqvfkU5dPoBiBTz8aagACdmhFW2bAPmSbKAfpffZurT"
+    },
+    {
+      "method": "finalize_pq_recovery",
+      "rejected": false,
+      "txHash": "F3eSuCU8ix2N8GrYzvYHd8x8FxsUoXJmKQybVnsowckC",
+      "explorer": "https://testnet.nearblocks.io/txns/F3eSuCU8ix2N8GrYzvYHd8x8FxsUoXJmKQybVnsowckC"
+    },
+    {
+      "method": "cancel_inheritance",
+      "rejected": true,
+      "txHash": "Fmf73oWe6kzTyzuHsmLeea3JCSmJrd5k3k3EsvcBNYZ8",
+      "explorer": "https://testnet.nearblocks.io/txns/Fmf73oWe6kzTyzuHsmLeea3JCSmJrd5k3k3EsvcBNYZ8"
+    }
+  ]
+}

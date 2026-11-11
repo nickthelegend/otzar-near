@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-11T15:28:42.743Z",
+  "network": "NEAR testnet",
+  "tokenId": "qa-sale-mwc9xla0",
+  "priceYocto": "1000000000000000000000",
+  "note": "Empty QA vault; no foreign-chain assets or authority key. 0.001 testnet NEAR listing.",
+  "steps": [
+    {
+      "name": "mint empty QA vault",
+      "txHash": "D4VYRQerziNzxuP2AiRezD5k8H2VTd2jxDkJVWEQ3w5F",
+      "explorer": "https://testnet.nearblocks.io/txns/D4VYRQerziNzxuP2AiRezD5k8H2VTd2jxDkJVWEQ3w5F",
+      "rejected": false
+    },
+    {
+      "name": "list empty QA vault for 0.001 NEAR",
+      "txHash": "J4SDXo5vNUjAubCqV3KiFj9jLGkow8qbmqaz8crHw7NE",
+      "explorer": "https://testnet.nearblocks.io/txns/J4SDXo5vNUjAubCqV3KiFj9jLGkow8qbmqaz8crHw7NE",
+      "rejected": false
+    },
+    {
+      "name": "buy empty QA vault for 0.001 NEAR",
+      "txHash": "14sQAFUqd21sAsxRQSbg8vBExoRn4xnJwo44vMrynTCY",
+      "explorer": "https://testnet.nearblocks.io/txns/14sQAFUqd21sAsxRQSbg8vBExoRn4xnJwo44vMrynTCY",
+      "rejected": false
+    },
+    {
+      "name": "close historical unfilled round",
+      "txHash": "cDU3PjAJa8MZFWbi46eDm47wt2vzmW3KJHvjdazZX39",
+      "explorer": "https://testnet.nearblocks.io/txns/cDU3PjAJa8MZFWbi46eDm47wt2vzmW3KJHvjdazZX39",
+      "rejected": false
+    }
+  ],
+  "saleResult": {
+    "ownerBefore": "hako-seller-mw984kqa.testnet",
+    "ownerAfter": "hako-buyer-mw984kqb.testnet",
+    "listedAfter": null,
+    "pqKeyCleared": true,
+    "foreignAssets": "none",
+    "guardianReassignedToBuyer": true,
+    "recoveryAddressCleared": true
+  },
+  "closedUnfilledRound": {
+    "tokenId": "call-mw9c9f1x",
+    "before": "auction",
+    "after": "unfilled",
+    "reason": "Auction expired without a buyer; contract lock lifted"
+  },
+  "budget": {
+    "before": {
+      "contract": {
+        "amount": "9955487263552323099999963",
+        "storage_usage": 522456
+      },
+      "seller": {
+        "amount": "4037553326441000900000000",
+        "storage_usage": 182
+      },
+      "buyer": {
+        "amount": "9790248524282687599999994",
+        "storage_usage": 182
+      },
+      "guardian": {
+        "amount": "5965438050788738500000000",
+        "storage_usage": 182
+      }
+    },
+    "after": {
+      "contract": {
+        "amount": "9955487263552323099999958",
+        "storage_usage": 540491
+      },
+      "buyer": {
+        "amount": "9776180163980015099999991",
+        "storage_usage": 182
+      },
+      "seller": {
+        "amount": "4022284319163972200000000",
+        "storage_usage": 182
+      },
+      "guardian": {
+        "amount": "5961244300120803000000000",
+        "storage_usage": 182
+      }
+    },
+    "netGasYocto": "33531118247636700000008",
+    "addedStorageYocto": "180350000000000000000000",
+    "grossInternalSalePaymentYocto": "1000000000000000000000",
+    "conservativeTotalYocto": "214881118247636700000008",
+    "conservativeTotalNEAR": 0.2148811182476367,
+    "capNEAR": 0.3,
+    "withinCap": true,
+    "scope": "All QA writes: covered-call loop, empty-vault sale, unfilled close, guardian recovery. Net account decrease plus net added storage and a conservative extra count of the internal 0.001 NEAR sale payment. Testnet only."
+  }
+}
