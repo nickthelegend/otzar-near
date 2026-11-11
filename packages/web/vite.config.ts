@@ -6,4 +6,8 @@ import { defineConfig } from 'vite';
 // (missing stickers fall back to drawn ones, never a 404). Restart the dev server after adding art.
 const dir = resolve(import.meta.dirname, 'public/art');
 const art = (existsSync(dir) ? readdirSync(dir) : []).filter((f) => /\.(png|webp|jpe?g)$/i.test(f)).sort();
-export default defineConfig({ define: { __ART__: JSON.stringify(art) } });
+export default defineConfig({ define: {
+  __ART__: JSON.stringify(art),
+  // near-api-js is also bundled by Meteor in development; browsers have no process.env.
+  'process.env.DEFAULT_FINALITY': JSON.stringify('near-final'),
+} });
