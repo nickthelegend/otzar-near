@@ -1,7 +1,8 @@
 // QA_SIGNER_MODULE: imported only in a VITE_QA_SIGNER=1 build. Never stores keys in browser storage.
 import { connect, keyStores, KeyPair, transactions } from 'near-api-js';
 
-type FunctionCall = { type: string; params: { methodName: string; args: object; gas: string | bigint; deposit: string | bigint } };
+type Call = { methodName: string; args: object; gas: string | bigint; deposit: string | bigint };
+type FunctionCall = { type?: string; params?: Call; enum?: string; functionCall?: Call };
 type Transaction = { receiverId: string; actions: FunctionCall[] };
 type Injection = { accountId: string; privateKey: string; rpcUrl: string };
 type Receipt = { accountId: string; receiverId: string; methods: string[]; hash: string; gas: string; deposit: string; success: boolean; final: true };
@@ -46,13 +47,16 @@ export async function setupQaSelector() {
   const getAccounts = async () => connected ? [{ accountId }] : [];
   async function signAndSendTransaction({ receiverId, actions }: Transaction) {
     if (!connected) throw new Error('Connect the QA signer first');
-    if (!testnet(receiverId) || !actions.length || actions.some(a => a.type !== 'FunctionCall' || BigInt(a.params.gas) <= 0n || BigInt(a.params.deposit) < 0n)) throw new Error('QA signer permits testnet function calls only');
-    const gas = actions.reduce((n, a) => n + BigInt(a.params.gas), 0n);
-    const deposit = actions.reduce((n, a) => n + BigInt(a.params.deposit), 0n);
+    // Wallet Selector 10 uses native NEAR actions; also accept its older selector-shaped calls.
+    const calls = actions.map(a => a.enum === 'functionCall' ? a.functionCall : a.type === 'FunctionCall' ? a.params : undefined);
+    if (!testnet(receiverId) || !calls.length || calls.some(a => !a || BigInt(a.gas) <= 0n || BigInt(a.deposit) < 0n)) throw new Error('QA signer permits testnet function calls only');
+    const permitted = calls as Call[];
+    const gas = permitted.reduce((n, a) => n + BigInt(a.gas), 0n);
+    const deposit = permitted.reduce((n, a) => n + BigInt(a.deposit), 0n);
     if (gas <= 0n || gas > 200_000_000_000_000n || deposit < 0n || deposit > 10n ** 21n) throw new Error('QA signer transaction exceeds its gas or 0.001 NEAR deposit limit');
-    const methods = actions.map(a => a.params.methodName);
+    const methods = permitted.map(a => a.methodName);
     await window.__OTZAR_QA_BUDGET_CHECK__!({ accountId, receiverId, methods, gas: gas.toString(), deposit: deposit.toString() });
-    const result = await account.signAndSendTransaction({ receiverId, returnError: true, actions: actions.map(a => transactions.functionCall(a.params.methodName, a.params.args, BigInt(a.params.gas), BigInt(a.params.deposit))) });
+    const result = await account.signAndSendTransaction({ receiverId, returnError: true, actions: permitted.map(a => transactions.functionCall(a.methodName, a.args, BigInt(a.gas), BigInt(a.deposit))) });
     const final = await provider.txStatus(result.transaction.hash, accountId, 'FINAL');
     await window.__OTZAR_QA_RECORD__!({ accountId, receiverId, methods, hash: final.transaction.hash, gas: gas.toString(), deposit: deposit.toString(), success: !(typeof final.status === 'object' && 'Failure' in final.status), final: true });
     return final;
