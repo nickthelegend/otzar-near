@@ -1,7 +1,7 @@
 import { Chip, Empty, Field, Icon } from './ui';
 import { useEffect, useMemo, useState } from 'react';
 import { bitcoinAddress, deriveAddresses, dryBitcoinQuote, oneClickTokens, rpcQuery, signAuthorization, verifyAuthorization, type OneClickAsset } from '@hako/sdk';
-import { annualisedPct, ago, callStateLabel, e6, nearblocksAccount, tenorLabel, TUSDC_SYMBOL, type CallConfig, type CoveredCall, type RelayerPrice } from './lib';
+import { annualisedPct, ago, callLocksVault, callStateLabel, e6, nearblocksAccount, tenorLabel, TUSDC_SYMBOL, type CallConfig, type CoveredCall, type RelayerPrice } from './lib';
 
 type Box = {token_id:string;owner_id:string;epoch:number;nonce:number;pq_key:number[]|null};
 type Call = CoveredCall;
@@ -28,7 +28,8 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
   async function buy(){await run(async()=>{if(!asking)throw new Error('Auction closed');if(usdcBalance===null||BigInt(usdcBalance)<BigInt(asking))throw new Error(`Setup required: ${TUSDC_SYMBOL} balance on ${account}`);if(!token)throw new Error('Setup required: call_config premium token');await invoke('ft_transfer_call',{receiver_id:contractId,amount:asking,msg:`buy:${box.token_id}`},'1',token);setNotice(`Premium sent in ${TUSDC_SYMBOL}. The call shows Sold once the callback settles.`);});}
   async function preview(){setError('');setQuote(null);setNotice('');try{if(!contractId)throw new Error('Setup required: VITE_HAKO_CONTRACT');const selected=previewAssets.find(a=>a.assetId===asset);if(!selected)throw new Error('Select a live 1Click asset');const derived=await deriveAddresses(contractId,box.token_id,box.epoch+1);const recipient=bitcoinAddress(Buffer.from(derived.bitcoinPublicKey,'hex'),'mainnet');const result=await dryBitcoinQuote({originAsset:asset,amount:units(amount,selected.decimals),recipient,refundTo:refund});setQuote(result);setNotice('Dry quote only. No deposit address was issued and no swap was started.');}catch(e){setError((e as Error).message);}}
 
-  const locked=!!call&&['auction','purchasing','sold','settling','itm','paying','paid','signing','signed'].includes(call.state);
+  const locked=callLocksVault(call);
+  const unfilled=call?.state==='auction'&&call.auction_end_ns/1e6<=clock;
   const canWrite=box.owner_id===account&&!!box.pq_key&&(!call||['unfilled','otm','lapsed','unsettled'].includes(call.state));
   const short=!!account&&(!usdcBalance||BigInt(usdcBalance)<BigInt(asking||'0'));
   return <>
@@ -45,8 +46,9 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
           <div><span>Collateral</span><strong>{Number(call.size_sats).toLocaleString()}</strong><small>sats {call.state==='signed'?'signed to the holder':locked?'locked':'released'}</small></div>
           <div><span>Holder</span><strong className="metric-text">{call.holder||'No buyer yet'}</strong><small>writer {call.writer}</small></div>
         </div>
-        {call.state==='auction'&&short&&<p className="warn-line"><Icon name="coin"/> Setup required: {TUSDC_SYMBOL} balance. {token?<>The test token <a href={nearblocksAccount(token)} target="_blank" rel="noreferrer"><code>{token}</code></a> is minted by its own account (<code>scripts/deploy-test-usdc.mjs</code>); it has no faucet page.</>:'No premium token configured.'}</p>}
-        {call.state==='auction'&&account&&<button className="btn btn-primary" onClick={buy} disabled={busy||!asking||!usdcBalance||BigInt(usdcBalance)<BigInt(asking)}>Buy call with {TUSDC_SYMBOL}</button>}
+        {call.state==='auction'&&!unfilled&&short&&<p className="warn-line"><Icon name="coin"/> Setup required: {TUSDC_SYMBOL} balance. {token?<>The test token <a href={nearblocksAccount(token)} target="_blank" rel="noreferrer"><code>{token}</code></a> is minted by its own account (<code>scripts/deploy-test-usdc.mjs</code>); it has no faucet page.</>:'No premium token configured.'}</p>}
+        {call.state==='auction'&&!unfilled&&account&&<button className="btn btn-primary" onClick={buy} disabled={busy||!asking||!usdcBalance||BigInt(usdcBalance)<BigInt(asking)}>Buy call with {TUSDC_SYMBOL}</button>}
+        {unfilled&&<button className="btn btn-primary" disabled={busy||!account} onClick={()=>run(async()=>{await invoke('close_unfilled_call',{token_id:box.token_id});const [c,h]=await Promise.all([rpcQuery(contractId,'call_state',{token_id:box.token_id}),rpcQuery(contractId,'call_history',{token_id:box.token_id})]);setCall(c);setHistory(h);setNotice('Unfilled round closed. Its Bitcoin collateral is unlocked.');})}>Close unfilled round</button>}
         {call.state==='itm'&&<p className="inline-note">Exercise window ends {date(call.exercise_deadline_ns!)}. The holder pays the strike in {TUSDC_SYMBOL}, then the contract MPC-signs the Bitcoin transfer.</p>}
         {call.state==='sold'&&<p className="fineprint">After expiry anyone can submit the Coinbase BTC-USD print that the Otzar relayer signed in the first five minutes after expiry (relayer price, testnet); the contract checks the signature and the time. Unsettled after 24 hours, the call stops encumbering the vault.</p>}
       </>}

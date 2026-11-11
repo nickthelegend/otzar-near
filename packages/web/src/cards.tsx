@@ -10,10 +10,14 @@ export const vaultType = (id: string, hasRounds: boolean): VaultType => (hasRoun
 export const TYPE_LABEL: Record<VaultType, string> = { call: 'BTC covered call', qsafe: 'Quantum-safe vault', any: 'Any-chain vault' };
 export const PHASE_TONE: Record<Phase, string> = { live: 'gold', sold: 'jade', itm: 'jade', otm: 'blush', unfilled: 'dim', other: 'dim' };
 /** What happened in a round, in words a first-time visitor reads without a glossary. */
-export const PLAIN: Record<Phase, string> = { live: 'Open for a buyer', sold: 'Sold, running', itm: 'Buyer took the BTC', otm: 'Expired, BTC kept', unfilled: 'No buyer', other: 'In progress' };
+export const PLAIN: Record<Phase, string> = { live: 'Open for a buyer', sold: 'Sold, running', itm: 'BTC transfer signed', otm: 'Expired, BTC kept', unfilled: 'No buyer', other: 'In progress' };
+export function plainRoundLabel(c: CoveredCall, now: number) {
+  const ph = roundPhase(c, now);
+  return ph.phase === 'other' || (ph.phase === 'itm' && c.state !== 'signed') || c.state === 'purchasing' ? ph.label : PLAIN[ph.phase];
+}
 export function PhasePill({ c, now, plain = false }: { c: CoveredCall; now: number; plain?: boolean }) {
   const ph = roundPhase(c, now);
-  return <span className={`pp pp-${PHASE_TONE[ph.phase]}`} title={plain ? ph.label : undefined}><i />{plain ? (ph.phase === 'other' ? ph.label : PLAIN[ph.phase]) : ph.label}</span>;
+  return <span className={`pp pp-${PHASE_TONE[ph.phase]}`} title={plain ? ph.label : undefined}><i />{plain ? plainRoundLabel(c, now) : ph.label}</span>;
 }
 
 /** Token amounts the way a wallet shows them: four decimals at most, two at least. */
@@ -27,7 +31,7 @@ export function roundSentence(c: CoveredCall, now: number): string {
   const paid = c.premium_paid_usdc ? `${money(c.premium_paid_usdc)} ${TUSDC_SYMBOL}` : '';
   const settled = c.oracle_price_usd_e6 ? usd(c.oracle_price_usd_e6) : '';
   switch (ph.phase) {
-    case 'itm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, above that price, so the buyer bought it. The vault kept the premium.`;
+    case 'itm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, above that price. ${c.state === 'signed' ? 'The strike was paid and NEAR signed the BTC transfer; this state does not prove Bitcoin delivery.' : c.state === 'paid' || c.state === 'signing' ? 'The strike was paid; the Bitcoin signature is still pending.' : 'The buyer must finish paying the strike and requesting the BTC signature.'} The vault kept the premium.`;
     case 'otm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, below that price, so the vault kept its BTC and the premium.`;
     case 'sold': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. The round is running; the premium is the vault's either way.`;
     case 'live': return `The vault is offering ${size} at ${strike}. The asking premium falls until a buyer pays it.`;

@@ -121,13 +121,16 @@ export function roundPhase(c: CoveredCall, now: number): { phase: Phase; label: 
     case 'auction': return ms(c.auction_end_ns) > now ? { phase: 'live', label: 'Auction open', short: 'Live' } : { phase: 'unfilled', label: 'Auction ended, no buyer', short: 'No buyer' };
     case 'purchasing': return { phase: 'live', label: 'Premium arriving', short: 'Buying' };
     case 'sold': case 'settling': return { phase: 'sold', label: ms(c.expiry_ns) > now ? 'Sold, running' : 'Sold, awaiting settlement', short: 'Sold' };
-    case 'itm': case 'paying': case 'paid': case 'signing': return { phase: 'itm', label: 'In the money', short: 'ITM' };
+    case 'itm': case 'paying': case 'paid': case 'signing': return { phase: 'itm', label: callStateLabel[c.state], short: 'ITM' };
     case 'signed': return { phase: 'itm', label: 'Exercised in the money', short: 'ITM' };
     case 'otm': return { phase: 'otm', label: 'Expired out of the money', short: 'OTM' };
     case 'unfilled': return { phase: 'unfilled', label: 'Unfilled', short: 'Unfilled' };
     default: return { phase: 'other', label: callStateLabel[c.state] || c.state, short: callStateLabel[c.state] || c.state };
   }
 }
+
+/** Match the contract's active-call encumbrance, including expired auctions and issued signatures. */
+export const callLocksVault = (c: CoveredCall | undefined | null) => !!c && ['auction', 'purchasing', 'sold', 'settling', 'itm', 'paying', 'paid', 'signing', 'signed'].includes(c.state);
 
 /** Total premium paid to writers and the blended annualised yield across those rounds. */
 export function earnedSummary(rounds: CoveredCall[]) {

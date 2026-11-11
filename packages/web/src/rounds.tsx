@@ -38,7 +38,7 @@ export function loopSteps(c: CoveredCall, now: number): Step[] {
     { k: '2', title: sold ? 'Sold' : ph.phase === 'live' ? 'In auction' : 'No buyer', value: sold ? <><Amount e6={c.premium_paid_usdc} unit={TUSDC_SYMBOL} /> premium</> : ph.phase === 'live' ? 'Dutch auction falling' : 'auction closed unfilled', done: sold, bad: !sold && ph.phase !== 'live', tx: ev?.buy },
     { k: '3', title: ended ? 'Expired' : 'Expires', value: tenorLabel(callTenorSec(c)) + ' tenor', when: `${utcTime(c.expiry_ns)} UTC`, done: ended },
     { k: '4', title: settled ? 'Settled' : 'Settlement', value: settled ? <>BTC-USD ${e6(c.oracle_price_usd_e6!, 2)} · relayer price (testnet)</> : sold ? 'waiting for the signed print' : 'nothing to settle', done: settled, tx: ev?.settle },
-    { k: '5', title: ph.phase === 'itm' ? 'Exercised' : ph.phase === 'otm' ? 'Released' : 'Outcome', value: ph.phase === 'itm' ? 'strike paid, MPC signed the sats to the buyer' : ph.phase === 'otm' ? 'collateral back to the writer, premium kept' : ph.label, done: ph.phase === 'itm' || ph.phase === 'otm', tx: ph.phase === 'itm' ? (ev?.mpc || ev?.strike) : ev?.release },
+    { k: '5', title: c.state === 'signed' ? 'Exercised' : ph.phase === 'otm' ? 'Unlocked' : 'Outcome', value: c.state === 'signed' ? 'strike paid, MPC signed the BTC transfer' : ph.phase === 'itm' ? `${ph.label}; Bitcoin signature not issued yet` : ph.phase === 'otm' ? 'collateral unlocked for the writer, premium kept' : ph.label, done: c.state === 'signed' || ph.phase === 'otm', tx: c.state === 'signed' ? ev?.mpc : ph.phase === 'otm' ? ev?.release : undefined },
   ];
 }
 

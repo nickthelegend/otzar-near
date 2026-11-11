@@ -5,11 +5,11 @@ import EarnPanel from './EarnPanel';
 import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
-import { annualisedPct, anvilUrl, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
+import { annualisedPct, anvilUrl, callLocksVault, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Term, TERMS, Timeline } from './ui';
 import { CountUp } from './art';
 import { useNow, useRelayer, useRounds } from './data';
-import { PhasePill, PLAIN, roundSentence, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
+import { PhasePill, plainRoundLabel, roundSentence, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
 import { RoundSheet } from './RoundSheet';
 import { Loop, pct } from './rounds';
 import { signAndSend, type Wallet } from './wallet';
@@ -64,7 +64,7 @@ export default function VaultPage({ id, wallet }: Props) {
     const result = await signAndSend(selector, receiver || contractId, method, args, deposit, gas);
     if (!result) { setStatus('Complete the transaction in your wallet, then refresh.'); return; }
     if (result.status?.Failure) throw new Error(JSON.stringify(result.status.Failure));
-    const hash = result.transaction?.hash; if (hash) setTxHash(hash); setStatus(`${method} confirmed on NEAR`); await refresh();
+    const hash = result.transaction?.hash; if (hash) setTxHash(hash); setStatus(`${method} confirmed on NEAR`); await refresh(); rounds.reload();
   }
   async function run(fn: () => Promise<void>) { setBusy(true); setError(''); setStatus(''); setTxHash(''); try { await fn(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }
   async function secretKey() { if (!keyFile) throw new Error('Setup required: ML_DSA_KEY file. Load it with “Load key” above.'); const file = JSON.parse(await keyFile.text()); if (typeof file.secretKey !== 'string') throw new Error('Invalid ML-DSA key file'); return Buffer.from(file.secretKey, 'base64'); }
@@ -114,7 +114,7 @@ export default function VaultPage({ id, wallet }: Props) {
   </div>;
 
   const ph = latest ? roundPhase(latest, now) : null;
-  const locked = !!latest && ['auction', 'purchasing', 'sold', 'settling', 'itm', 'paying', 'paid', 'signing'].includes(latest.state) && !(latest.state === 'auction' && ph?.phase === 'unfilled');
+  const locked = callLocksVault(latest);
   const live = ph?.phase === 'live';
   const spot = latest?.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null;
   const apy = earned.blended;
@@ -307,23 +307,23 @@ export default function VaultPage({ id, wallet }: Props) {
             <div className="s-box">
               <div className="s-box-top"><span className="coin coin-jade">%</span><b>The vault earns</b><small>premium in {TUSDC_SYMBOL}</small></div>
               <p className="s-box-big">{rounds.data && apy === null ? '—' : <CountUp value={apy} decimals={2} suffix="%" />}<small><Term tip={TERMS.apy}>realised APY</Term></small></p>
-              <p className="s-box-foot"><span>Right now</span><span>{ph ? (ph.phase === 'other' ? ph.label : PLAIN[ph.phase]) : 'No round yet'}</span></p>
+              <p className="s-box-foot"><span>Right now</span><span>{latest ? plainRoundLabel(latest, now) : 'No round yet'}</span></p>
             </div>
             {!account ? <button className="pill pill-gold pill-block pill-lg" onClick={connect} disabled={!wallet.ready}><Icon name="wallet" size={17} /> Connect wallet</button>
               : live && latest ? <button className="pill pill-gold pill-block pill-lg" onClick={() => setSheet(latest)}>Buy this round's call</button>
               : mine ? <button className="pill pill-gold pill-block pill-lg" onClick={() => goManage('earn')}>Write a covered call</button>
               : <button className="pill pill-gold pill-block pill-lg" disabled>Only the owner writes rounds</button>}
             <button className="link-btn" onClick={() => goManage('earn')}>Deposit from ETH, SOL or USDC (quote only) <Icon name="arrow" size={13} /></button>
-            <p className="panel-note">Bitcoin Core regtest. Anyone can send BTC here; only the vault's quantum key can move it.</p>
+            <p className="panel-note">{box.ever_signed ? 'Bitcoin Core regtest. Do not fund this address: a signature was already issued, and reusing a signed vault is unsupported.' : "Bitcoin Core regtest. Anyone can send BTC here; only the vault's quantum key can authorize an owner withdrawal."}</p>
           </div> : <div className="panel-body">
-            <div className={`lock-state ${locked ? 'is-locked' : ''}`}><Icon name={locked ? 'lock' : 'check'} size={18} /><div><b>{locked ? `Locked by round #${latest!.id}` : 'Free to withdraw'}</b><span>{locked ? 'The BTC waits until the round settles or is released.' : latest?.state === 'signed' ? 'The last round ended above the strike; its BTC went to the buyer.' : 'No open round holds this vault’s BTC.'}</span></div></div>
+            <div className={`lock-state ${locked ? 'is-locked' : ''}`}><Icon name={locked ? 'lock' : 'check'} size={18} /><div><b>{locked ? `Locked by round #${latest!.id}` : 'Free to withdraw'}</b><span>{latest?.state === 'signed' ? 'NEAR signed the BTC transfer. Further owner withdrawals are blocked.' : locked ? (latest?.state === 'auction' && ph?.phase === 'unfilled' ? 'Close the unfilled round in Owner tools → Rounds to unlock the BTC.' : 'The BTC waits until the round settles or is released.') : 'No open round holds this vault’s BTC.'}</span></div></div>
             <div className="s-box">
               <div className="s-box-top"><span className="coin">BTC</span><b>Bitcoin</b><small>You receive</small></div>
               <p className="s-box-text">To any address you choose, signed with the vault's quantum key.</p>
               <p className="s-box-foot"><span>Safety delay</span><span>{box.policy.delay_sec}s, guardian can pull it back</span></p>
             </div>
             {!account ? <button className="pill pill-gold pill-block pill-lg" onClick={connect} disabled={!wallet.ready}><Icon name="wallet" size={17} /> Connect wallet</button>
-              : mine ? <button className="pill pill-gold pill-block pill-lg" onClick={() => goManage('send', 'BTC')} disabled={locked}>{locked ? 'Waiting for the round to settle' : 'Withdraw BTC'}</button>
+              : mine ? <button className="pill pill-gold pill-block pill-lg" onClick={() => goManage('send', 'BTC')} disabled={locked}>{latest?.state === 'signed' ? 'BTC transfer already signed' : locked ? 'Round still locks the BTC' : 'Withdraw BTC'}</button>
               : <button className="pill pill-gold pill-block pill-lg" disabled>Only the owner can withdraw</button>}
             <p className="panel-note">A withdrawal waits out the delay. During it the guardian can send the coins to your recovery address instead.</p>
           </div>}
