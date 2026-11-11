@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useNow } from './data';
 import { ago, annualisedPct, btcFromSats, e6, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, type Box, type ChainTx, type CoveredCall, type Phase, type Round } from './lib';
 import { pct } from './rounds';
@@ -42,17 +42,33 @@ export function roundSentence(c: CoveredCall, now: number): string {
 
 /** Annualised yield per round, oldest first; the chosen round is highlighted and labelled. */
 export function RoundBars({ rounds, selected, onPick, height = 168 }: { rounds: CoveredCall[]; selected?: string; onPick?: (key: string) => void; height?: number }) {
+  const root = useRef<HTMLDivElement>(null);
+  const [tipEdge, setTipEdge] = useState<'left' | 'right' | ''>('');
   const list = [...rounds].sort((a, b) => a.opened_ns - b.opened_ns);
   const vals = list.map(r => annualisedPct(r));
   const top = Math.max(20, ...vals.map(v => v ?? 0));
   const key = (r: CoveredCall) => `${r.token_id}#${r.id}`;
   const sel = selected || key([...list].reverse().find(r => r.premium_paid_usdc) || list[list.length - 1]);
+  useLayoutEffect(() => {
+    const tip = root.current?.querySelector<HTMLElement>('.rb-tip');
+    if (!tip) { setTipEdge(''); return; }
+    const measure = () => {
+      const bar = tip.parentElement!.getBoundingClientRect();
+      const plot = tip.parentElement!.parentElement!.getBoundingClientRect();
+      const center = bar.left + bar.width / 2, half = tip.offsetWidth / 2;
+      setTipEdge(center + half > plot.right ? 'right' : center - half < plot.left ? 'left' : '');
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(root.current!); observer.observe(tip);
+    return () => observer.disconnect();
+  }, [rounds, sel]);
   const ticks = [top, top / 2, 0];
-  return <div className="rb">
+  return <div className="rb" ref={root}>
     <div className="rb-axis" style={{ height }}>{ticks.map(t => <span key={t}>{t.toFixed(0)}%</span>)}</div>
     <div className="rb-plot" style={{ height }}>
       {ticks.map(t => <i key={t} className="rb-grid" style={{ bottom: `${(t / top) * 100}%` }} />)}
-      {list.map((r, i) => { const v = vals[i]; const on = key(r) === sel; return <button key={key(r)} className={`rb-bar ${on ? 'on' : ''} ${v === null ? 'none' : ''} ${i >= list.length - 1 && list.length > 1 ? 'tip-r' : i === 0 && list.length > 1 ? 'tip-l' : ''}`} onClick={() => onPick?.(key(r))} aria-label={`Round ${r.id} on ${r.token_id}: ${v === null ? 'no premium paid' : `${v.toFixed(1)}% annualised`}`}>
+      {list.map((r, i) => { const v = vals[i]; const on = key(r) === sel; return <button key={key(r)} className={`rb-bar ${on ? 'on' : ''} ${v === null ? 'none' : ''} ${(on && tipEdge === 'right') || (i >= list.length - 1 && list.length > 1) ? 'tip-r' : (on && tipEdge === 'left') || (i === 0 && list.length > 1) ? 'tip-l' : ''}`} onClick={() => onPick?.(key(r))} aria-label={`Round ${r.id} on ${r.token_id}: ${v === null ? 'no premium paid' : `${v.toFixed(1)}% annualised`}`}>
         {on && v !== null && <span className="rb-tip"><small>{short(r.token_id, 9, 4)} · {utcDay(r.opened_ns)}</small><b>{v.toFixed(2)}%</b></span>}
         <span className="rb-col" style={{ height: `${v === null ? 2 : Math.max(4, (v / top) * 100)}%` }} />
       </button>; })}
