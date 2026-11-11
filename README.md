@@ -1,18 +1,42 @@
-# Otzar (אוצר) — quantum-safe Bitcoin that earns
+# Otzar — Bitcoin vaults with post-quantum authorization and covered calls on NEAR
 
-Formerly Hako; on-chain account IDs keep the old prefix.
+Bitcoin holders who want option premiums also need clear spending, recovery, and inheritance rules. Managing those rules across chains is hard, and exposed classical public keys face future quantum risk.
 
-**Quantum-safe Bitcoin that earns. Your BTC never leaves Bitcoin, never gets wrapped, and only a post-quantum key on NEAR can move it.**
+## Try it
 
-Otzar is one wallet for BTC, ETH, and SOL. A vault NFT on NEAR controls addresses on Bitcoin Core regtest, Anvil, and a local Solana validator through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
+Run these commands from the repo root. Use Node 22+ and pnpm 10.22.0 on your PATH. This is a local web demo reading NEAR testnet; no hosted demo URL is recorded in this repo.
 
-The problem: a classical public key revealed on Bitcoin or Ethereum is a future quantum target. Bitcoin script cannot enforce a daily cap, delay, guardian recovery, or inheritance on these outputs. Otzar checks authority and policy on NEAR before asking MPC to sign. The scanner shows exposure using live chain data. The foreign-chain signatures and MPC root remain classical, so “quantum-safe” refers to NEAR authorization, not Bitcoin consensus or the MPC root; see [Security boundaries](#limits-and-security-boundaries).
+1. Do `pnpm install --frozen-lockfile` — see the workspace dependencies install from the lockfile.
+2. Do `pnpm --filter @hako/sdk build` — see the SDK compile into `packages/sdk/dist`.
+3. Do `VITE_HAKO_CONTRACT=hako-contract-mw984kpp.testnet pnpm web` — see Vite print its local URL (normally `http://127.0.0.1:5173`). Leave this terminal running.
+4. Open that URL at `/app`, then `/vault/call-itm-mw9irlhd` — see vaults and the recorded covered-call state read from NEAR testnet. Reading needs no wallet. Local BTC/ETH/SOL balances need the nodes described in [Run the UI and MCP server](#run-the-ui-and-mcp-server).
+5. Open `/how` — see the covered-call explanation, testnet round, security limits, and public-address exposure scanner. To reproduce transactions yourself, follow the [Judge walkthrough](#judge-walkthrough) and its additional toolchain/setup requirements.
 
-This is a **testnet and local-chain prototype**, not a mainnet vault. The NFT implements NEP-171 ownership and enumeration views used here; approval, metadata events, and full marketplace interoperability are not implemented. See [Limits](#limits-and-security-boundaries).
+Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below.
+
+## Live on NEAR testnet
+
+Main vault contract: [`hako-contract-mw984kpp.testnet`](https://testnet.nearblocks.io/address/hako-contract-mw984kpp.testnet). Premium token: [`husdc-3177b477.testnet`](https://testnet.nearblocks.io/address/husdc-3177b477.testnet), a no-value test token. Chain Signatures uses `v1.signer-prod.testnet`.
+
+These are recorded NEAR testnet transactions from November 9. Bitcoin delivery was on local Bitcoin Core regtest.
+
+| Action | Transaction |
+| --- | --- |
+| Upgrade to signed-print settlement | [B2xv656hbBdzHPXpYNyD35nWqqogTdhDtELbBbn2hW9w](https://testnet.nearblocks.io/txns/B2xv656hbBdzHPXpYNyD35nWqqogTdhDtELbBbn2hW9w) |
+| Buy the call; pay premium to the writer | [LEHEvVvX9fSEY8u5ZU1adrXcSrvVdYXydJnkKJpBtbe](https://testnet.nearblocks.io/txns/LEHEvVvX9fSEY8u5ZU1adrXcSrvVdYXydJnkKJpBtbe) |
+| Settle the in-the-money call | [71gsnoXgkW34ByRqNwwvNuUfikxh8aofGaAPixprnnyq](https://testnet.nearblocks.io/txns/71gsnoXgkW34ByRqNwwvNuUfikxh8aofGaAPixprnnyq) |
+| Request the MPC signature for Bitcoin delivery | [EXAL6x2FCgETk2YoHqGqrxVL6aFhv1cLmjm8X5ccH8w2](https://testnet.nearblocks.io/txns/EXAL6x2FCgETk2YoHqGqrxVL6aFhv1cLmjm8X5ccH8w2) |
+| Finalize guardian key recovery after the timelock | [GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc](https://testnet.nearblocks.io/txns/GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc) |
+
+Sources: [settlement upgrade](deployments/settle-upgrade-2026-11-09.json), [covered-call loop](deployments/calls-live-testnet-2026-11-09-171226.json), and [guardian recovery](deployments/recovery-2026-11-09.json).
+
+Formerly Hako; on-chain account IDs keep the old prefix. Otzar is one wallet for BTC, ETH, and SOL. A vault NFT on NEAR controls addresses on Bitcoin Core regtest, Anvil, and a local Solana validator through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
+
+This is a **testnet and local-chain prototype**, not a mainnet vault. “Quantum-safe” refers to NEAR authorization: foreign-chain signatures and MPC root keys remain classical. The vault NFT implements NEP-171 ownership and enumeration views used here; approvals, metadata events, and full marketplace interoperability are not implemented. See [Limits and security boundaries](#limits-and-security-boundaries).
 
 ## Covered calls and where the yield comes from
 
-A Otzar owner can sell a covered call on a native-BTC box. A buyer pays a premium for the right to buy a fixed number of sats at a USD strike by expiry. The owner keeps the premium even if BTC finishes below the strike. If BTC finishes above it and the buyer exercises, the owner receives the strike payment and gives up those sats. **The owner's BTC upside above the strike is capped.** The premium is payment for that trade-off; it is not guaranteed investment yield.
+An Otzar owner can sell a covered call on a native-BTC box. A buyer pays a premium for the right to buy a fixed number of sats at a USD strike by expiry. The owner keeps the premium even if BTC finishes below the strike. If BTC finishes above it and the buyer exercises, the owner receives the strike payment and gives up those sats. **The owner's BTC upside above the strike is capped.** The premium is payment for that trade-off; it is not guaranteed investment yield.
 
 The writer signs the strike, sats, expiry, premium range, and Bitcoin UTXO assertion with ML-DSA-65. The contract runs a Dutch auction whose asking premium falls from the opening price toward the minimum over up to seven days. While active, the call blocks owner Bitcoin spend requests, box listing, and box transfer on NEAR. The buyer pays with NEP-141 `ft_transfer_call`; the contract forwards the premium to the writer and records the sale only after that transfer succeeds. Each call fixes its premium token when it is written.
 
@@ -78,7 +102,7 @@ node scripts/demo-recovery.mjs
 scripts/demo-calls.sh
 ```
 
-`pnpm test` builds the four packages, runs unit and live signer/MCP/scanner checks, then starts and stops a real NEAR sandbox. `scripts/demo.sh` starts Bitcoin Core regtest and Anvil, performs the NFT sale, rejects attack spends, then broadcasts MPC-signed Bitcoin and Ethereum withdrawals. `scripts/demo-solana.sh` starts and stops a local Solana validator, upgrades the same NEAR testnet contract, and broadcasts a real Ed25519 MPC-signed SOL transfer. `node scripts/demo-recovery.mjs` proves a 2-of-3 ML-DSA key rotation after its two-minute timelock on NEAR testnet. It waits for the full timelock. The scripts use ignored `.near-credentials/` testnet keys; `demo.sh` creates them first. `node scripts/deploy-test-usdc.mjs` (once) deploys tUSDC, mints the buyer's test balance and creates the relayer key; `node scripts/setup-relayer-testnet.mjs` upgrades the contract, verifies its code hash and sets the premium token and relayer key. `scripts/demo-calls.sh` then starts Bitcoin Core regtest and runs the full loop: two regtest-funded boxes, an ITM and an OTM call with strikes set from the live Coinbase price, writer-spend rejections, Dutch-auction buys in tUSDC, a relayer-signed settlement price at expiry, the ITM strike payment and MPC-signed Bitcoin exercise to the buyer, and the OTM collateral release. It stops if the buyer has no tUSDC (`Setup required`). Each run writes `deployments/calls-live-testnet-YYYY-MM-DD-HHMMSS.json`; `node scripts/export-web-evidence.mjs` copies its transaction hashes into the web app. If FastNEAR rate-limits, set `NEAR_RPC=https://near-testnet.drpc.org` (dRPC returned HTTP 500 while waiting on MPC callbacks, so FastNEAR stays the default).
+`pnpm test` builds the workspace packages and both Rust contracts, runs unit and live signer/MCP/scanner checks, then starts and stops a real NEAR sandbox. `scripts/demo.sh` starts Bitcoin Core regtest and Anvil, performs the NFT sale, rejects attack spends, then broadcasts MPC-signed Bitcoin and Ethereum withdrawals. `scripts/demo-solana.sh` starts and stops a local Solana validator, upgrades the same NEAR testnet contract, and broadcasts a real Ed25519 MPC-signed SOL transfer. `node scripts/demo-recovery.mjs` proves a 2-of-3 ML-DSA key rotation after its two-minute timelock on NEAR testnet. It waits for the full timelock. The scripts use ignored `.near-credentials/` testnet keys; `demo.sh` creates them first. `node scripts/deploy-test-usdc.mjs` (once) deploys tUSDC, mints the buyer's test balance and creates the relayer key; `node scripts/setup-relayer-testnet.mjs` upgrades the contract, verifies its code hash and sets the premium token and relayer key. `scripts/demo-calls.sh` then starts Bitcoin Core regtest and runs the full loop: two regtest-funded boxes, an ITM and an OTM call with strikes set from the live Coinbase price, writer-spend rejections, Dutch-auction buys in tUSDC, a relayer-signed settlement price at expiry, the ITM strike payment and MPC-signed Bitcoin exercise to the buyer, and the OTM collateral release. It stops if the buyer has no tUSDC (`Setup required`). Each run writes `deployments/calls-live-testnet-YYYY-MM-DD-HHMMSS.json`; `node scripts/export-web-evidence.mjs` copies its transaction hashes into the web app. If FastNEAR rate-limits, set `NEAR_RPC=https://near-testnet.drpc.org` (dRPC returned HTTP 500 while waiting on MPC callbacks, so FastNEAR stays the default).
 
 Do `scripts/demo.sh` → see a new `deployments/testnet-YYYY-MM-DD.json` with NEAR transaction links and local-chain transaction IDs. Do `pnpm web` after creating `packages/web/.env.local` from `.env.example` → see live boxes, addresses, balances, vault rules, pending countdowns, signing and sale controls at `http://127.0.0.1:5173`. The Bitcoin balance and broadcast controls need the local proxy: `node scripts/bitcoin-proxy.mjs`, with `VITE_BITCOIN_ESPLORA_URL=http://127.0.0.1:3007` in the web env file. The proxy reads the real Bitcoin Core regtest node; it is not a fixture service. `scripts/demo.sh` saves Anvil's state to ignored `.demo/anvil-state.json` on exit so local receipts can be reloaded.
 
@@ -119,7 +143,7 @@ The signer contract's [EdDSA domain 1](https://github.com/near/mpc/blob/main/cra
 | 2-of-3 PQ recovery initiated | [AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y](https://testnet.nearblocks.io/txns/AmUcTVtZVFRSssXgj7AXN7XzeqBDjNzhqBvUHtPbr83Y) | One guardian rejected [on-chain](https://testnet.nearblocks.io/txns/C26pPNCi4RfYH9x2ZTMnzuyNKCHv1XNeo67pz29RHDzn) |
 | PQ recovery finalized after timelock | [GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc](https://testnet.nearblocks.io/txns/GnRwjV9HBfH86PWQ6kR536Mb458x36nrs3sUy1jccfVc) | Early finalization rejected [on-chain](https://testnet.nearblocks.io/txns/5zrAxsiFqBehWMpJFZUbd61FDzZzxg5Fx87ckxFT4zAp) |
 
-The earlier wallet release was [deployed](https://testnet.nearblocks.io/txns/5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4); the covered-call contract [final upgrade](https://testnet.nearblocks.io/txns/2aDHEvai52YJyE5HXJBRAWGoBuFw15KbKVe8mTwozmA1) is the current testnet code. Full records: [Solana](deployments/solana-2026-11-09.json), [PQ recovery](deployments/recovery-2026-11-09.json), [earlier upgrade](deployments/upgrade-2026-11-09.json), [wallet sandbox attacks](deployments/sandbox.json), and [covered-call sandbox attacks](deployments/calls-sandbox.json). The Solana signature is local-validator evidence, so it has no public explorer URL; reproduce it with `scripts/demo-solana.sh` and query the validator before the script stops.
+The earlier wallet release was [deployed](https://testnet.nearblocks.io/txns/5BnydYkviEXbDoY4exGWtzFmPR9y16Zwmvr8a3yK9Gx4); the [earlier covered-call upgrade](https://testnet.nearblocks.io/txns/2aDHEvai52YJyE5HXJBRAWGoBuFw15KbKVe8mTwozmA1) was superseded by the [signed-print settlement upgrade](deployments/settle-upgrade-2026-11-09.json), the latest deployment recorded here. Full records: [Solana](deployments/solana-2026-11-09.json), [PQ recovery](deployments/recovery-2026-11-09.json), [earlier upgrade](deployments/upgrade-2026-11-09.json), [wallet sandbox attacks](deployments/sandbox.json), and [covered-call sandbox attacks](deployments/calls-sandbox.json). The Solana signature is local-validator evidence, so it has no public explorer URL; reproduce it with `scripts/demo-solana.sh` and query the validator before the script stops.
 
 ## Deployment and evidence
 
@@ -186,7 +210,7 @@ See [TESTING.md](TESTING.md) for commands, actual counts, gas, and negative case
 ## Limits and security boundaries
 
 - Otzar protects **authority on NEAR** with ML-DSA-65, including the guardian quorum and heir policy. Bitcoin and Ethereum secp256k1 signatures, Solana Ed25519 signatures, and both MPC root keys remain classical. One-time addresses reduce Bitcoin public-key exposure to the mempool window on first spend. A future Bitcoin post-quantum output type would require migration; BIP-360 is a proposal, not an active Bitcoin feature. The policy carries an `emergency_migration` destination field, but automatic migration execution is not implemented.
-- One Bitcoin UTXO per spend and simple ETH transfers are supported. Bitcoin next-epoch public keys are registered under an ML-DSA signature, but the contract does **not** prove that a registered key equals the MPC path derivation. The SDK verifies derivation against the signer; an independent client should verify it before sending change. The contract also does not advance epochs after broadcast. The demo sweeps the initial UTXO and creates no change.
+- One Bitcoin UTXO per spend and simple ETH transfers are supported. Bitcoin next-epoch public keys are registered under an ML-DSA signature, but the contract does **not** prove that a registered key equals the MPC path derivation. The SDK verifies derivation against the signer; an independent client should verify it before sending change. The contract also does not advance epochs after broadcast. The original wallet demo sweeps the initial UTXO and creates no change; the later covered-call exercise sends change to the next-epoch address.
 - Bitcoin/ETH balances are live reads from local nodes; a NEAR contract cannot independently verify those foreign balances at sale time. The buyer must inspect them and `0 pending requests` before paying. Once a signature is issued, sale is permanently disabled, including if broadcast later fails.
 - An omitted policy delay defaults to 24 hours; the demo uses the minimum two minutes. The current web UI targets Anvil/regtest and testnet NEAR. Public Bitcoin testnet4 and Sepolia funding is [blocked](BLOCKED.md).
 - SOL signs immediately due to recent-blockhash expiry. It does not inherit the ETH/BTC spending cap or delay. The contract checks only a simple SystemProgram transfer and a registered source; it does not independently prove that the registered Solana key matches the MPC derivation. The SDK checks derivation and signature. A direct caller must check the registered key before funding it.
@@ -194,14 +218,24 @@ See [TESTING.md](TESTING.md) for commands, actual counts, gas, and negative case
 - The no-wallet scanner is an exposure indicator, not a complete cryptographic audit. Bitcoin histories over 500 transactions are marked incomplete. ETH positive nonce remains unknown because of EIP-7702. P2PK output balance is marked unavailable when the public Esplora indexer omits it.
 - This prototype has not had an external security audit. It should not custody valuable funds.
 
-## Team and other projects
+## Hackathon disclosures
+
+Built for NEAR HACKATHON 2026 (Nov 1–14).
+
+**Prior work (Q-001–Q-005).** We treat code written before November 1, 2026 as baseline. Nick's MIT-licensed `near-qday-recovery` (renamed Phylax) already had ML-DSA-65 recovery, a TypeScript signing toolchain, and NEAR sandbox tooling in October. Its git history records the recovery contract on October 20 (`a4437ba`) and SDK/sandbox tooling that day (`88f4282`). Otzar adapts that recovery pattern and toolchain; those are prior work, not new hackathon work.
+
+This repo's history begins on November 9, 2026 with the MIT scaffold (`1a17fb0`); it has no commits dated before November 1. Work recorded here on November 9–10 adds the NEAR vault ownership/sale and policy contract, Chain Signatures paths for BTC/ETH/SOL, guardian quorum and heir policies, exposure scanner, SDK/web/MCP clients, and covered-call auction, tUSDC payments, signed-price settlement, and regtest exercise/release. See [TESTING.md](TESTING.md) and [deployments/](deployments/). Review the implementation through the pre-submission commit with `git log --reverse 1a17fb0..494430a` and `git diff 1a17fb0 494430a`. The inherited recovery pattern remains baseline despite appearing in these commits.
+
+Otzar was formerly Hako. The Phylax recovery, Athanatos wallet, and Tsuna covered-call concepts are folded into this one product and entry; they are not separate entries. Their names do not imply that their prior work is new Otzar work.
+
+**AI-assisted code (Q-005).** Built with AI coding agents (Claude Code, Codex) under human direction; all code reviewed and tested by the team.
+
+**Other projects by the same team in this hackathon (Q-015)**
 
 Lead: <TBD by Nick>
 
-Otzar folds the former Phylax ML-DSA recovery concept, Athanatos quantum-safe-wallet concept, and Tsuna covered-call yield concept into one product and one entry. It reuses Nick's pre-hackathon `near-qday-recovery` recovery pattern, ML-DSA toolchain, and sandbox setup as a Q-005 baseline. Nick must identify any *other independent* entry under Q-015 and disclose it here before publishing; Phylax, Athanatos, and Tsuna are not separate entries. One person may submit at most two projects.
+**License:** [MIT](LICENSE), © 2026 Nivesh Gajengi. This repo has no separate NOTICE file. Runtime/build libraries are declared in the package manifests, Cargo manifests, and lockfiles.
 
 ## Submission
 
-Primary track: `defi`; secondary tracks: `nfts`, `security`. The [submission form draft](HACKATHON_SUBMISSION_FORM.md) leaves human decisions as TBD. Nick publishes the local-only repository, demo post, and final application. The [hackathon rules](https://nearhackathon.com/HACKATHON.md) require a public repository by 2026-11-14 23:59 UTC.
-
-MIT © 2026 Nivesh Gajengi.
+Proposed tracks, best first: `defi`, `security`, `nfts`. Reasons and the exact form fields are in [HACKATHON_SUBMISSION_FORM.md](HACKATHON_SUBMISSION_FORM.md). Nick must fill the human fields and the Q-015 disclosure before submission. The [official rules](https://nearhackathon.com/HACKATHON.md) require a public repository by November 14, 2026 at 23:59 UTC. This local-only demo also needs a video attached to Nick's public X post. The repository must stay public through judging. This pack does not publish or submit anything.

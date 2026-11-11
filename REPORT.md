@@ -38,7 +38,7 @@
 - MCP: **1** test.
 - Web: type check and production build.
 - NEAR sandbox: **47** original transactions (16 rejections) and **30** covered-call transactions (13 rejections, including relayer and premium-token attacks).
-- Testnet live loop: **22** transactions (18 confirmed, 3 expected rejections, 1 failed settle explained above), plus 5 tUSDC setup transactions and 2 verified upgrades. 0 skipped.
+- Testnet live loop: **22** transactions (18 confirmed, 3 expected rejections, 1 failed settle explained above), plus 6 tUSDC setup transactions and 2 verified upgrades. 0 skipped.
 
 ## Testnet NEAR spent
 
