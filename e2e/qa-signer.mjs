@@ -55,7 +55,7 @@ async function guard(tx) {
   const gasPrice = BigInt((await rpc('gas_price', [null])).gas_price);
   const available = BigInt(b.now[name].amount) - BigInt(b.now[name].storage_usage) * 10n ** 19n;
   assert(available >= yocto / 5n, 'QA stopped: funded demo account balance is low');
-  const storageReserve = tx.methods.includes('register_pq_key') ? 3n * 10n ** 22n : tx.methods.some(m => ['register_btc', 'write_call', 'request_btc_spend'].includes(m)) ? 2n * 10n ** 22n : 5n * 10n ** 21n;
+  const storageReserve = tx.methods.includes('register_pq_key') ? 3n * 10n ** 22n : tx.methods.includes('request_btc_spend') ? 12n * 10n ** 21n : tx.methods.some(m => ['register_btc', 'write_call'].includes(m)) ? 2n * 10n ** 22n : 5n * 10n ** 21n;
   assert(b.total + BigInt(tx.gas) * gasPrice + BigInt(tx.deposit) + storageReserve <= cap, 'QA stopped: 0.3 NEAR cumulative budget would be exceeded');
 }
 async function receipt(tx) {
@@ -78,7 +78,7 @@ async function waitFor(fn, message, timeout = 90000) { const until = Date.now() 
 async function btc(method, params = [], wallet = '') { const cookie = readFileSync('.demo/bitcoin/regtest/.cookie', 'utf8').trim(); const r = await fetch(`http://127.0.0.1:${bitcoinPort}/${wallet ? `wallet/${wallet}` : ''}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Basic ${Buffer.from(cookie).toString('base64')}` }, body: JSON.stringify({ jsonrpc: '1.0', id: 'qa-browser', method, params }), signal: AbortSignal.timeout(15000) }); const j = await r.json(); if (j.error) throw Error(`Regtest ${method} failed`); return j.result; }
 async function snap(page, label) {
   const original = page.viewportSize();
-  for (const width of [1440, 375]) { await page.setViewportSize({ width, height: width === 1440 ? 1000 : 900 }); await page.waitForTimeout(250); const path = join(out, `${attemptId}-${width}-${label}.png`); await page.screenshot({ path, fullPage: true }); assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Horizontal overflow: ${label} at ${width}`); run.screenshots.push({ label, width, path }); }
+  for (const width of [1440, 375]) { await page.setViewportSize({ width, height: width === 1440 ? 1000 : 900 }); await page.waitForTimeout(250); const path = join(out, `${attemptId}-${width}-${label}.png`); await page.screenshot({ path, fullPage: true }); const fits = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth); run.screenshots.push({ label, width, path, fits }); save(); assert(fits, `Horizontal overflow: ${label} at ${width}`); }
   await page.setViewportSize(original); save();
 }
 async function click(locator) { await locator.evaluate(e => e.scrollIntoView({ block: 'center' })); await locator.page().waitForTimeout(180); await locator.click(); }
@@ -165,15 +165,29 @@ try {
       // The injected NEAR key is never downloaded or written. File upload exercises the real owner flow.
       await page.locator('.keyslot input[type=file]').setInputFiles(keyPath); await page.getByText('Key loaded', { exact: false }).waitFor(); await snap(page, 'key-registered-loaded');
       const wallets = await btc('listwallets'); if (!wallets.includes('hako-miner')) await btc('loadwallet', ['hako-miner']);
-      const destination = await btc('getnewaddress', ['qa-browser-return', 'bech32'], 'hako-miner');
-      await tools(page, 'Rules'); await page.getByLabel('Allowlisted regtest address', { exact: true }).fill(destination); await page.getByLabel('Recovery regtest address', { exact: true }).fill(destination);
-      await txClick(page, page.getByRole('button', { name: 'Sign and register Bitcoin rules', exact: true }), 'register_btc'); await snap(page, 'bitcoin-rules-registered');
+      const destination = run.bitcoin?.destination || await btc('getnewaddress', ['qa-browser-return', 'bech32'], 'hako-miner');
       const addrButton = page.getByRole('button', { name: 'Copy Bitcoin deposit address', exact: true }); await addrButton.waitFor(); const address = await addrButton.getAttribute('title'); assert(address?.startsWith('bcrt1'));
-      run.bitcoin = { address, destination, fundingTx: await btc('sendtoaddress', [address, 0.00101], 'hako-miner') }; await btc('generatetoaddress', [1, destination]); save();
+      run.bitcoin ||= { address, destination }; assert.equal(run.bitcoin.address, address); save();
+      await tools(page, 'Rules');
+      if (!await view('btc_state', { token_id: run.tokenId })) {
+        await page.getByLabel('Allowlisted regtest address', { exact: true }).fill(destination); await page.getByLabel('Recovery regtest address', { exact: true }).fill(destination);
+        await txClick(page, page.getByRole('button', { name: 'Sign and register Bitcoin rules', exact: true }), 'register_btc');
+      }
+      await snap(page, 'bitcoin-rules-registered');
+      if (!run.bitcoin.fundingTx) { run.bitcoin.fundingTx = await btc('sendtoaddress', [address, 0.00101], 'hako-miner'); await btc('generatetoaddress', [1, destination]); save(); }
       await waitFor(async () => (await page.locator('body').innerText()).includes('0.00101000'), 'App did not read the real regtest deposit', 45000); await snap(page, 'funded-vault');
-      const { fetchCoinbaseBtcUsd } = await import('@hako/sdk'); const spot = await fetchCoinbaseBtcUsd(); run.strikeSource = { price: spot.price, source: spot.sourceUrl, time: spot.time }; const strike = String(Math.ceil(Number(spot.price) * 1.25));
-      await tools(page, 'Rounds'); await page.getByLabel('Strike (USD)', { exact: true }).fill(strike); await page.getByLabel('Size (sats)', { exact: true }).fill('100000'); await page.getByLabel('Term (hours)', { exact: true }).fill('0.04'); await page.getByLabel('Opening premium (tUSDC)', { exact: true }).fill('0.001'); await page.getByLabel('Minimum premium (tUSDC)', { exact: true }).fill('0.0005');
-      await snap(page, 'covered-call-form'); await txClick(page, page.getByRole('button', { name: 'Sign and write call', exact: true }), 'write_call'); await page.getByText('write_call confirmed on NEAR', { exact: false }).waitFor(); await snap(page, 'call-written-receipt');
+      await tools(page, 'Rounds');
+      let current = await view('call_state', { token_id: run.tokenId });
+      if (current?.state === 'auction' && current.auction_end_ns / 1e6 <= Date.now()) {
+        await txClick(page, page.getByRole('button', { name: 'Close unfilled round', exact: true }), 'close_unfilled_call');
+        current = await view('call_state', { token_id: run.tokenId });
+      }
+      if (!current || ['unfilled', 'lapsed', 'unsettled'].includes(current.state)) {
+        const { fetchCoinbaseBtcUsd } = await import('@hako/sdk'); const spot = await fetchCoinbaseBtcUsd(); run.strikeSource = { price: spot.price, source: spot.sourceUrl, time: spot.time }; const strike = String(Math.ceil(Number(spot.price) * 1.25));
+        await page.getByLabel('Strike (USD)', { exact: true }).fill(strike); await page.getByLabel('Size (sats)', { exact: true }).fill('100000'); await page.getByLabel('Term (hours)', { exact: true }).fill('0.06'); await page.getByLabel('Opening premium (tUSDC)', { exact: true }).fill('0.001'); await page.getByLabel('Minimum premium (tUSDC)', { exact: true }).fill('0.0005');
+        await snap(page, 'covered-call-form'); await txClick(page, page.getByRole('button', { name: 'Sign and write call', exact: true }), 'write_call'); await page.getByText('write_call confirmed on NEAR', { exact: false }).waitFor();
+      }
+      await snap(page, 'call-written-receipt');
       const buyer = await contextFor('buyer', base); await buyer.page.goto(base + '/vault/' + run.tokenId); await buyer.page.getByRole('button', { name: 'Details', exact: true }).waitFor();
       const balanceRead = buyer.page.waitForResponse(r => { try { return r.request().postDataJSON()?.params?.method_name === 'ft_balance_of'; } catch { return false; } }, { timeout: 60000 });
       await click(buyer.page.getByRole('button', { name: 'Details', exact: true })); await (await balanceRead).finished(); await buyer.page.waitForTimeout(250);
@@ -191,7 +205,7 @@ try {
       const callState = await view('call_state', { token_id: run.tokenId }); assert.equal(callState.state, 'sold'); assert.equal(callState.holder, ids.buyer); run.call = { premium: callState.premium_paid_usdc, expiryNs: callState.expiry_ns, strike: callState.strike_usd_e6 }; save();
       console.log('Waiting for the real call expiry and the relayer-signed Coinbase print');
       while (Date.now() < callState.expiry_ns / 1e6 + 1200) await pause(Math.min(10000, callState.expiry_ns / 1e6 + 1200 - Date.now()));
-      process.env.NEAR_RPC = RPC;
+      process.env.NEAR_RPC = 'https://testnet-rpc.intea.rs';
       const { relayPrice } = await import('../scripts/price-relayer.mjs'), { account, call } = await import('../scripts/near-lib.mjs');
       const poster = account('guardian'), owner = account('seller');
       const operatorSend = async (actor, receiver, action) => { const method = action.functionCall.methodName, gas = action.functionCall.gas.toString(), deposit = action.functionCall.deposit.toString(); await guard({ accountId: actor.accountId, receiverId: receiver, methods: [method], gas, deposit }); const r = await actor.signAndSendTransaction({ receiverId: receiver, actions: [action], waitUntil: 'FINAL' }); await receipt({ accountId: actor.accountId, receiverId: receiver, methods: [method], gas, deposit, hash: r.transaction.hash, success: !r.status?.Failure, final: true, source: 'relayer operator script' }); return r; };
@@ -211,7 +225,7 @@ try {
       run.checks.push('No NEAR private key in localStorage or sessionStorage');
       await seller.ctx.close(); await buyer.ctx.close();
       assert.equal(run.failures.length, 0, 'Browser page error'); run.status = 'PASS'; run.completed = new Date().toISOString(); await budget(); save();
-    } catch (e) { for (const ctx of browser.contexts()) for (const p of ctx.pages()) await snap(p, 'failure').catch(() => {}); throw e; } finally { await browser.close(); browser = undefined; }
+    } catch (e) { for (const [c, ctx] of browser.contexts().entries()) for (const [n, p] of ctx.pages().entries()) await snap(p, `failure-${c}-${n}`).catch(() => {}); throw e; } finally { await browser.close(); browser = undefined; }
   });
   if (ownsBitcoin) await btc('stop');
   console.log(`PASS: ${recordFile}; ${run.steps.length} final NEAR receipts; cumulative ${run.budget.totalNEAR.toFixed(6)} NEAR`);
