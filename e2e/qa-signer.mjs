@@ -189,29 +189,43 @@ try {
       }
       await snap(page, 'call-written-receipt');
       const buyer = await contextFor('buyer', base); await buyer.page.goto(base + '/vault/' + run.tokenId); await buyer.page.getByRole('button', { name: 'Details', exact: true }).waitFor();
-      const balanceRead = buyer.page.waitForResponse(r => { try { return r.request().postDataJSON()?.params?.method_name === 'ft_balance_of'; } catch { return false; } }, { timeout: 60000 });
-      await click(buyer.page.getByRole('button', { name: 'Details', exact: true })); await (await balanceRead).finished(); await buyer.page.waitForTimeout(250);
-      await txClick(buyer.page, buyer.page.getByRole('button', { name: 'Buy with tUSDC', exact: true }), 'ft_transfer_call'); await buyer.page.getByText('Premium sent.', { exact: false }).waitFor(); await snap(buyer.page, 'buyer-premium-receipt');
+      const bought = await view('call_state', { token_id: run.tokenId });
+      if (bought.state === 'auction') {
+        const balanceRead = buyer.page.waitForResponse(r => { try { return r.status() === 200 && r.request().postDataJSON()?.params?.method_name === 'ft_balance_of'; } catch { return false; } }, { timeout: 60000 });
+        await click(buyer.page.getByRole('button', { name: 'Details', exact: true })); await (await balanceRead).finished(); await buyer.page.waitForTimeout(250);
+        await txClick(buyer.page, buyer.page.getByRole('button', { name: 'Buy with tUSDC', exact: true }), 'ft_transfer_call'); await buyer.page.getByText('Premium sent.', { exact: false }).waitFor();
+      } else {
+        assert.equal(bought.holder, ids.buyer); assert(['sold', 'otm'].includes(bought.state));
+        await click(buyer.page.getByRole('button', { name: 'Details', exact: true }));
+      }
+      await snap(buyer.page, 'buyer-premium-receipt');
       await click(buyer.page.getByRole('button', { name: 'Close', exact: true })); await profile(buyer.page, run.tokenId, '.rt-row');
       // Reuse this repo's empty QA NFT; no foreign assets or authority key are transferred.
-      assert.equal((await view('nft_token', { token_id: prior.tokenId })).owner_id, ids.buyer, 'Empty QA sale vault owner changed');
-      await buyer.page.goto(base + '/vault/' + prior.tokenId); await buyer.page.locator('.s-vhead h1').waitFor(); await tools(buyer.page, 'Sell');
-      await buyer.page.getByLabel('Price (NEAR)', { exact: true }).fill('0.001'); await snap(buyer.page, 'nft-sale-form');
-      await txClick(buyer.page, buyer.page.getByRole('button', { name: 'List for sale', exact: true }), 'list'); await snap(buyer.page, 'nft-listed-receipt');
-      await page.goto(base + '/vault/' + prior.tokenId); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await tools(page, 'Sell');
-      await txClick(page, page.getByRole('button', { name: 'Buy this vault', exact: true }), 'buy'); await snap(page, 'nft-bought-receipt');
+      const sale = await view('nft_token', { token_id: prior.tokenId });
+      if (sale.owner_id === ids.buyer) {
+        await buyer.page.goto(base + '/vault/' + prior.tokenId); await buyer.page.locator('.s-vhead h1').waitFor(); await tools(buyer.page, 'Sell');
+        if (!sale.listed_yocto) {
+          await buyer.page.getByLabel('Price (NEAR)', { exact: true }).fill('0.001'); await snap(buyer.page, 'nft-sale-form');
+          await txClick(buyer.page, buyer.page.getByRole('button', { name: 'List for sale', exact: true }), 'list');
+        } else assert.equal(sale.listed_yocto, '1000000000000000000000');
+        await snap(buyer.page, 'nft-listed-receipt');
+        await page.goto(base + '/vault/' + prior.tokenId); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await tools(page, 'Sell');
+        await txClick(page, page.getByRole('button', { name: 'Buy this vault', exact: true }), 'buy'); await snap(page, 'nft-bought-receipt');
+      } else assert.equal(sale.owner_id, ids.seller, 'Empty QA sale vault owner changed');
       assert.equal((await view('nft_token', { token_id: prior.tokenId })).owner_id, ids.seller); await profile(page, prior.tokenId);
       await page.goto(base + '/vault/' + run.tokenId); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await page.getByText('your vault', { exact: false }).first().waitFor(); await snap(page, 'writer-sold-round');
-      const callState = await view('call_state', { token_id: run.tokenId }); assert.equal(callState.state, 'sold'); assert.equal(callState.holder, ids.buyer); run.call = { premium: callState.premium_paid_usdc, expiryNs: callState.expiry_ns, strike: callState.strike_usd_e6 }; save();
-      console.log('Waiting for the real call expiry and the relayer-signed Coinbase print');
-      while (Date.now() < callState.expiry_ns / 1e6 + 1200) await pause(Math.min(10000, callState.expiry_ns / 1e6 + 1200 - Date.now()));
-      process.env.NEAR_RPC = 'https://testnet-rpc.intea.rs';
-      const { relayPrice } = await import('../scripts/price-relayer.mjs'), { account, call } = await import('../scripts/near-lib.mjs');
-      const poster = account('guardian'), owner = account('seller');
-      const operatorSend = async (actor, receiver, action) => { const method = action.functionCall.methodName, gas = action.functionCall.gas.toString(), deposit = action.functionCall.deposit.toString(); await guard({ accountId: actor.accountId, receiverId: receiver, methods: [method], gas, deposit }); const r = await actor.signAndSendTransaction({ receiverId: receiver, actions: [action], waitUntil: 'FINAL' }); await receipt({ accountId: actor.accountId, receiverId: receiver, methods: [method], gas, deposit, hash: r.transaction.hash, success: !r.status?.Failure, final: true, source: 'relayer operator script' }); return r; };
-      const price = await relayPrice({ send: operatorSend, poster, contractId: contract, notBeforeSec: Math.ceil(callState.expiry_ns / 1e9) });
-      assert(BigInt(price.args.price_usd_e6) < BigInt(callState.strike_usd_e6), 'Real price crossed the test strike; refusing to fabricate OTM settlement');
-      await operatorSend(owner, contract, call('settle_call', { token_id: run.tokenId, ...price.args }, 60));
+      const callState = await view('call_state', { token_id: run.tokenId }); assert(['sold', 'otm'].includes(callState.state)); assert.equal(callState.holder, ids.buyer); run.call = { premium: callState.premium_paid_usdc, expiryNs: callState.expiry_ns, strike: callState.strike_usd_e6 }; save();
+      if (callState.state === 'sold') {
+        console.log('Waiting for the real call expiry and the relayer-signed Coinbase print');
+        while (Date.now() < callState.expiry_ns / 1e6 + 1200) await pause(Math.min(10000, callState.expiry_ns / 1e6 + 1200 - Date.now()));
+        process.env.NEAR_RPC = 'https://testnet-rpc.intea.rs';
+        const { relayPrice } = await import('../scripts/price-relayer.mjs'), { account, call } = await import('../scripts/near-lib.mjs');
+        const poster = account('guardian'), owner = account('seller');
+        const operatorSend = async (actor, receiver, action) => { const method = action.functionCall.methodName, gas = action.functionCall.gas.toString(), deposit = action.functionCall.deposit.toString(); await guard({ accountId: actor.accountId, receiverId: receiver, methods: [method], gas, deposit }); const r = await actor.signAndSendTransaction({ receiverId: receiver, actions: [action], waitUntil: 'FINAL' }); await receipt({ accountId: actor.accountId, receiverId: receiver, methods: [method], gas, deposit, hash: r.transaction.hash, success: !r.status?.Failure, final: true, source: 'relayer operator script' }); return r; };
+        const price = await relayPrice({ send: operatorSend, poster, contractId: contract, notBeforeSec: Math.ceil(callState.expiry_ns / 1e9) });
+        assert(BigInt(price.args.price_usd_e6) < BigInt(callState.strike_usd_e6), 'Real price crossed the test strike; refusing to fabricate OTM settlement');
+        await operatorSend(owner, contract, call('settle_call', { token_id: run.tokenId, ...price.args }, 60));
+      }
       assert.equal((await view('call_state', { token_id: run.tokenId })).state, 'otm');
       await page.reload(); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await page.locator('.keyslot input[type=file]').setInputFiles(keyPath);
       await waitFor(async () => (await page.locator('body').innerText()).includes('Expired, BTC kept'), 'App did not show OTM settlement'); await click(page.getByRole('tab', { name: 'Withdraw', exact: true })); await snap(page, 'otm-unlocked');
