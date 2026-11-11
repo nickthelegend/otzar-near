@@ -12,7 +12,7 @@ declare global {
     __OTZAR_QA_RECORD__?: (receipt: Receipt) => Promise<void>;
   }
 }
-const RPCS = new Set(['https://rpc.testnet.near.org', 'https://test.rpc.fastnear.com', 'https://near-testnet.drpc.org']);
+const RPCS = new Set(['https://rpc.testnet.near.org', 'https://test.rpc.fastnear.com', 'https://near-testnet.drpc.org', 'https://testnet-rpc.intea.rs']);
 const testnet = (id: string) => /^[a-z0-9][a-z0-9._-]{0,55}\.testnet$/.test(id);
 
 export async function setupQaSelector() {
@@ -29,10 +29,20 @@ export async function setupQaSelector() {
   }
   catch { throw new Error('QA signer could not load the injected testnet credential'); }
   injected.privateKey = '';
-  const near = await connect({ networkId: 'testnet', nodeUrl: rpcUrl, keyStore: store });
-  if ((await near.connection.provider.status()).chain_id !== 'testnet') throw new Error('QA signer refuses a non-testnet network');
+  let near: Awaited<ReturnType<typeof connect>> | undefined;
+  for (const endpoint of [rpcUrl, ...[...RPCS].filter(url => url !== rpcUrl)]) {
+    try {
+      const candidate = await connect({ networkId: 'testnet', nodeUrl: endpoint, keyStore: store });
+      const status = await candidate.connection.provider.status();
+      if (status.chain_id !== 'testnet') throw new Error('QA signer refuses a non-testnet network');
+      near = candidate; break;
+    } catch (e) { if ((e as Error).message === 'QA signer refuses a non-testnet network') throw e; }
+  }
+  if (!near) throw new Error('QA testnet RPCs are unavailable; try again later');
+  const provider = near.connection.provider;
   const account = await near.account(accountId);
-  let connected = false;
+  const sessionKey = 'otzar.qa.account';
+  let connected = sessionStorage.getItem(sessionKey) === accountId;
   const getAccounts = async () => connected ? [{ accountId }] : [];
   async function signAndSendTransaction({ receiverId, actions }: Transaction) {
     if (!connected) throw new Error('Connect the QA signer first');
@@ -43,14 +53,14 @@ export async function setupQaSelector() {
     const methods = actions.map(a => a.params.methodName);
     await window.__OTZAR_QA_BUDGET_CHECK__!({ accountId, receiverId, methods, gas: gas.toString(), deposit: deposit.toString() });
     const result = await account.signAndSendTransaction({ receiverId, returnError: true, actions: actions.map(a => transactions.functionCall(a.params.methodName, a.params.args, BigInt(a.params.gas), BigInt(a.params.deposit))) });
-    const final = await near.connection.provider.txStatus(result.transaction.hash, accountId, 'FINAL');
+    const final = await provider.txStatus(result.transaction.hash, accountId, 'FINAL');
     await window.__OTZAR_QA_RECORD__!({ accountId, receiverId, methods, hash: final.transaction.hash, gas: gas.toString(), deposit: deposit.toString(), success: !(typeof final.status === 'object' && 'Failure' in final.status), final: true });
     return final;
   }
   const wallet = {
     id: 'qa-signer', getAccounts,
-    signIn: async ({ contractId }: { contractId: string }) => { if (!testnet(contractId)) throw new Error('QA signer refuses a non-testnet contract'); connected = true; return getAccounts(); },
-    signOut: async () => { connected = false; }, signAndSendTransaction,
+    signIn: async ({ contractId }: { contractId: string }) => { if (!testnet(contractId)) throw new Error('QA signer refuses a non-testnet contract'); connected = true; sessionStorage.setItem(sessionKey, accountId); return getAccounts(); },
+    signOut: async () => { connected = false; sessionStorage.removeItem(sessionKey); }, signAndSendTransaction,
     signAndSendTransactions: async ({ transactions: list }: { transactions: Transaction[] }) => { const results = []; for (const tx of list) results.push(await signAndSendTransaction(tx)); return results; },
   };
   return { wallet: async () => wallet, store: { getState: () => ({ accounts: connected ? [{ accountId, active: true }] : [] }) } };
