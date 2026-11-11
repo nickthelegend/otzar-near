@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { actionCreators, setupWalletSelector, type InjectedWallet } from '@near-wallet-selector/core';
 import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet';
 import { contractId } from './lib';
+import { invalidateLiveCache } from './data';
 
 export type Wallet = { selector: any; account: string; ready: boolean; error: string; setError: (e: string) => void; connect: () => Promise<void>; disconnect: () => Promise<void> };
 
@@ -24,7 +25,11 @@ export function plainWalletError(e: unknown, signingIn = false): Error {
  * function-call key Meteor issued at sign-in; anything that attaches NEAR, or goes to another contract, opens Meteor. */
 export async function signAndSend(selector: any, receiverId: string, methodName: string, args: object, deposit = '0', gas = GAS): Promise<any> {
   const w = await selector.wallet(WALLET_ID);
-  try { return await w.signAndSendTransaction({ receiverId, actions: [actionCreators.functionCall(methodName, args, BigInt(gas), BigInt(deposit))] }); }
+  try {
+    const result = await w.signAndSendTransaction({ receiverId, actions: [actionCreators.functionCall(methodName, args, BigInt(gas), BigInt(deposit))] });
+    if (result && !result.status?.Failure) invalidateLiveCache();
+    return result;
+  }
   catch (e) { throw plainWalletError(e); }
 }
 

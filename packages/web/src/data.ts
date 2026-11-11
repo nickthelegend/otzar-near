@@ -5,6 +5,9 @@ import { contractId, recentContractTxns, type Box, type CallConfig, type ChainTx
 type Entry = { at: number; data?: unknown; pending?: Promise<unknown> };
 const cache = new Map<string, Entry>();
 
+/** A newly opened portfolio must read the confirmed write, rather than reuse a pre-write snapshot. */
+export function invalidateLiveCache() { cache.clear(); }
+
 function cached<T>(key: string, load: () => Promise<T>, maxAge: number): Promise<T> {
   const hit = cache.get(key);
   if (hit?.pending) return hit.pending as Promise<T>;
