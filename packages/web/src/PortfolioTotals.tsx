@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { solanaUrl } from './lib';
 import { deriveAddresses, ethBalance, solanaAddress, solanaBalance } from '@hako/sdk';
 
 type Box = { token_id: string; owner_id: string; epoch: number };
@@ -15,8 +16,8 @@ export default function PortfolioTotals({ boxes, account, contractId, bitcoinPro
       const missing: string[] = [];
       for (const box of owned) {
         const [addresses, solAddress] = await Promise.all([deriveAddresses(contractId,box.token_id,box.epoch),solanaAddress(contractId,box.token_id,box.epoch)]);
-        try { eth += await ethBalance(addresses.ethereum,anvilRpc); } catch { if (!missing.includes('VITE_ANVIL_RPC_URL')) missing.push('VITE_ANVIL_RPC_URL'); }
-        try { sol += await solanaBalance(solAddress,(import.meta.env.VITE_SOLANA_RPC_URL as string|undefined)||'http://127.0.0.1:8899'); } catch { if (!missing.includes('VITE_SOLANA_RPC_URL')) missing.push('VITE_SOLANA_RPC_URL'); }
+        try { if (!anvilRpc) throw new Error('not configured'); eth += await ethBalance(addresses.ethereum,anvilRpc); } catch { if (!missing.includes('VITE_ANVIL_RPC_URL')) missing.push('VITE_ANVIL_RPC_URL'); }
+        try { if (!solanaUrl) throw new Error('not configured'); sol += await solanaBalance(solAddress,solanaUrl); } catch { if (!missing.includes('VITE_SOLANA_RPC_URL')) missing.push('VITE_SOLANA_RPC_URL'); }
         if (bitcoinProxy) {
           try { const response=await fetch(`${bitcoinProxy}/address/${addresses.bitcoin}`); if(!response.ok)throw new Error(String(response.status)); const body=await response.json(); if(body.error)throw new Error(body.error); btc+=BigInt(body.confirmed_sats); } catch { if (!missing.includes('VITE_BITCOIN_ESPLORA_URL')) missing.push('VITE_BITCOIN_ESPLORA_URL'); }
         } else if (!missing.includes('VITE_BITCOIN_ESPLORA_URL')) missing.push('VITE_BITCOIN_ESPLORA_URL');

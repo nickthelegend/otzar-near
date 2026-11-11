@@ -13,6 +13,7 @@ export default function ExposureScanner({ target, targetUsable, bitcoinProxy, an
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   async function rpc(method: string, params: unknown[]): Promise<string> {
+    if (!anvilRpc) throw new Error('Setup required: VITE_ANVIL_RPC_URL');
     const response = await fetch(anvilRpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
     if (!response.ok) throw new Error(`Anvil RPC ${response.status}`);
     const body = await response.json();
@@ -24,7 +25,7 @@ export default function ExposureScanner({ target, targetUsable, bitcoinProxy, an
     try {
       const address = input.trim();
       if (network === 'mainnet') setResult(address.startsWith('0x') ? await scanEthereum(address) : await scanBitcoin(address));
-      else if (address.startsWith('0x')) setResult(await scanEthereum(address, anvilRpc));
+      else if (address.startsWith('0x')) { if (!anvilRpc) throw new Error('Setup required: VITE_ANVIL_RPC_URL'); setResult(await scanEthereum(address, anvilRpc)); }
       else {
         if (!bitcoinProxy) throw new Error('Setup required: VITE_BITCOIN_ESPLORA_URL');
         if (!address.startsWith('bcrt1')) throw new Error('Use a regtest bcrt1 address for the local demo');

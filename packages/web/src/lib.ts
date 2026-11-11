@@ -14,7 +14,8 @@ export type Box = {
 export type Spend = { id: number; token_id: string; raw_unsigned_hex: string; destination: string; amount_wei: string; created_ns: number; ready_ns: number; state: string; signature_json: string | null; clawback: boolean };
 
 export const contractId = import.meta.env.VITE_HAKO_CONTRACT as string | undefined;
-export const anvilUrl = (import.meta.env.VITE_ANVIL_RPC_URL as string | undefined) || 'http://127.0.0.1:8545';
+export const anvilUrl = (import.meta.env.VITE_ANVIL_RPC_URL as string | undefined) || '';
+export const solanaUrl = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || '';
 export const esploraUrl = import.meta.env.VITE_BITCOIN_ESPLORA_URL as string | undefined;
 export const ZERO_ETH = '0x0000000000000000000000000000000000000000';
 

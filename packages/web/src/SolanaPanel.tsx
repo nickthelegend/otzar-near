@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { broadcastSolana, rpcQuery, signAuthorization, signedSolanaTransaction, solanaAddress, solanaBalance, solanaBlockhash, unsignedSolanaTransfer, verifyAuthorization } from '@hako/sdk';
 import bs58 from 'bs58';
+import { solanaUrl as rpc } from './lib';
 import { Chip, Empty, Field, Icon, Timeline } from './ui';
 
 type Box = { token_id: string; owner_id: string; epoch: number; nonce: number; pq_key: number[] | null };
 type SolState = { public_key: string; spend: null | { message_hex: string; destination: string; lamports: string; state: string; signature_json: string | null } };
 type Props = { view: 'rules' | 'send'; box: Box; contractId: string; account: string; keyFile: File | null; busy: boolean; invoke: (method: string, args: object) => Promise<void>; run: (fn: () => Promise<void>) => Promise<void> };
-const rpc = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'http://127.0.0.1:8899';
 const base64 = (bytes: Uint8Array) => Buffer.from(bytes).toString('base64');
 
 export default function SolanaPanel({ view, box, contractId, account, keyFile, busy, invoke, run }: Props) {
@@ -16,7 +16,7 @@ export default function SolanaPanel({ view, box, contractId, account, keyFile, b
   async function refresh() {
     const [derived, onChain] = await Promise.all([solanaAddress(contractId, box.token_id, box.epoch), rpcQuery(contractId, 'sol_state', { token_id: box.token_id })]);
     setAddress(derived); setState(onChain);
-    try { setBalance(`${(Number(await solanaBalance(derived, rpc))/1e9).toFixed(6)} SOL`); }
+    try { if (!rpc) throw new Error('not configured'); setBalance(`${(Number(await solanaBalance(derived, rpc))/1e9).toFixed(6)} SOL`); }
     catch (error) { setBalance(`Setup required: VITE_SOLANA_RPC_URL (${(error as Error).message})`); }
   }
   useEffect(() => { refresh().catch(error => setMessage((error as Error).message)); }, [box.token_id, box.epoch, box.nonce]);
@@ -47,14 +47,14 @@ export default function SolanaPanel({ view, box, contractId, account, keyFile, b
           <Field label="Destination"><input aria-label="Solana destination" placeholder="Base58 address" value={destination} onChange={event => setDestination(event.target.value)} spellCheck={false} /></Field>
           <Field label="Amount (SOL)"><input aria-label="SOL amount" value={amount} onChange={event => setAmount(event.target.value)} inputMode="decimal" /></Field>
         </div>
-        <button className="btn btn-primary" disabled={busy} onClick={() => run(async () => { const lamports = BigInt(Math.round(Number(amount) * 1e9)); const messageHex = unsignedSolanaTransfer(address, destination, lamports, await solanaBlockhash(rpc)); await invoke('request_sol_spend', { token_id: box.token_id, message_hex: messageHex, nonce: box.nonce, signature: await authorize(Buffer.from(messageHex, 'hex')) }); await refresh(); })}><Icon name="send" /> Sign and request spend</button>
+        <button className="btn btn-primary" disabled={busy} onClick={() => run(async () => { if (!rpc) throw new Error('Setup required: VITE_SOLANA_RPC_URL'); const lamports = BigInt(Math.round(Number(amount) * 1e9)); const messageHex = unsignedSolanaTransfer(address, destination, lamports, await solanaBlockhash(rpc)); await invoke('request_sol_spend', { token_id: box.token_id, message_hex: messageHex, nonce: box.nonce, signature: await authorize(Buffer.from(messageHex, 'hex')) }); await refresh(); })}><Icon name="send" /> Sign and request spend</button>
       </div>}
     </div>
     <div className="card">
       <div className="card-head"><div><h3>SOL spend</h3><p>One open SOL request per vault.</p></div></div>
       {!spend ? <Empty icon="clock" title="No SOL spend request" /> : <Timeline clock={Date.now()} items={[{ key: 'sol', chain: 'SOL', state: spend.state, title: `${(Number(BigInt(spend.lamports)) / 1e9).toFixed(6)} SOL → ${bs58.encode(Buffer.from(spend.destination, 'base64'))}`, actions: <>
         {spend.state === 'pending' && <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => run(async () => { await invoke('execute_sol', { token_id: box.token_id }); await refresh(); })}>Sign via NEAR MPC</button>}
-        {spend.state === 'signed' && spend.signature_json && <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => run(async () => { const raw = signedSolanaTransaction(spend.message_hex, spend.signature_json!, address); const hash = await broadcastSolana(raw, rpc); setMessage(`Solana validator accepted ${hash}`); await refresh(); })}>Broadcast to validator</button>}
+        {spend.state === 'signed' && spend.signature_json && <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => run(async () => { if (!rpc) throw new Error('Setup required: VITE_SOLANA_RPC_URL'); const raw = signedSolanaTransaction(spend.message_hex, spend.signature_json!, address); const hash = await broadcastSolana(raw, rpc); setMessage(`Solana validator accepted ${hash}`); await refresh(); })}>Broadcast to validator</button>}
       </> }]} />}
     </div>
   </>;

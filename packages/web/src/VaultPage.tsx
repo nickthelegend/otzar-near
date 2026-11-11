@@ -5,7 +5,7 @@ import EarnPanel from './EarnPanel';
 import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
-import { annualisedPct, anvilUrl, callLocksVault, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
+import { annualisedPct, anvilUrl, callLocksVault, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, solanaUrl, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Term, TERMS, Timeline } from './ui';
 import { CountUp } from './art';
 import { useNow, useRelayer, useRounds } from './data';
@@ -15,7 +15,6 @@ import { Loop, pct } from './rounds';
 import { signAndSend, type Wallet } from './wallet';
 
 const gas = '120000000000000';
-const solRpc = (import.meta.env.VITE_SOLANA_RPC_URL as string | undefined) || 'http://127.0.0.1:8899';
 type Tab = 'overview' | 'rules' | 'send' | 'earn' | 'recovery' | 'sell';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' }, { id: 'rules', label: 'Rules' }, { id: 'send', label: 'Send' },
@@ -23,7 +22,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 type Props = { id: string; wallet: Wallet };
 
-async function evm(method: string, params: unknown[]) { const r = await fetch(anvilUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) }); if (!r.ok) throw new Error(`Ethereum RPC ${r.status}`); const j = await r.json(); if (j.error) throw new Error(JSON.stringify(j.error)); return j.result; }
+async function evm(method: string, params: unknown[]) { if (!anvilUrl) throw new Error('Setup required: VITE_ANVIL_RPC_URL'); const r = await fetch(anvilUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) }); if (!r.ok) throw new Error(`Ethereum RPC ${r.status}`); const j = await r.json(); if (j.error) throw new Error(JSON.stringify(j.error)); return j.result; }
 function b64(bytes: Uint8Array) { return Buffer.from(bytes).toString('base64'); }
 function toWei(eth: string) { if (!/^\d+(\.\d{1,18})?$/.test(eth.trim())) throw new Error('Enter the daily cap in ETH, e.g. 0.01'); const [w, f = ''] = eth.trim().split('.'); const v = BigInt(w) * 10n ** 18n + BigInt((f + '0'.repeat(18)).slice(0, 18)); if (v <= 0n) throw new Error('Daily cap must be above zero'); return v.toString(); }
 
@@ -51,10 +50,10 @@ export default function VaultPage({ id, wallet }: Props) {
     if (!box || !contractId) return; let cancelled = false;
     Promise.all([deriveAddresses(contractId, box.token_id, box.epoch), rpcQuery(contractId, 'spends_for_box', { token_id: box.token_id })]).then(async ([a, s]) => {
       if (cancelled) return; setAddresses(a); setSpends(s);
-      try { setEth({ v: formatEth(await ethBalance(a.ethereum, anvilUrl)) }); } catch (e) { setEth({ v: '', err: `Setup required: VITE_ANVIL_RPC_URL (${(e as Error).message})` }); }
+      try { if (!anvilUrl) throw new Error('not configured'); setEth({ v: formatEth(await ethBalance(a.ethereum, anvilUrl)) }); } catch (e) { setEth({ v: '', err: `Setup required: VITE_ANVIL_RPC_URL (${(e as Error).message})` }); }
       if (esploraUrl) { try { const r = await fetch(`${esploraUrl}/address/${a.bitcoin}`); if (!r.ok) throw new Error(`HTTP ${r.status}`); const j = await r.json(); if (j.error) throw new Error(j.error); const sats = j.confirmed_sats !== undefined ? BigInt(j.confirmed_sats) : BigInt(j.chain_stats.funded_txo_sum - j.chain_stats.spent_txo_sum); setBtc({ v: (Number(sats) / 1e8).toFixed(8) }); } catch (e) { setBtc({ v: '', err: (e as Error).message }); } }
     }).catch(e => setError(e.message));
-    solanaAddress(contractId, box.token_id, box.epoch).then(async addr => { if (cancelled) return; try { setSol({ addr, v: (Number(await solanaBalance(addr, solRpc)) / 1e9).toFixed(6) }); } catch (e) { setSol({ addr, v: '', err: `Setup required: VITE_SOLANA_RPC_URL (${(e as Error).message})` }); } }).catch(() => {});
+    solanaAddress(contractId, box.token_id, box.epoch).then(async addr => { if (cancelled) return; try { if (!solanaUrl) throw new Error('not configured'); setSol({ addr, v: (Number(await solanaBalance(addr, solanaUrl)) / 1e9).toFixed(6) }); } catch (e) { setSol({ addr, v: '', err: `Setup required: VITE_SOLANA_RPC_URL (${(e as Error).message})` }); } }).catch(() => {});
     return () => { cancelled = true; };
   }, [box?.token_id, box?.epoch, Math.floor(clock / 15000)]);
 
@@ -74,7 +73,7 @@ export default function VaultPage({ id, wallet }: Props) {
   async function activatePolicy() { await run(async () => { if (!box) throw new Error('Select a vault'); const secret = await secretKey(); if (!guardian || !recovery) throw new Error('Enter your guardian and recovery address'); const policy = policyFromForm(); const data = Buffer.from(JSON.stringify(policy)); const signature = signAuthorization(secret, box.token_id, box.nonce, data); if (!verifyAuthorization(Uint8Array.from(box.pq_key || []), signature, box.token_id, box.nonce, data)) throw new Error('Key file does not match this vault'); await invoke('set_policy', { token_id: box.token_id, policy, nonce: box.nonce, signature: b64(signature) }); }); }
   async function requestSend() { await run(async () => { if (!box || !addresses) throw new Error('Select a box'); const secret = await secretKey(); if (!/^0x[0-9a-fA-F]{40}$/.test(sendTo)) throw new Error('Enter a valid Ethereum destination'); const pub = Uint8Array.from(box.pq_key || []); const nonce = Number(await evm('eth_getTransactionCount', [addresses.ethereum, 'pending'])); const gasPrice = BigInt(await evm('eth_gasPrice', [])); const amount = BigInt(Math.round(Number(sendAmount) * 1e18)); const raw = unsignedEthTransfer({ chainId: 31337, nonce, to: sendTo as `0x${string}`, value: amount, maxFeePerGas: gasPrice * 2n, maxPriorityFeePerGas: gasPrice }); const bytes = Buffer.from(raw.slice(2), 'hex'); const signature = signAuthorization(secret, box.token_id, box.nonce, bytes); if (!verifyAuthorization(pub, signature, box.token_id, box.nonce, bytes)) throw new Error('Key file does not match this vault'); await invoke('request_eth_spend', { token_id: box.token_id, raw_unsigned_hex: raw, nonce: box.nonce, signature: b64(signature) }); }); }
   async function clawback(s: Spend) { await run(async () => { if (!box || !addresses) throw new Error('Select a box'); const nonce = Number(await evm('eth_getTransactionCount', [addresses.ethereum, 'pending'])); const gasPrice = BigInt(await evm('eth_gasPrice', [])); const raw = unsignedEthTransfer({ chainId: 31337, nonce, to: box.policy.recovery_eth as `0x${string}`, value: BigInt(s.amount_wei), maxFeePerGas: gasPrice * 2n, maxPriorityFeePerGas: gasPrice }); await invoke('guardian_clawback_eth', { spend_id: s.id, recovery_tx_hex: raw }); }); }
-  async function broadcast(s: Spend) { await run(async () => { if (!s.signature_json) throw new Error('MPC signature unavailable'); const signed = signedEthTransaction(s.raw_unsigned_hex as `0x${string}`, s.signature_json); const hash = await broadcastEth(signed, anvilUrl); setStatus(`Anvil accepted transaction ${hash}`); setTxHash(''); }); }
+  async function broadcast(s: Spend) { await run(async () => { if (!anvilUrl) throw new Error('Setup required: VITE_ANVIL_RPC_URL'); if (!s.signature_json) throw new Error('MPC signature unavailable'); const signed = signedEthTransaction(s.raw_unsigned_hex as `0x${string}`, s.signature_json); const hash = await broadcastEth(signed, anvilUrl); setStatus(`Anvil accepted transaction ${hash}`); setTxHash(''); }); }
 
   const pending = spends.filter(s => s.state === 'pending' || s.state === 'signing');
   const policyActive = !!box && box.policy.recovery_eth !== ZERO_ETH;
