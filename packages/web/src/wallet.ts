@@ -44,10 +44,11 @@ export function useWallet(): Wallet {
   const [error, setError] = useState('');
   useEffect(() => {
     setupWalletSelector({ network: 'testnet', modules: [setupMeteorWallet()] })
-      .then(async s => { setSelector(s); const w = await s.wallet(WALLET_ID); const a = await w.getAccounts(); setAccount(a[0]?.accountId || ''); })
+      .then(s => { setSelector(s); const a = s.store.getState().accounts; setAccount(a.find(a => a.active)?.accountId || ''); })
       .catch(e => setError(e.message));
   }, []);
   async function connect() {
+    setError('');
     try {
       if (!contractId) throw new Error('Setup required: VITE_HAKO_CONTRACT');
       if (!selector) throw new Error('Wallet selector is still loading');
