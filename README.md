@@ -233,6 +233,8 @@ Otzar was formerly Hako. The Phylax recovery, Athanatos wallet, and Tsuna covere
 
 **AI-assisted code (Q-005).** Built with AI coding agents (Claude Code, Codex) under human direction; all code reviewed and tested by the team.
 
+**Art.** 3D art generated with ChatGPT (the polished jade and gold objects in `packages/web/public/art/3d`; kit in [docs/ART-3D.md](docs/ART-3D.md)). The other illustrations in `packages/web/public/art` were also generated with ChatGPT ([docs/ART.md](docs/ART.md)).
+
 **Other projects by the same team in this hackathon (Q-015)**
 
 Lead: <TBD by Nick>
