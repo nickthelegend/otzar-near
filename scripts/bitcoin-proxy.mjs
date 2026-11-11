@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 
 const port=Number(process.env.HAKO_BITCOIN_PROXY_PORT||3007);
 const webOrigin=process.env.HAKO_WEB_ORIGIN||'http://127.0.0.1:5173';
+const rpcUrl=new URL(process.env.HAKO_BITCOIN_RPC_URL||'http://127.0.0.1:18443/');
+if(rpcUrl.protocol!=='http:'||!['127.0.0.1','localhost'].includes(rpcUrl.hostname))throw new Error('Bitcoin proxy requires a local regtest RPC');
 const cookieFile=resolve('.demo/bitcoin/regtest/.cookie');
 createServer(async(req,res)=>{
   if(req.headers.origin && req.headers.origin!==webOrigin){res.writeHead(403);res.end();return;}
@@ -23,7 +25,7 @@ createServer(async(req,res)=>{
       if(typeof raw!=='string'||!/^[0-9a-f]{100,8000}$/i.test(raw))throw new Error('invalid signed transaction');
       method='sendrawtransaction';params=[raw];
     }else{method='scantxoutset';params=['start',[`addr(${match[1]})`]];}
-    const response=await fetch('http://127.0.0.1:18443/',{method:'POST',headers:{'content-type':'application/json',authorization:`Basic ${Buffer.from(cookie).toString('base64')}`},body:JSON.stringify({jsonrpc:'1.0',id:'hako',method,params})});
+    const response=await fetch(rpcUrl,{method:'POST',headers:{'content-type':'application/json',authorization:`Basic ${Buffer.from(cookie).toString('base64')}`},body:JSON.stringify({jsonrpc:'1.0',id:'hako',method,params})});
     if(!response.ok)throw new Error(`bitcoind HTTP ${response.status}`);
     const result=await response.json();if(result.error)throw new Error(JSON.stringify(result.error));
     if(req.method==='POST'){res.end(JSON.stringify({txid:result.result}));return;}
