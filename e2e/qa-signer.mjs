@@ -22,6 +22,7 @@ const date = new Date().toISOString().slice(0, 10), recordFile = `deployments/qa
 const record = existsSync(recordFile) ? JSON.parse(readFileSync(recordFile, 'utf8')) : { date, network: 'NEAR testnet + Bitcoin Core regtest', capNEAR: 0.3, runs: [] };
 const resume = process.env.QA_RESUME_RUN ? record.runs.find(r => r.id === process.env.QA_RESUME_RUN) : null;
 if (process.env.QA_RESUME_RUN) assert(resume, 'Unknown QA resume run');
+if (resume?.status === 'PASS') throw new Error('QA run already passed; its regtest fixture is consumed. See the saved receipts. Do not repeat spending or delete evidence to bypass the cumulative cap.');
 const id = resume?.id || Date.now().toString(36), run = resume || { id, started: new Date().toISOString(), status: 'RUNNING', tokenId: `qa-web-${id}`, resaleTokenId: prior.tokenId, steps: [], screenshots: [], checks: [], consoleErrors: [], failures: [] };
 if (!resume) record.runs.push(run);
 run.attempts ||= []; run.attempts.push({ started: new Date().toISOString(), previousStatus: run.status, previousError: run.error || null });
@@ -112,7 +113,7 @@ async function tools(page, tab) { const fold = page.locator('#manage'); if (!awa
 async function profile(page, name, selector = 'a.vt-row') { await click(page.locator('a[href="/you"]:visible').first()); await page.locator('.s-balance').waitFor(); await page.locator(selector).filter({ hasText: name }).first().waitFor({ timeout: 90000 }); await snap(page, 'profile-' + page.qaActor + '-' + name); }
 
 try {
-  const b = await budget(); assert(b.total + (resume ? 2n : 6n) * 10n ** 22n < cap, 'QA stopped before writes: less than 0.06 NEAR remains in the cumulative budget'); save();
+  const b = await budget(); assert(b.total + (resume ? 2n : 6n) * 10n ** 22n < cap, `QA stopped before writes: less than ${resume ? '0.02' : '0.06'} NEAR remains in the cumulative budget`); save();
   console.log(`QA preflight: cumulative ${run.budget.totalNEAR.toFixed(6)} NEAR, cap 0.3`);
   const prodDir = join(out, 'production-build'), qaDir = join(out, 'qa-build');
   await command(['--filter', '@hako/sdk', 'build'], 'sdk-build');
