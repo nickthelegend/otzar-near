@@ -91,7 +91,7 @@ async function contextFor(label, base) {
   const ctx = await browser.newContext({ viewport: { width: label === 'buyer' ? 375 : 1440, height: 1000 }, acceptDownloads: true });
   await ctx.addInitScript(data => { window.__OTZAR_QA_SIGNER__ = data; }, { accountId: credential.id, privateKey: credential.key, rpcUrl: RPC });
   credential.key = '';
-  const page = await ctx.newPage(); await page.exposeFunction('__OTZAR_QA_BUDGET_CHECK__', guard); await page.exposeFunction('__OTZAR_QA_RECORD__', receipt);
+  const page = await ctx.newPage(); page.qaActor = label; await page.exposeFunction('__OTZAR_QA_BUDGET_CHECK__', guard); await page.exposeFunction('__OTZAR_QA_RECORD__', receipt);
   page.on('pageerror', e => { run.failures.push(safe(e)); save(); });
   page.on('console', m => { if (m.type() === 'error') { run.consoleErrors.push(m.text().replace(/ed25519:[1-9A-HJ-NP-Za-km-z]{80,100}/g, '[redacted]')); save(); } });
   await page.goto(base + '/app'); await page.locator('a.vt-row').first().waitFor({ timeout: 90000 });
@@ -109,7 +109,7 @@ async function mint(page, name) {
   await page.waitForURL('**/vault/' + name); await page.locator('.s-vhead h1').waitFor(); await snap(page, 'minted-' + name);
 }
 async function tools(page, tab) { const fold = page.locator('#manage'); if (!await fold.getAttribute('open')) { if (!await fold.evaluate(e => e.open)) await click(fold.locator('summary')); } await click(page.getByRole('tab', { name: tab, exact: true })); }
-async function profile(page, name, selector = 'a.vt-row') { await click(page.locator('a[href="/you"]:visible').first()); await page.locator('.s-balance').waitFor(); await page.locator(selector).filter({ hasText: name }).first().waitFor({ timeout: 90000 }); await snap(page, 'profile-' + name); }
+async function profile(page, name, selector = 'a.vt-row') { await click(page.locator('a[href="/you"]:visible').first()); await page.locator('.s-balance').waitFor(); await page.locator(selector).filter({ hasText: name }).first().waitFor({ timeout: 90000 }); await snap(page, 'profile-' + page.qaActor + '-' + name); }
 
 try {
   const b = await budget(); assert(b.total + (resume ? 2n : 6n) * 10n ** 22n < cap, 'QA stopped before writes: less than 0.06 NEAR remains in the cumulative budget'); save();
@@ -208,9 +208,9 @@ try {
           await buyer.page.getByLabel('Price (NEAR)', { exact: true }).fill('0.001'); await snap(buyer.page, 'nft-sale-form');
           await txClick(buyer.page, buyer.page.getByRole('button', { name: 'List for sale', exact: true }), 'list');
         } else assert.equal(sale.listed_yocto, '1000000000000000000000');
-        await snap(buyer.page, 'nft-listed-receipt');
+        await buyer.page.locator('.sale-price').waitFor(); await snap(buyer.page, 'nft-listed-receipt');
         await page.goto(base + '/vault/' + prior.tokenId); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await tools(page, 'Sell');
-        await txClick(page, page.getByRole('button', { name: 'Buy this vault', exact: true }), 'buy'); await snap(page, 'nft-bought-receipt');
+        await txClick(page, page.getByRole('button', { name: 'Buy this vault', exact: true }), 'buy'); await page.locator('.sale-price').waitFor({ state: 'detached' }); await snap(page, 'nft-bought-receipt');
       } else assert.equal(sale.owner_id, ids.seller, 'Empty QA sale vault owner changed');
       assert.equal((await view('nft_token', { token_id: prior.tokenId })).owner_id, ids.seller); await profile(page, prior.tokenId);
       await page.goto(base + '/vault/' + run.tokenId); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await page.getByText('your vault', { exact: false }).first().waitFor(); await snap(page, 'writer-sold-round');
@@ -230,8 +230,8 @@ try {
       await page.reload(); await page.locator('.s-vhead h1').waitFor(); await connectIfNeeded(page); await page.locator('.keyslot input[type=file]').setInputFiles(keyPath);
       await waitFor(async () => (await page.locator('body').innerText()).includes('Expired, BTC kept'), 'App did not show OTM settlement'); await click(page.getByRole('tab', { name: 'Withdraw', exact: true })); await snap(page, 'otm-unlocked');
       await click(page.getByRole('button', { name: 'Withdraw BTC', exact: true })); await page.getByLabel('Destination', { exact: true }).fill(destination); await page.getByLabel(/^Amount \(sats\)/).fill('100000');
-      await txClick(page, page.getByRole('button', { name: 'Sign and request spend', exact: true }), 'request_btc_spend'); await snap(page, 'withdrawal-request-receipt');
-      await txClick(page, page.getByRole('button', { name: 'Sign via NEAR MPC', exact: true }), 'execute_btc'); await snap(page, 'withdrawal-signature-receipt');
+      await txClick(page, page.getByRole('button', { name: 'Sign and request spend', exact: true }), 'request_btc_spend'); await page.getByRole('button', { name: 'Sign via NEAR MPC', exact: true }).waitFor(); await snap(page, 'withdrawal-request-receipt');
+      await txClick(page, page.getByRole('button', { name: 'Sign via NEAR MPC', exact: true }), 'execute_btc'); await page.getByRole('button', { name: 'Broadcast to Bitcoin Core', exact: true }).waitFor(); await snap(page, 'withdrawal-signature-receipt');
       await click(page.getByRole('button', { name: 'Broadcast to Bitcoin Core', exact: true })); await page.getByText('Bitcoin Core accepted', { exact: false }).waitFor();
       const accepted = await page.getByText('Bitcoin Core accepted', { exact: false }).innerText(), hash = accepted.match(/[a-f0-9]{64}/)?.[0]; assert(hash); await btc('generatetoaddress', [1, destination]); const foreign = await btc('getrawtransaction', [hash, true]); assert(foreign.confirmations > 0); assert(foreign.vout.some(v => v.scriptPubKey.address === destination && Math.round(v.value * 1e8) === 100000)); run.bitcoin.withdrawalTx = hash; run.bitcoin.confirmations = foreign.confirmations; save(); await snap(page, 'bitcoin-broadcast-result');
       await profile(page, run.tokenId); await click(page.getByRole('button', { name: 'Sign out', exact: true })); await page.locator('.s-connect').waitFor(); await snap(page, 'signed-out');
