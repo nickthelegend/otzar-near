@@ -306,7 +306,7 @@ export default function VaultPage({ id, wallet }: Props) {
             <span className="s-swap" aria-hidden="true"><Icon name="arrow" size={16} /></span>
             <div className="s-box">
               <div className="s-box-top"><span className="coin coin-jade">%</span><b>The vault earns</b><small>premium in {TUSDC_SYMBOL}</small></div>
-              <p className="s-box-big"><CountUp value={rounds.data ? apy : null} decimals={2} suffix="%" /><small><Term tip={TERMS.apy}>realised APY</Term></small></p>
+              <p className="s-box-big">{rounds.data && apy === null ? '—' : <CountUp value={apy} decimals={2} suffix="%" />}<small><Term tip={TERMS.apy}>realised APY</Term></small></p>
               <p className="s-box-foot"><span>Right now</span><span>{ph ? (ph.phase === 'other' ? ph.label : PLAIN[ph.phase]) : 'No round yet'}</span></p>
             </div>
             {!account ? <button className="pill pill-gold pill-block pill-lg" onClick={connect} disabled={!wallet.ready}><Icon name="wallet" size={17} /> Connect wallet</button>

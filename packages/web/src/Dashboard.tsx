@@ -50,7 +50,7 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
       <section className="s-summary" aria-label="What Otzar vaults earned">
         <div className="s-summary-num">
           <p className="s-k"><Term tip={TERMS.apy}>Realised APY</Term>, all vaults</p>
-          <b className="gold-num"><CountUp value={s ? s.blended : null} decimals={2} suffix="%" /></b>
+          <b className="gold-num">{s && s.blended === null ? '—' : <CountUp value={s ? s.blended : null} decimals={2} suffix="%" />}</b>
           <p className="s-summary-line">{s ? <><Amount e6={s.earned} unit={TUSDC_SYMBOL} /> premium paid over {s.paid.length} {s.paid.length === 1 ? 'round' : 'rounds'} · {boxes.data ? `${boxes.data.length} vaults` : '…'}</> : rounds.error ? <span className="bad">{rounds.error}</span> : 'Reading the rounds…'}</p>
         </div>
         <div className="s-summary-chart">

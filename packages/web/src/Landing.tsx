@@ -42,7 +42,7 @@ export default function Landing() {
           {artSrc('otzar-hero') && <img src={artSrc('otzar-hero')!} alt="A carved jade vault holding gold coins" loading="eager" />}
           <aside className="s-proof" aria-label="Live from NEAR testnet" aria-live="polite">
             <p className="s-proof-top"><i className="live-dot" />Live on NEAR testnet</p>
-            <b className="s-proof-num"><CountUp value={sum?.blended ?? null} decimals={2} suffix="%" /></b>
+            <b className="s-proof-num">{sum && sum.blended === null ? '—' : <CountUp value={sum?.blended ?? null} decimals={2} suffix="%" />}</b>
             <p className="s-proof-k"><Term tip={TERMS.apy}>Realised APY</Term></p>
             <p className="s-proof-line">{sum ? <><Amount e6={sum.earned} unit={TUSDC_SYMBOL} /> paid over {sum.paid.length} {sum.paid.length === 1 ? 'round' : 'rounds'}</> : rounds.error ? <span className="bad">{rounds.error}</span> : 'Reading the rounds…'}</p>
           </aside>
