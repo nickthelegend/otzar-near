@@ -142,7 +142,7 @@ export default function VaultPage({ id, wallet }: Props) {
           <div className="s-list-head"><h2>{latest ? `Latest round · ${utcDay(latest.opened_ns)}` : 'Latest round'}</h2>{latest && <><PhasePill c={latest} now={now} plain /><button className="pill pill-line pill-sm" onClick={() => setSheet(latest)}>Details <Icon name="arrow" size={14} /></button></>}</div>
           {latest ? <>
             <p className="s-round-say">{roundSentence(latest, now)}</p>
-            <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'BTC settled' : 'BTC now (relayer)'} />
+            <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'BTC settled' : 'Last relayer price'} />
             <div className="cr-loop"><Loop c={latest} now={now} horizontal /></div>
           </> : <State kind="empty" title="No rounds yet" action={mine ? <button className="pill pill-jade pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from Owner tools, signed with the vault's quantum key.</State>}
         </section>

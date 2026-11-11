@@ -30,7 +30,7 @@ export default function How() {
       {lead && <section className="doc-sec">
         <h2>A real round on testnet</h2>
         <p className="doc-round">{roundSentence(lead, now)}</p>
-        <StrikeSpot c={lead} spotE6={lead.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null} spotLabel={lead.oracle_price_usd_e6 ? 'BTC settled' : 'BTC now'} />
+        <StrikeSpot c={lead} spotE6={lead.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null} spotLabel={lead.oracle_price_usd_e6 ? 'BTC settled' : 'Last relayer price'} />
         <p className="doc-note">{utcDay(lead.opened_ns)}. Test rounds ran for about four minutes on a test token, so read the yield as a demo, not a forecast. <Link to={`/vault/${lead.token_id}`}>Open this vault</Link>.</p>
       </section>}
 
