@@ -126,7 +126,7 @@ export default function VaultPage({ id, wallet }: Props) {
       <div className="s-vhead-copy">
         <p className="s-k">{TYPE_LABEL[type]}{mine ? ' · your vault' : ''}</p>
         <h1>{box.token_id}</h1>
-        <p className="s-vhead-say">Holds native Bitcoin and sells covered calls on it. Owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 16, 8)}</a>{sealed ? <>, sealed with a <Term tip={TERMS.mldsa}>post-quantum key</Term>.</> : '. No quantum key yet.'}</p>
+        <p className="s-vhead-say">A NEAR vault for native Bitcoin, Ethereum and Solana. Owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 16, 8)}</a>{sealed ? <>, sealed with a <Term tip={TERMS.mldsa}>post-quantum key</Term>.</> : '. No quantum key yet.'}</p>
       </div>
       <dl className="s-vfigs">
         <div><dt><Term tip={TERMS.apy}>Earned</Term></dt><dd className="gold-num">{rounds.data ? pct(apy, 2) : '…'}</dd></div>

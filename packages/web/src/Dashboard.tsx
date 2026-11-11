@@ -42,7 +42,7 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
 
   return <div className="page s-app">
     <header className="s-page-head">
-      <div><h1>Vaults</h1><p>Each vault holds Bitcoin and sells covered calls on it.</p></div>
+      <div><h1>Vaults</h1><p>Browse Bitcoin vaults and their covered-call rounds.</p></div>
       {wallet.account && <button className="pill pill-line pill-sm" onClick={() => setMint(true)}><Icon name="plus" size={15} /> New vault</button>}
     </header>
 
