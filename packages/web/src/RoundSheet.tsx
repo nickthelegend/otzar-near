@@ -3,6 +3,7 @@ import { useCallConfig, useNow, useTusdc, view } from './data';
 import { annualisedPct, btcFromSats, contractId, e6, nearblocksAccount, nearblocksTx, roundPhase, short, tenorLabel, TUSDC_SYMBOL, utcDay, utcTime, type Round } from './lib';
 import { AprRange, evidenceFor, Loop, pct } from './rounds';
 import { Amount, Icon, Link, Sheet } from './ui';
+import { Obj } from './art';
 import { sendCall, type Wallet } from './wallet';
 
 /** One covered-call round in full: verdict, auction band, live loop with tx links, terms, and Buy while the auction is open. */
@@ -48,8 +49,8 @@ export function RoundSheet({ r, wallet, onClose }: { r: Round; wallet: Wallet; o
       {wallet.account ? <button className="pill pill-gold" onClick={buy} disabled={busy || !asking}>{busy ? 'Signing…' : `Buy with ${TUSDC_SYMBOL}`}</button>
         : <button className="pill pill-jade" onClick={wallet.connect} disabled={!wallet.ready}>Connect to buy</button>}
     </div>}
-    {err && <p className="err-line" role="alert">{err}</p>}
-    {msg && <p className="ok-line" role="status">{msg} {hash && <a href={nearblocksTx(hash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={12} /></a>}</p>}
+    {err && <p className="err-line line-obj" role="alert"><Obj name="warning" size={32} alt="" /><span>{err}</span></p>}
+    {msg && <p className={`ok-line ${hash ? 'line-obj' : ''}`} role="status">{hash && <Obj name="seal" size={32} alt="" />}<span>{msg} {hash && <a href={nearblocksTx(hash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={12} /></a>}</span></p>}
     <div className="sheet-actions">
       <Link to={`/vault/${r.token_id}`} className="pill pill-line">Open the vault <Icon name="arrow" size={15} /></Link>
     </div>

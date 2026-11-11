@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { contractId, navigate, nearblocksTx } from './lib';
 import { Field, Icon, Sheet } from './ui';
+import { Obj } from './art';
 import { sendCall, type Wallet } from './wallet';
 
 function toWei(eth: string) { if (!/^\d+(\.\d{1,18})?$/.test(eth.trim())) throw new Error('Enter the daily cap in ETH, e.g. 0.01'); const [w, f = ''] = eth.trim().split('.'); const v = BigInt(w) * 10n ** 18n + BigInt((f + '0'.repeat(18)).slice(0, 18)); if (v <= 0n) throw new Error('Daily cap must be above zero'); return v.toString(); }
@@ -30,8 +31,8 @@ export function MintSheet({ wallet, onClose }: { wallet: Wallet; onClose: () => 
       <Field label="Recovery ETH address"><input value={recovery} onChange={e => setRecovery(e.target.value)} placeholder="0x…" spellCheck={false} /></Field>
       <div className="form-grid"><Field label="Daily cap (ETH)"><input value={cap} onChange={e => setCap(e.target.value)} inputMode="decimal" /></Field>
         <Field label="Allowlist" hint="Optional, comma separated"><input value={allow} onChange={e => setAllow(e.target.value)} placeholder="0x…" spellCheck={false} /></Field></div>
-      {err && <p className="err-line" role="alert">{err}</p>}
-      {hash && <p className="ok-line">Minted. <a href={nearblocksTx(hash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={12} /></a></p>}
+      {err && <p className="err-line line-obj" role="alert"><Obj name="warning" size={32} alt="" /><span>{err}</span></p>}
+      {hash && <p className="ok-line line-obj" role="status"><Obj name="seal" size={32} alt="" /><span>Minted. <a href={nearblocksTx(hash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={12} /></a></span></p>}
       {wallet.account ? <button className="pill pill-jade pill-block" type="submit" disabled={busy}>{busy ? 'Signing…' : 'Mint on NEAR testnet'}</button>
         : <button className="pill pill-jade pill-block" type="button" onClick={wallet.connect} disabled={!wallet.ready}>Connect a NEAR testnet wallet</button>}
     </form>

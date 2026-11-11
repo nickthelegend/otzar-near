@@ -6,6 +6,7 @@ import { useBoxes, useLive, useNow, useRelayer, useRounds } from './data';
 import { ago, anvilUrl, contractId, e6, esploraUrl, nearblocksAccount, nearblocksTx, TUSDC_SYMBOL, utcDay } from './lib';
 import { evidenceMeta } from './rounds';
 import { Icon, Link } from './ui';
+import { Obj } from './art';
 import { SiteFoot, SiteNav } from './Landing';
 
 /** How it works, written like a docs page: prose, one real round, the safety rules, the NEAR parts and questions. */
@@ -22,20 +23,20 @@ export default function How() {
       <h1>How Otzar works</h1>
       <p className="doc-lede">A covered call, run by a contract on NEAR, on Bitcoin that stays Bitcoin.</p>
       <ol className="doc-steps">
-        <li><b>You put Bitcoin in a vault.</b> Each vault is an NFT in your NEAR wallet with its own native Bitcoin address. No bridge, no wrapped coin.</li>
-        <li><b>You offer it at a higher price.</b> Pick a price above today’s (the strike). A buyer pays you a premium now for the right to buy at that price when the round ends.</li>
-        <li><b>You keep the premium.</b> If BTC ends below the strike, you keep your BTC too. If it ends above, you sell at the strike and give up the gain past it.</li>
+        <li><Obj name="vault" size={72} /><p><b>You put Bitcoin in a vault.</b> Each vault is an NFT in your NEAR wallet with its own native Bitcoin address. No bridge, no wrapped coin.</p></li>
+        <li><Obj name="strike" size={72} /><p><b>You offer it at a higher price.</b> Pick a price above today’s (the strike). A buyer pays you a premium now for the right to buy at that price when the round ends.</p></li>
+        <li><Obj name="coin-stack" size={72} /><p><b>You keep the premium.</b> If BTC ends below the strike, you keep your BTC too. If it ends above, you sell at the strike and give up the gain past it.</p></li>
       </ol>
 
       {lead && <section className="doc-sec">
-        <h2>A real round on testnet</h2>
+        <h2 className="doc-h-obj"><Obj name="hourglass" size={48} />A real round on testnet</h2>
         <p className="doc-round">{roundSentence(lead, now)}</p>
         <StrikeSpot c={lead} spotE6={lead.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null} spotLabel={lead.oracle_price_usd_e6 ? 'BTC settled' : 'Last relayer price'} />
         <p className="doc-note">{utcDay(lead.opened_ns)}. Test rounds ran for about four minutes on a test token, so read the yield as a demo, not a forecast. <Link to={`/vault/${lead.token_id}`}>Open this vault</Link>.</p>
       </section>}
 
       <section className="doc-sec" id="safety">
-        <h2>What keeps it safe</h2>
+        <h2 className="doc-h-obj"><Obj name="shield" size={48} />What keeps it safe</h2>
         <p>Bitcoin can’t enforce a spending cap, a delay, a guardian or an heir. The Otzar contract on NEAR does, before it asks for a signature.</p>
         <Safety />
       </section>
@@ -67,7 +68,7 @@ export default function How() {
       </section>
 
       <section className="doc-sec" id="scan">
-        <h2>Is your address already exposed?</h2>
+        <h2 className="doc-h-obj"><Obj name="key" size={48} />Is your address already exposed?</h2>
         <p>Paste a Bitcoin or Ethereum address, or a P2PK public key, to see whether its public key is already visible on chain.</p>
         <ExposureScanner target={null} targetUsable={false} bitcoinProxy={esploraUrl} anvilRpc={anvilUrl} />
       </section>

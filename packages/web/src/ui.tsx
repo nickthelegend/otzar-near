@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 export { Mark, Wordmark } from './art';
-import { artSrc } from './art';
+import { Obj, type ObjName } from './art';
 import { countdown, navigate } from './lib';
 
 export type IconName = 'key' | 'lock' | 'clock' | 'coin' | 'shield' | 'arrow' | 'copy' | 'check' | 'external' | 'send' | 'heir' | 'tag' | 'scan' | 'plus' | 'box' | 'spark' | 'x' | 'back' | 'user' | 'grid' | 'wave' | 'refresh' | 'wallet';
@@ -153,10 +153,12 @@ export const TERMS = {
   mldsa: 'ML-DSA-65: a post-quantum signature. Only this key can ask to move the vault’s coins.',
 } as const;
 
+// Empty, setup and error states carry one 3D object; loading keeps the small pulse.
+const STATE_OBJ: Partial<Record<'loading' | 'empty' | 'error' | 'setup', ObjName>> = { empty: 'empty-vault', setup: 'key', error: 'warning' };
 export function State({ kind, title, children, action }: { kind: 'loading' | 'empty' | 'error' | 'setup'; title: string; children?: ReactNode; action?: ReactNode }) {
-  const empty = (kind === 'empty' || kind === 'setup') && artSrc('otzar2-empty');
-  return <div className={`state state-${kind} ${empty ? 'state-art' : ''}`} role={kind === 'error' ? 'alert' : 'status'}>
-    {empty ? <img className="state-img" src={empty} alt="" /> : <span className="state-mark" aria-hidden="true">{kind === 'loading' ? <i className="pulse" /> : kind === 'error' ? '!' : kind === 'setup' ? '◇' : <Icon name="box" size={18} />}</span>}
+  const obj = STATE_OBJ[kind];
+  return <div className={`state state-${kind} ${obj ? 'state-art' : ''}`} role={kind === 'error' ? 'alert' : 'status'}>
+    {obj ? <Obj name={obj} size={88} className="state-img" alt="" /> : <span className="state-mark" aria-hidden="true"><i className="pulse" /></span>}
     <div><strong>{title}</strong>{children && <p>{children}</p>}{action}</div>
   </div>;
 }

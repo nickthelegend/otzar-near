@@ -7,7 +7,7 @@ import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
 import { annualisedPct, anvilUrl, callLocksVault, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, solanaUrl, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Term, TERMS, Timeline } from './ui';
-import { CountUp } from './art';
+import { CountUp, Obj } from './art';
 import { useNow, useRelayer, useRounds } from './data';
 import { PhasePill, plainRoundLabel, roundSentence, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
 import { RoundSheet } from './RoundSheet';
@@ -139,7 +139,7 @@ export default function VaultPage({ id, wallet }: Props) {
     <div className="v-grid">
       <div className="v-main">
         <section className="card s-thisround" aria-label="Latest round">
-          <div className="s-list-head"><h2>{latest ? `Latest round · ${utcDay(latest.opened_ns)}` : 'Latest round'}</h2>{latest && <><PhasePill c={latest} now={now} plain /><button className="pill pill-line pill-sm" onClick={() => setSheet(latest)}>Details <Icon name="arrow" size={14} /></button></>}</div>
+          <div className="s-list-head"><Obj name="hourglass" size={44} className="head-obj" /><h2>{latest ? `Latest round · ${utcDay(latest.opened_ns)}` : 'Latest round'}</h2>{latest && <><PhasePill c={latest} now={now} plain /><button className="pill pill-line pill-sm" onClick={() => setSheet(latest)}>Details <Icon name="arrow" size={14} /></button></>}</div>
           {latest ? <>
             <p className="s-round-say">{roundSentence(latest, now)}</p>
             <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'BTC settled' : 'Last relayer price'} />
@@ -161,7 +161,7 @@ export default function VaultPage({ id, wallet }: Props) {
 
         <div className="s-folds">
           <details className="s-fold">
-            <summary><span><b>How this vault earns</b><small>The covered call, step by step</small></span><Icon name="plus" size={18} /></summary>
+            <summary><Obj name="strike" size={44} className="fold-obj" /><span><b>How this vault earns</b><small>The covered call, step by step</small></span><Icon name="plus" size={18} /></summary>
             <div className="strat-grid">
               <div className="strat-copy">
                 <p>The owner offers to sell this vault's BTC at a set price. A buyer pays a premium in <Term tip={TERMS.tusdc}>{TUSDC_SYMBOL}</Term> for that right, and the vault keeps it either way.</p>
@@ -184,7 +184,7 @@ export default function VaultPage({ id, wallet }: Props) {
           </details>
 
           <details className="s-fold">
-            <summary><span><b>Safety locks</b><small>{[sealed ? 'Quantum key' : 'No key', policyActive ? `${box.policy.delay_sec}s delay` : 'No rules', box.policy.guardian ? 'Guardian' : 'No guardian'].join(' · ')}</small></span><Icon name="plus" size={18} /></summary>
+            <summary><Obj name="shield" size={44} className="fold-obj" /><span><b>Safety locks</b><small>{[sealed ? 'Quantum key' : 'No key', policyActive ? `${box.policy.delay_sec}s delay` : 'No rules', box.policy.guardian ? 'Guardian' : 'No guardian'].join(' · ')}</small></span><Icon name="plus" size={18} /></summary>
             <div className="tumblers">
               <div className={sealed ? 'on' : ''}><Icon name="key" size={18} /><b>{sealed ? 'ML-DSA-65' : 'No key'}</b><span>who can spend</span></div>
               <div className={policyActive ? 'on' : ''}><Icon name="clock" size={18} /><b>{policyActive ? `${box.policy.delay_sec}s delay` : 'Not set'}</b><span>spending rules</span></div>
@@ -195,7 +195,7 @@ export default function VaultPage({ id, wallet }: Props) {
           </details>
 
           <details className="s-fold" id="manage" open={toolsOpen} onToggle={e => setToolsOpen((e.currentTarget as HTMLDetailsElement).open)}>
-            <summary><span><b>Owner tools</b><small>Key, rules, send, rounds, recovery and sale</small></span><Icon name="plus" size={18} /></summary>
+            <summary><Obj name="key" size={44} className="fold-obj" /><span><b>Owner tools</b><small>Key, rules, send, rounds, recovery and sale</small></span><Icon name="plus" size={18} /></summary>
             <div className="manage">
               {!account && <div className="readonly"><Icon name="lock" /><span>You're viewing live contract state. Connect a NEAR testnet wallet to sign.</span><button className="pill pill-line pill-sm" onClick={connect}>Connect</button></div>}
               <div className="keyslot">
@@ -334,7 +334,7 @@ export default function VaultPage({ id, wallet }: Props) {
     </div>
 
     {(status || error) && <div className={`toast ${error ? 'toast-bad' : ''}`} role={error ? 'alert' : 'status'}>
-      <span>{error || status}</span>
+      {(error || txHash) && <Obj name={error ? 'warning' : 'seal'} size={36} className="toast-obj" alt="" />}<span>{error || status}</span>
       {txHash && !error && <a href={nearblocksTx(txHash)} target="_blank" rel="noreferrer">View on NearBlocks <Icon name="external" size={14} /></a>}
       <button className="toast-x" onClick={() => { setError(''); setStatus(''); }} aria-label="Dismiss">×</button>
     </div>}

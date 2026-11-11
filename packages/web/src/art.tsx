@@ -57,6 +57,18 @@ export function Art({ name, className = '', alt = '', fallback = ['vault', 'coin
   return <img className={`art-img ${className}`} src={src} alt={alt} loading="eager" />;
 }
 
+/** The 3D object kit (docs/ART-3D.md): polished jade and gold objects in public/art/3d, one per card or header. */
+export type ObjName = 'vault' | 'btc-coin' | 'hourglass' | 'strike' | 'key' | 'shield' | 'nft-card' | 'coin-stack' | 'empty-vault' | 'seal' | 'warning' | 'mark';
+const OBJ_ALT: Record<ObjName, string> = {
+  vault: 'A closed jade vault with a gold dial', 'btc-coin': 'A gold coin with a jade rim', hourglass: 'A jade and gold hourglass',
+  strike: 'Rising jade columns under a gold price line', key: 'A jade key with a gold lattice bow', shield: 'A jade shield with a gold padlock',
+  'nft-card': 'A jade vault card with a gold dial', 'coin-stack': 'A stack of gold coins topped with a jade coin', 'empty-vault': 'An open, empty jade vault',
+  seal: 'A gold seal with a jade check mark', warning: 'A gold warning sign', mark: 'A jade tile with a gold vault dial',
+};
+export function Obj({ name, size = 56, float = false, className = '', alt }: { name: ObjName; size?: number; float?: boolean; className?: string; alt?: string }) {
+  return <img className={`obj3d ${float ? 'obj3d-float' : ''} ${className}`} src={`/art/3d/otzar-3d-${name}.webp`} width={size} height={size} alt={alt ?? OBJ_ALT[name]} decoding="async" />;
+}
+
 /** Counts up to a live number once it is known; static when the user prefers reduced motion. */
 export function CountUp({ value, decimals = 2, suffix = '', duration = 1200 }: { value: number | null; decimals?: number; suffix?: string; duration?: number }) {
   const [shown, setShown] = useState<number | null>(null);

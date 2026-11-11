@@ -6,7 +6,7 @@ import { useBoxes, useNow, useRounds, useTusdc, useTxns } from './data';
 import { annualisedPct, anvilUrl, btcFromSats, contractId, earnedSummary, esploraUrl, nearblocksAccount, short, TUSDC_SYMBOL, utcDay, type Round } from './lib';
 import { pct } from './rounds';
 import { Amount, Icon, Link, State, Term, TERMS } from './ui';
-import { artSrc } from './art';
+import { Obj } from './art';
 import type { Wallet } from './wallet';
 
 export default function Portfolio({ wallet }: { wallet: Wallet }) {
@@ -21,7 +21,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
 
   if (!acct) return <div className="page s-app">
     <section className="s-connect">
-      {artSrc('otzar2-empty') && <img src={artSrc('otzar2-empty')!} alt="" />}
+      <div className="s-connect-art"><Obj name="nft-card" size={260} float alt="A jade vault card with a gold dial: each vault is an NFT you own" /></div>
       <div>
         <h1>Your vaults and what they earned.</h1>
         <p>Connect a NEAR testnet wallet to see the vaults you own, your rounds and your {TUSDC_SYMBOL} balance.</p>

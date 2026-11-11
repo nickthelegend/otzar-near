@@ -310,3 +310,30 @@
 .l-nav > .pill { margin-left: auto; }
 @media (max-width: 720px) { .s-summary-chart { margin-top: 16px; } .s-summary-chart .rb { padding-top: 64px; } }
 .loop-tx, .app-foot a, .l-foot nav a { min-height: 44px; }
+
+/* ---------- 3D object kit (docs/ART-3D.md): one object per card or header, no halo, no border ---------- */
+.obj3d { flex: none; display: block; object-fit: contain; }
+.obj3d-float { animation: obj3d-float 6s ease-in-out infinite; }
+@keyframes obj3d-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@media (prefers-reduced-motion: reduce) { .obj3d-float { animation: none; } }
+.state-img.obj3d { width: 88px; height: 88px; border-radius: 0; }
+.doc-steps { list-style: none; padding-left: 0; gap: 18px; counter-reset: step; }
+.doc-steps li { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 20px; align-items: center; counter-increment: step; }
+.doc-steps li p b::before { content: counter(step) '. '; color: var(--forest); }
+.doc-h-obj { display: flex; align-items: center; gap: 14px; }
+.s-list-head .head-obj { width: 44px; height: 44px; margin-right: -2px; }
+.s-fold > summary > .fold-obj { width: 44px; height: 44px; }
+.s-fold > summary > .fold-obj + span { flex: 1; }
+.toast-obj { width: 36px; height: 36px; }
+.line-obj { display: flex; align-items: center; gap: 10px; }
+.line-obj > .obj3d { width: 32px; height: 32px; }
+.line-obj > span { min-width: 0; }
+.s-connect .s-connect-art { display: grid; place-items: center; aspect-ratio: 1; border-radius: 28px; background: var(--ivory-2); }
+.s-connect .s-connect-art img { width: 70%; height: auto; aspect-ratio: 1; object-fit: contain; border-radius: 0; }
+@media (max-width: 720px) {
+  .state-img.obj3d { width: 64px; height: 64px; }
+  .doc-steps li { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; }
+  .doc-steps li > .obj3d { width: 56px; height: 56px; }
+  .doc-h-obj > .obj3d { width: 40px; height: 40px; }
+  .s-connect .s-connect-art { max-width: 240px; width: 100%; }
+}
