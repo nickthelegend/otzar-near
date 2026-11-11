@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const port=Number(process.env.HAKO_BITCOIN_PROXY_PORT||3007);
+const webOrigin=process.env.HAKO_WEB_ORIGIN||'http://127.0.0.1:5173';
 const cookieFile=resolve('.demo/bitcoin/regtest/.cookie');
 createServer(async(req,res)=>{
-  if(req.headers.origin && req.headers.origin!=='http://127.0.0.1:5173'){res.writeHead(403);res.end();return;}
-  res.setHeader('access-control-allow-origin','http://127.0.0.1:5173');
+  if(req.headers.origin && req.headers.origin!==webOrigin){res.writeHead(403);res.end();return;}
+  res.setHeader('access-control-allow-origin',webOrigin);
   res.setHeader('access-control-allow-methods','GET,POST,OPTIONS');
   res.setHeader('access-control-allow-headers','content-type');
   res.setHeader('content-type','application/json');
