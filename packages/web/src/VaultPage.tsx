@@ -114,6 +114,7 @@ export default function VaultPage({ id, wallet }: Props) {
 
   const ph = latest ? roundPhase(latest, now) : null;
   const locked = callLocksVault(latest);
+  const roundUnknown = !rounds.data;
   const live = ph?.phase === 'live';
   const spot = latest?.oracle_price_usd_e6 || relayer.data?.price_usd_e6 || null;
   const apy = earned.blended;
@@ -143,7 +144,9 @@ export default function VaultPage({ id, wallet }: Props) {
             <p className="s-round-say">{roundSentence(latest, now)}</p>
             <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'BTC settled' : 'Last relayer price'} />
             <div className="cr-loop"><Loop c={latest} now={now} horizontal /></div>
-          </> : <State kind="empty" title="No rounds yet" action={mine ? <button className="pill pill-jade pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from Owner tools, signed with the vault's quantum key.</State>}
+          </> : rounds.error && !rounds.data ? <State kind="error" title="Could not read the rounds" action={<button className="pill pill-line pill-sm" onClick={rounds.reload}>Retry</button>}>{rounds.error}</State>
+            : rounds.loading ? <State kind="loading" title="Reading rounds" />
+            : <State kind="empty" title="No rounds yet" action={mine ? <button className="pill pill-jade pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from Owner tools, signed with the vault's quantum key.</State>}
         </section>
 
         {boxRounds.length > 1 && <section className="card s-list" aria-label="Every round">
@@ -306,7 +309,7 @@ export default function VaultPage({ id, wallet }: Props) {
             <div className="s-box">
               <div className="s-box-top"><span className="coin coin-jade">%</span><b>The vault earns</b><small>premium in {TUSDC_SYMBOL}</small></div>
               <p className="s-box-big">{rounds.data && apy === null ? '—' : <CountUp value={apy} decimals={2} suffix="%" />}<small><Term tip={TERMS.apy}>realised APY</Term></small></p>
-              <p className="s-box-foot"><span>Right now</span><span>{latest ? plainRoundLabel(latest, now) : 'No round yet'}</span></p>
+              <p className="s-box-foot"><span>Right now</span><span>{latest ? plainRoundLabel(latest, now) : rounds.error ? 'Round state unavailable' : roundUnknown ? 'Reading rounds…' : 'No round yet'}</span></p>
             </div>
             {!account ? <button className="pill pill-gold pill-block pill-lg" onClick={connect} disabled={!wallet.ready}><Icon name="wallet" size={17} /> Connect wallet</button>
               : live && latest ? <button className="pill pill-gold pill-block pill-lg" onClick={() => setSheet(latest)}>Buy this round's call</button>
@@ -315,14 +318,14 @@ export default function VaultPage({ id, wallet }: Props) {
             <button className="link-btn" onClick={() => goManage('earn')}>Deposit from ETH, SOL or USDC (quote only) <Icon name="arrow" size={13} /></button>
             <p className="panel-note">{box.ever_signed ? 'Bitcoin Core regtest. Do not fund this address: a signature was already issued, and reusing a signed vault is unsupported.' : "Bitcoin Core regtest. Anyone can send BTC here; only the vault's quantum key can authorize an owner withdrawal."}</p>
           </div> : <div className="panel-body">
-            <div className={`lock-state ${locked ? 'is-locked' : ''}`}><Icon name={locked ? 'lock' : 'check'} size={18} /><div><b>{locked ? `Locked by round #${latest!.id}` : 'Free to withdraw'}</b><span>{latest?.state === 'signed' ? 'NEAR signed the BTC transfer. Further owner withdrawals are blocked.' : locked ? (latest?.state === 'auction' && ph?.phase === 'unfilled' ? 'Close the unfilled round in Owner tools → Rounds to unlock the BTC.' : 'The BTC waits until the round settles or is released.') : 'No open round holds this vault’s BTC.'}</span></div></div>
+            <div className={`lock-state ${locked || roundUnknown ? 'is-locked' : ''}`}><Icon name={roundUnknown ? 'clock' : locked ? 'lock' : 'check'} size={18} /><div><b>{roundUnknown ? 'Round state unavailable' : locked ? `Locked by round #${latest!.id}` : 'Free to withdraw'}</b><span>{roundUnknown ? 'Wait for round data before withdrawing.' : latest?.state === 'signed' ? 'NEAR signed the BTC transfer. Further owner withdrawals are blocked.' : locked ? (latest?.state === 'auction' && ph?.phase === 'unfilled' ? 'Close the unfilled round in Owner tools → Rounds to unlock the BTC.' : 'The BTC waits until the round settles or is released.') : 'No open round holds this vault’s BTC.'}</span></div></div>
             <div className="s-box">
               <div className="s-box-top"><span className="coin">BTC</span><b>Bitcoin</b><small>You receive</small></div>
               <p className="s-box-text">To any address you choose, signed with the vault's quantum key.</p>
               <p className="s-box-foot"><span>Safety delay</span><span>{box.policy.delay_sec}s, guardian can pull it back</span></p>
             </div>
             {!account ? <button className="pill pill-gold pill-block pill-lg" onClick={connect} disabled={!wallet.ready}><Icon name="wallet" size={17} /> Connect wallet</button>
-              : mine ? <button className="pill pill-gold pill-block pill-lg" onClick={() => goManage('send', 'BTC')} disabled={locked}>{latest?.state === 'signed' ? 'BTC transfer already signed' : locked ? 'Round still locks the BTC' : 'Withdraw BTC'}</button>
+              : mine ? <button className="pill pill-gold pill-block pill-lg" onClick={() => goManage('send', 'BTC')} disabled={locked || roundUnknown}>{roundUnknown ? 'Waiting for round data' : latest?.state === 'signed' ? 'BTC transfer already signed' : locked ? 'Round still locks the BTC' : 'Withdraw BTC'}</button>
               : <button className="pill pill-gold pill-block pill-lg" disabled>Only the owner can withdraw</button>}
             <p className="panel-note">A withdrawal waits out the delay. During it the guardian can send the coins to your recovery address instead.</p>
           </div>}

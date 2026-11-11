@@ -65,8 +65,9 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
         <h2>{filter === 'rounds' ? 'Earning vaults' : filter === 'mine' ? 'Your vaults' : 'All vaults'}</h2>
         <div className="filters" role="tablist" aria-label="Filter vaults">{([['rounds', 'Earning'], ['all', 'All'], ['mine', 'Yours']] as const).map(([f, l]) => <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>{l}<small>{boxes.data ? count(f) : ''}</small></button>)}</div>
       </div>
-      {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={boxes.reload}>Retry</button>}>{boxes.error}</State>
-        : !boxes.data ? <div className="vt">{[0, 1, 2, 3].map(i => <div key={i} className="vt-row skeleton" />)}</div>
+      {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={() => { boxes.reload(); rounds.reload(); }}>Retry</button>}>{boxes.error}</State>
+        : filter === 'rounds' && rounds.error && !rounds.data ? <State kind="error" title="Could not read the rounds" action={<button className="pill pill-line pill-sm" onClick={() => { boxes.reload(); rounds.reload(); }}>Retry</button>}>{rounds.error}</State>
+        : !boxes.data || (filter === 'rounds' && rounds.loading) ? <div className="vt">{[0, 1, 2, 3].map(i => <div key={i} className="vt-row skeleton" />)}</div>
         : <VaultTable boxes={boxes.data} rounds={rounds.data} account={wallet.account} filter={filter} />}
     </section>
 

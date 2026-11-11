@@ -51,8 +51,9 @@ export default function Landing() {
 
       <section className="l-sec">
         <div className="s-sec-head"><h2>Vaults earning now</h2><Link to="/app" className="s-textlink">All vaults <Icon name="arrow" size={14} /></Link></div>
-        {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={boxes.reload}>Retry</button>}>{boxes.error}</State>
-          : !boxes.data ? <div className="vt">{[0, 1, 2].map(i => <div key={i} className="vt-row skeleton" />)}</div>
+        {boxes.error && !boxes.data ? <State kind="error" title="Could not read the vaults" action={<button className="pill pill-line pill-sm" onClick={() => { boxes.reload(); rounds.reload(); }}>Retry</button>}>{boxes.error}</State>
+          : rounds.error && !rounds.data ? <State kind="error" title="Could not read the rounds" action={<button className="pill pill-line pill-sm" onClick={() => { boxes.reload(); rounds.reload(); }}>Retry</button>}>{rounds.error}</State>
+          : !boxes.data || rounds.loading ? <div className="vt">{[0, 1, 2].map(i => <div key={i} className="vt-row skeleton" />)}</div>
           : <VaultTable boxes={boxes.data} rounds={rounds.data} account="" filter="rounds" limit={4} />}
       </section>
 
