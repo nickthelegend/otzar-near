@@ -204,7 +204,7 @@
     {
       "id": "mwcfqfc2",
       "started": "2026-11-11T18:11:06.146Z",
-      "status": "FAILED",
+      "status": "PASS",
       "tokenId": "qa-web-mwcfqfc2",
       "resaleTokenId": "qa-sale-mwc9xla0",
       "steps": [
@@ -305,6 +305,132 @@
           "success": true,
           "source": "browser",
           "explorer": "https://testnet.nearblocks.io/txns/5MKjGCdP5B81eUf39EYHieTRRd48JiCnh6UUrvD1ND5e",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "close_unfilled_call"
+          ],
+          "txHash": "28AkKgjLrW9T7xTpau64ghb4AuLDnfys73ynyh1j5Vgg",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/28AkKgjLrW9T7xTpau64ghb4AuLDnfys73ynyh1j5Vgg",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "write_call"
+          ],
+          "txHash": "5aWYPdjH3NRie4KuEbxsDHJa3B4oXXCdKTvV6CCnxdVH",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/5aWYPdjH3NRie4KuEbxsDHJa3B4oXXCdKTvV6CCnxdVH",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-buyer-mw984kqb.testnet",
+          "receiverId": "husdc-3177b477.testnet",
+          "methods": [
+            "ft_transfer_call"
+          ],
+          "txHash": "dd96rkQPxYP9mn48wYST7yUurUP1WN8aCz1VcAB2P4B",
+          "deposit": "1",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/dd96rkQPxYP9mn48wYST7yUurUP1WN8aCz1VcAB2P4B",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-guardian-mw984kqc.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "post_relayer_price"
+          ],
+          "txHash": "HSGR83dQTdrdRJnWiVMQHRdF3xn4uejHoUuREBNNKeMW",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "independentlyVerified": true,
+          "source": "relayer operator script; preserve the at-expiry print during browser overflow repair",
+          "explorer": "https://testnet.nearblocks.io/txns/HSGR83dQTdrdRJnWiVMQHRdF3xn4uejHoUuREBNNKeMW"
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "settle_call"
+          ],
+          "txHash": "7Jbnydieb9R2A2JC4V33ArLZoYVCDFpeu9Gez3RSXRQF",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "independentlyVerified": true,
+          "source": "relayer operator script during browser overflow repair",
+          "explorer": "https://testnet.nearblocks.io/txns/7Jbnydieb9R2A2JC4V33ArLZoYVCDFpeu9Gez3RSXRQF"
+        },
+        {
+          "accountId": "hako-buyer-mw984kqb.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "list"
+          ],
+          "txHash": "6BwoNHqdjcXFxMvxGhzBCszyoKVNxeeH8Zcvo6d4vvtG",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/6BwoNHqdjcXFxMvxGhzBCszyoKVNxeeH8Zcvo6d4vvtG",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "buy"
+          ],
+          "txHash": "3mNLTy8uvfEeVnGJffZMaYe9x43umtXJtMocCYXHNA93",
+          "deposit": "1000000000000000000000",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/3mNLTy8uvfEeVnGJffZMaYe9x43umtXJtMocCYXHNA93",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "request_btc_spend"
+          ],
+          "txHash": "89Yh2qfC3Ug4BsQ5g6b3K9PyWhdjGvrhrh6DB9TofyJH",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/89Yh2qfC3Ug4BsQ5g6b3K9PyWhdjGvrhrh6DB9TofyJH",
+          "independentlyVerified": true
+        },
+        {
+          "accountId": "hako-seller-mw984kqa.testnet",
+          "receiverId": "hako-contract-mw984kpp.testnet",
+          "methods": [
+            "execute_btc"
+          ],
+          "txHash": "4G6E5rrhnXNCaLLqvxosEMgck8aXUJpX77UDgJYM6Rxj",
+          "deposit": "0",
+          "final": true,
+          "success": true,
+          "source": "browser",
+          "explorer": "https://testnet.nearblocks.io/txns/4G6E5rrhnXNCaLLqvxosEMgck8aXUJpX77UDgJYM6Rxj",
           "independentlyVerified": true
         }
       ],
@@ -468,6 +594,438 @@
           "label": "failure",
           "width": 1440,
           "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a1-1440-failure.png"
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-seller-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-seller-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "seller-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-seller-connected.png",
+          "fits": true
+        },
+        {
+          "label": "seller-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-seller-connected.png",
+          "fits": true
+        },
+        {
+          "label": "before-register-key",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-before-register-key.png",
+          "fits": true
+        },
+        {
+          "label": "before-register-key",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-before-register-key.png",
+          "fits": true
+        },
+        {
+          "label": "key-registered-loaded",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-key-registered-loaded.png",
+          "fits": true
+        },
+        {
+          "label": "key-registered-loaded",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-key-registered-loaded.png",
+          "fits": true
+        },
+        {
+          "label": "bitcoin-rules-registered",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-bitcoin-rules-registered.png",
+          "fits": true
+        },
+        {
+          "label": "bitcoin-rules-registered",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-bitcoin-rules-registered.png",
+          "fits": true
+        },
+        {
+          "label": "funded-vault",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-funded-vault.png",
+          "fits": true
+        },
+        {
+          "label": "funded-vault",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-funded-vault.png",
+          "fits": true
+        },
+        {
+          "label": "covered-call-form",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-covered-call-form.png",
+          "fits": true
+        },
+        {
+          "label": "covered-call-form",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-covered-call-form.png",
+          "fits": true
+        },
+        {
+          "label": "call-written-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-call-written-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "call-written-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-call-written-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-buyer-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-buyer-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-buyer-connected.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-buyer-connected.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-premium-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-buyer-premium-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-premium-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-buyer-premium-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-web-mwcfqfc2",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-profile-qa-web-mwcfqfc2.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-web-mwcfqfc2",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-profile-qa-web-mwcfqfc2.png",
+          "fits": false
+        },
+        {
+          "label": "failure-0-0",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-failure-0-0.png",
+          "fits": true
+        },
+        {
+          "label": "failure-0-0",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-failure-0-0.png",
+          "fits": true
+        },
+        {
+          "label": "failure-1-0",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-1440-failure-1-0.png",
+          "fits": true
+        },
+        {
+          "label": "failure-1-0",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a2-375-failure-1-0.png",
+          "fits": false
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-seller-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "seller-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-seller-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "seller-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-seller-connected.png",
+          "fits": true
+        },
+        {
+          "label": "seller-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-seller-connected.png",
+          "fits": true
+        },
+        {
+          "label": "before-register-key",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-before-register-key.png",
+          "fits": true
+        },
+        {
+          "label": "before-register-key",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-before-register-key.png",
+          "fits": true
+        },
+        {
+          "label": "key-registered-loaded",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-key-registered-loaded.png",
+          "fits": true
+        },
+        {
+          "label": "key-registered-loaded",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-key-registered-loaded.png",
+          "fits": true
+        },
+        {
+          "label": "bitcoin-rules-registered",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-bitcoin-rules-registered.png",
+          "fits": true
+        },
+        {
+          "label": "bitcoin-rules-registered",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-bitcoin-rules-registered.png",
+          "fits": true
+        },
+        {
+          "label": "funded-vault",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-funded-vault.png",
+          "fits": true
+        },
+        {
+          "label": "funded-vault",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-funded-vault.png",
+          "fits": true
+        },
+        {
+          "label": "call-written-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-call-written-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "call-written-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-call-written-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-before-connect",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-buyer-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-before-connect",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-buyer-before-connect.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-connected",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-buyer-connected.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-connected",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-buyer-connected.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-premium-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-buyer-premium-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "buyer-premium-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-buyer-premium-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-web-mwcfqfc2",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-profile-qa-web-mwcfqfc2.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-web-mwcfqfc2",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-profile-qa-web-mwcfqfc2.png",
+          "fits": true
+        },
+        {
+          "label": "nft-sale-form",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-nft-sale-form.png",
+          "fits": true
+        },
+        {
+          "label": "nft-sale-form",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-nft-sale-form.png",
+          "fits": true
+        },
+        {
+          "label": "nft-listed-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-nft-listed-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "nft-listed-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-nft-listed-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "nft-bought-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-nft-bought-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "nft-bought-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-nft-bought-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-sale-mwc9xla0",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-profile-qa-sale-mwc9xla0.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-sale-mwc9xla0",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-profile-qa-sale-mwc9xla0.png",
+          "fits": true
+        },
+        {
+          "label": "writer-sold-round",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-writer-sold-round.png",
+          "fits": true
+        },
+        {
+          "label": "writer-sold-round",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-writer-sold-round.png",
+          "fits": true
+        },
+        {
+          "label": "otm-unlocked",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-otm-unlocked.png",
+          "fits": true
+        },
+        {
+          "label": "otm-unlocked",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-otm-unlocked.png",
+          "fits": true
+        },
+        {
+          "label": "withdrawal-request-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-withdrawal-request-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "withdrawal-request-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-withdrawal-request-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "withdrawal-signature-receipt",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-withdrawal-signature-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "withdrawal-signature-receipt",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-withdrawal-signature-receipt.png",
+          "fits": true
+        },
+        {
+          "label": "bitcoin-broadcast-result",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-bitcoin-broadcast-result.png",
+          "fits": true
+        },
+        {
+          "label": "bitcoin-broadcast-result",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-bitcoin-broadcast-result.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-web-mwcfqfc2",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-profile-qa-web-mwcfqfc2.png",
+          "fits": true
+        },
+        {
+          "label": "profile-qa-web-mwcfqfc2",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-profile-qa-web-mwcfqfc2.png",
+          "fits": true
+        },
+        {
+          "label": "signed-out",
+          "width": 1440,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-1440-signed-out.png",
+          "fits": true
+        },
+        {
+          "label": "signed-out",
+          "width": 375,
+          "path": "/private/tmp/claude-501/-Volumes-Extreme-SSD-Projects-grokbot/0f121b7c-0081-4ec0-81a9-0ccb4f7f8b48/scratchpad/flow-qa/hako/qa-signer/mwcfqfc2-a3-375-signed-out.png",
+          "fits": true
         }
       ],
       "checks": [
@@ -475,7 +1033,12 @@
         "Mainnet account and mainnet RPC rejected before signing",
         "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
         "Mainnet account and mainnet RPC rejected before signing",
-        "Unfunded QA NFT key reset by a 0.000001 NEAR self-purchase after the old download was lost"
+        "Unfunded QA NFT key reset by a 0.000001 NEAR self-purchase after the old download was lost",
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
+        "Mainnet account and mainnet RPC rejected before signing",
+        "Production mode with VITE_QA_SIGNER=1 excludes the QA module, injection globals and signer strings",
+        "Mainnet account and mainnet RPC rejected before signing",
+        "No NEAR private key in localStorage or sessionStorage"
       ],
       "consoleErrors": [
         "Failed to load resource: the server responded with a status of 408 ()",
@@ -483,22 +1046,100 @@
         "Failed to load resource: the server responded with a status of 408 ()",
         "Failed to load resource: the server responded with a status of 408 ()",
         "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 500 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Failed to load resource: the server responded with a status of 408 ()",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Access to fetch at 'https://test.rpc.fastnear.com/' from origin 'http://127.0.0.1:5760' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 408 ()",
         "Failed to load resource: the server responded with a status of 408 ()"
       ],
       "failures": [],
       "budget": {
-        "gasNetYocto": "39937581305164700000008",
-        "addedStorageYocto": "212890000000000000000000",
-        "grossDepositsYocto": "1001000000000000000000",
-        "totalYocto": "253828581305164700000008",
-        "totalNEAR": 0.2538285813051647,
-        "remainingNEAR": 0.0461714186948353,
+        "gasNetYocto": "51707894387885100000011",
+        "addedStorageYocto": "224730000000000000000000",
+        "grossDepositsYocto": "2001000000000000000001",
+        "totalYocto": "278438894387885100000012",
+        "totalNEAR": 0.2784388943878851,
+        "remainingNEAR": 0.021561105612114898,
         "includesPriorQA": true
       },
       "adapterChecks": {
         "status": "PASS",
         "transactions": 0,
         "checks": [
+          "Meteor 1.0.24 access-key print removed in ESM and CJS",
           "Wallet Selector 10 native action",
           "legacy selector action",
           "unsupported action rejected",
@@ -517,19 +1158,51 @@
           "started": "2026-11-11T18:20:01.599Z",
           "previousStatus": "FAILED",
           "previousError": "No final browser receipt for register_pq_key"
+        },
+        {
+          "started": "2026-11-11T18:29:38.471Z",
+          "previousStatus": "FAILED",
+          "previousError": "Horizontal overflow: buyer-before-connect at 375"
+        },
+        {
+          "started": "2026-11-11T18:41:56.222Z",
+          "previousStatus": "FAILED",
+          "previousError": "Horizontal overflow: profile-qa-web-mwcfqfc2 at 375"
         }
       ],
       "bitcoin": {
         "address": "bcrt1q7hn9tdy9yh3sv9m32hx6mztyf9g07fur7k388p",
         "destination": "bcrt1qve99zvjv2zhzj999vddhrvzcmqd0x95p78f5s4",
-        "fundingTx": "c7cd308e1e6bc0eeb069857fa1d90b38104b3750acde949b730e8a518742716d"
+        "fundingTx": "c7cd308e1e6bc0eeb069857fa1d90b38104b3750acde949b730e8a518742716d",
+        "withdrawalTx": "35f7ff79ce4170b2be9def2b50ff90dba6f7a5569b6153777812ec9a26fac5c1",
+        "confirmations": 1
       },
       "strikeSource": {
-        "price": "74398.24",
+        "price": "74391.96",
         "source": "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
-        "time": "2026-11-11T18:21:16.522579189Z"
+        "time": "2026-11-11T18:30:07.838185217Z"
       },
-      "error": "Horizontal overflow: buyer-before-connect at 375"
+      "call": {
+        "premium": "975",
+        "expiryNs": 1794422027000000000,
+        "strike": "92990000000"
+      },
+      "relayer": {
+        "args": {
+          "price_usd_e6": "74471560000",
+          "publish_time_sec": 1794422179,
+          "source_url": "https://api.exchange.coinbase.com/products/BTC-USD/ticker",
+          "signature": "dqxPpdA+UFNcqyMqwQNE0wcWBENRGUOn+aQ/y3CCb5x6ALd/vUSDGz0Tsa78vkuRaKoA2L8rVIIGrg5ZQj35AA=="
+        },
+        "txHash": "HSGR83dQTdrdRJnWiVMQHRdF3xn4uejHoUuREBNNKeMW",
+        "print": {
+          "priceUsdE6": "74471560000",
+          "publishTimeSec": 1794422179,
+          "sourceUrl": "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
+        },
+        "source": "Actual relayer transaction arguments recovered after the operator verifier used an obsolete API name"
+      },
+      "completed": "2026-11-11T18:43:30.486Z"
     }
   ]
 }
