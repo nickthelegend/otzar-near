@@ -9,7 +9,7 @@ function cached<T>(key: string, load: () => Promise<T>, maxAge: number): Promise
   const hit = cache.get(key);
   if (hit?.pending) return hit.pending as Promise<T>;
   if (hit && 'data' in hit && Date.now() - hit.at < maxAge) return Promise.resolve(hit.data as T);
-  const pending = load().then(data => { cache.set(key, { at: Date.now(), data }); return data; })
+  const pending = Promise.resolve().then(load).then(data => { cache.set(key, { at: Date.now(), data }); return data; })
     .catch(e => { cache.set(key, { ...(hit || { at: 0 }), pending: undefined }); throw e; });
   cache.set(key, { ...(hit || { at: 0 }), pending });
   return pending;
