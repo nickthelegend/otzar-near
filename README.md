@@ -12,7 +12,7 @@ Run these commands from the repo root. Use Node 22+ and pnpm 10.22.0 on your PAT
 4. Open that URL at `/app`, then `/vault/call-itm-mw9irlhd` — see vaults and the recorded covered-call state read from NEAR testnet. Reading needs no wallet. Local BTC/ETH/SOL balances need the nodes described in [Run the UI and MCP server](#run-the-ui-and-mcp-server).
 5. Open `/how` — see the covered-call explanation, testnet round, security limits, and public-address exposure scanner. To reproduce transactions yourself, follow the [Judge walkthrough](#judge-walkthrough) and its additional toolchain/setup requirements.
 
-Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below.
+Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below. Settlement and Bitcoin exercise are reproduced by `scripts/demo-calls.sh`; the browser does not provide those actions. See [full-flow QA](FLOW-QA.md) for the screen-by-screen results and human sign-in gates.
 
 ## Live on NEAR testnet
 
@@ -192,6 +192,9 @@ cp .env.example packages/web/.env.local
 anvil --host 127.0.0.1 --port 8545 --chain-id 31337 --load-state "$PWD/.demo/anvil-state.json"
 # In another terminal:
 .tools/bitcoin-31.2/bin/bitcoind -regtest -datadir="$PWD/.demo/bitcoin" -server=1 -txindex=1 -rpcport=18443 -listen=0 -fallbackfee=0.0001 -daemon
+# For a different web port, set HAKO_WEB_ORIGIN to that exact origin.
+# HAKO_BITCOIN_PROXY_PORT changes the proxy port (default 3007).
+# HAKO_BITCOIN_RPC_URL changes its local regtest RPC (default http://127.0.0.1:18443/).
 node scripts/bitcoin-proxy.mjs
 # In another terminal, reload the Solana demo ledger:
 solana-test-validator --ledger "$PWD/.demo/solana" --rpc-port 8899 --faucet-port 9900 --quiet
