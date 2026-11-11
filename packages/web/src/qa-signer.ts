@@ -5,7 +5,7 @@ type Call = { methodName: string; args: object; gas: string | bigint; deposit: s
 type FunctionCall = { type?: string; params?: Call; enum?: string; functionCall?: Call };
 type Transaction = { receiverId: string; actions: FunctionCall[] };
 type Injection = { accountId: string; privateKey: string; rpcUrl: string };
-type Receipt = { accountId: string; receiverId: string; methods: string[]; hash: string; gas: string; deposit: string; success: boolean; final: true };
+type Receipt = { accountId: string; receiverId: string; methods: string[]; hash: string; gas: string; deposit: string; success: boolean; final: boolean };
 declare global {
   interface Window {
     __OTZAR_QA_SIGNER__?: Injection;
@@ -40,7 +40,6 @@ export async function setupQaSelector() {
     } catch (e) { if ((e as Error).message === 'QA signer refuses a non-testnet network') throw e; }
   }
   if (!near) throw new Error('QA testnet RPCs are unavailable; try again later');
-  const provider = near.connection.provider;
   const account = await near.account(accountId);
   const sessionKey = 'otzar.qa.account';
   let connected = sessionStorage.getItem(sessionKey) === accountId;
@@ -56,10 +55,31 @@ export async function setupQaSelector() {
     if (gas <= 0n || gas > 200_000_000_000_000n || deposit < 0n || deposit > 10n ** 21n) throw new Error('QA signer transaction exceeds its gas or 0.001 NEAR deposit limit');
     const methods = permitted.map(a => a.methodName);
     await window.__OTZAR_QA_BUDGET_CHECK__!({ accountId, receiverId, methods, gas: gas.toString(), deposit: deposit.toString() });
-    const result = await account.signAndSendTransaction({ receiverId, returnError: true, actions: permitted.map(a => transactions.functionCall(a.methodName, a.args, BigInt(a.gas), BigInt(a.deposit))) });
-    const final = await provider.txStatus(result.transaction.hash, accountId, 'FINAL');
-    await window.__OTZAR_QA_RECORD__!({ accountId, receiverId, methods, hash: final.transaction.hash, gas: gas.toString(), deposit: deposit.toString(), success: !(typeof final.status === 'object' && 'Failure' in final.status), final: true });
-    return final;
+    let hash = '';
+    try {
+      const result = await account.signAndSendTransaction({ receiverId, returnError: true, actions: permitted.map(a => transactions.functionCall(a.methodName, a.args, BigInt(a.gas), BigInt(a.deposit))) });
+      hash = result.transaction.hash;
+    } catch (e) {
+      // near-api-js retains the signed hash even if the RPC times out after accepting it.
+      hash = (e as { context?: { transactionHash?: string } }).context?.transactionHash || '';
+      if (!hash) throw e;
+    }
+    await window.__OTZAR_QA_RECORD__!({ accountId, receiverId, methods, hash, gas: gas.toString(), deposit: deposit.toString(), success: false, final: false });
+    const endpoints = ['https://testnet-rpc.intea.rs', rpcUrl, ...RPCS];
+    for (let attempt = 0; attempt < 24; attempt++) {
+      try {
+        const response = await fetch(endpoints[attempt % endpoints.length], { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 'qa-final', method: 'tx', params: { tx_hash: hash, sender_account_id: accountId, wait_until: 'FINAL' } }), signal: AbortSignal.timeout(8000) });
+        const body = await response.json();
+        if (!response.ok || body.error || body.result?.final_execution_status !== 'FINAL') throw new Error();
+        const final = body.result;
+        await window.__OTZAR_QA_RECORD__!({ accountId, receiverId, methods, hash, gas: gas.toString(), deposit: deposit.toString(), success: !final.status?.Failure, final: true });
+        return final;
+      } catch (e) {
+        if ((e as Error).message.includes('QA transaction')) throw e;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    throw new Error(`QA transaction ${hash} was submitted; finality is unavailable. Check the recorded hash before retrying.`);
   }
   const wallet = {
     id: 'qa-signer', getAccounts,
