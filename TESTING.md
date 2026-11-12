@@ -167,3 +167,9 @@ A transport timeout may happen after NEAR accepted a transaction. The QA adapter
 The pinned `@meteorwallet/sdk@1.0.24` package patch removes the access-key console print from both distributed ESM and CJS files. `e2e/check-qa-signer.mjs` checks both installed files as part of `pnpm test:e2e`, alongside native/legacy wallet actions, caps, public-account reload persistence and mainnet rejection. Its adapter checks stop at a budget hook before signing and spend zero NEAR. Production exclusion is checked with the QA flag deliberately enabled in production mode.
 
 The final funded pass preceded test-only screenshot naming/wait improvements and the completed-run replay guard; those changes received syntax and read-only checks. There was no extra funded rerun after those changes. Authenticated pages had no JavaScript page errors, but provider CORS/rate-limit and HTTP 408/500 console errors were recovered; do not interpret PASS as zero external RPC errors.
+
+## Judge display regression checks (2026-11-12)
+
+Run `node e2e/check-judge-display.mjs` from the repo root. This zero-spend check needs installed workspace dependencies, no credentials or local chain nodes. It verifies duration boundaries below/exactly/above 24 hours, exclusion of demo premiums from blended APY while retaining actual earned amounts, public QA filtering and owner visibility, actual-premium demo charts/bands, and expired-round wording.
+
+Typecheck and production/QA builds passed. Real read-only browser checks passed at 1440 and 375; screenshots, diagnostics and the unchanged-design audit are in [docs/JUDGE-R2-FIXES.md](docs/JUDGE-R2-FIXES.md). No new funded e2e run was needed for these display changes.

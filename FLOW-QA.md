@@ -7,7 +7,7 @@ Scope: production build, real NEAR testnet reads, headless installed Chrome at 1
 1. Install dependencies, build the SDK and web app, and serve the app using README Try it.
 2. `/`: read the pitch, live testnet round totals, earning-vault table and actual on-chain activity. Follow navigation and footer links.
 3. `/how`: read the trade-off, real round, safety limits and NEAR integration table. Open every FAQ; follow the safety anchor; try the exposure scanner's validation, live public read and local-only sweep boundary.
-4. `/app` (also `/vaults`): inspect the APY chart and round drawer; switch Earning / All / Yours; follow a vault row. Exercise the disconnected/empty states.
+4. `/app` (also `/vaults`): inspect the round chart and round drawer; switch Earning / All / Yours; follow a vault row. Exercise the disconnected/empty states.
 5. `/vault/<id>`: inspect the latest-round sentence, strike bar and timeline. Open/close Details by its button, Escape and scrim. Inspect an exercised ITM vault, a released OTM vault, a vault without rounds, a missing vault and malformed route input.
 6. Connect: open Meteor Wallet on testnet for `hako-contract-mw984kpp.testnet`; verify closed and blocked popup feedback. Human approval/account creation is the remaining manual Meteor integration check. The QA signer separately exercises the authenticated app.
 7. Main owner path with the testnet QA signer: New vault → mint → generate/register ML-DSA key → register Bitcoin rules → fund local regtest address → write covered call. Main buyer path: buy with tUSDC → writer receives premium → settlement → strike payment and MPC exercise, or OTM release. The browser run below verifies premium purchase, OTM release and withdrawal; the existing demo-script receipts separately cover ITM exercise. Price posting and settlement remain relayer operator actions.
@@ -54,7 +54,7 @@ The earlier full-flow QA sent **31 NEAR testnet transactions**: 26 succeeded and
 - Thirty focused regression assertions passed for NEAR denominations, the contract-derived lock-state matrix, and pending/signed round narratives and timeline completion.
 - Three historical Anvil receipts and the original two Bitcoin receipts were re-queried successfully. Historical NEAR replay through `scripts/verify-evidence.mjs` hit external HTTP 408; it is not counted as a new pass. The old Solana signature was absent from the restarted local validator’s status lookup, so its 2026-11-09 receipt remains archival evidence, not a freshly re-confirmed transaction.
 
-The demo script’s saved `annualisedYieldPct` uses write-time spot notional. The web UI correctly derives yield from strike notional as README describes; these are different denominators. Premium amounts and transaction hashes are unchanged.
+The demo script’s saved `annualisedYieldPct` uses write-time spot notional. Those saved figures are historical diagnostics. As of November 12, the UI labels all terms below one day as demos and shows no annualised percentage for them. Day-long paid rounds use strike notional as README describes. Premium amounts and transaction hashes are unchanged.
 
 ## Functional fixes and before/after screenshots
 
@@ -129,3 +129,9 @@ Diagnostics and limits:
 - Authenticated pages had **no JavaScript page errors**, but external RPC CORS/rate-limit and HTTP 408/500 console errors did occur. Fallback/finality recovery succeeded. This is not a zero-network-error claim. The final attempt’s captured states fit both widths; chart and balance measurements also show no overflow.
 - Screenshot review includes all eight top/bottom contact sheets. Some immediate receipt captures precede the subsequent body refresh; final ownership and signed/broadcast states were separately checked. The old buyer/seller profile filenames collided, so the separately named buyer verification above is the buyer evidence. The runner now waits for rendered sale/signing states and gives buyer/seller captures distinct names. These final test-only changes passed syntax checks; no extra funded rerun was spent on them.
 - The completed fixture is consumed. Attempting to resume a PASS run now stops before any mutation. A new run requires at least 0.06 NEAR remaining; current headroom is insufficient. All browser, proxy, preview and Bitcoin processes started for this QA were stopped.
+
+## Judging round 2 display fixes — 2026-11-12
+
+**PASS:** QA vaults are excluded from public lists, charts, counts and summaries, while direct URLs and owner positions still work. All sub-day terms show demo-duration labels and actual premiums; their annualised rates are excluded from blended APY. Expired sold rounds now say awaiting settlement. How uses the correct five-minute settlement-print window.
+
+The read-only repeat captured 26 before and 26 after states at 1440 and 375, with zero after-state page/console errors, failed requests, raw values or horizontal overflow. No transactions were sent. [Full checks, limits and all before/after screenshots](docs/JUDGE-R2-FIXES.md). The five unused `otzar2-*.webp` files remain untracked, with no ignore-rule change.
