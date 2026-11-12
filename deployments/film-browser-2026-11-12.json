@@ -1,0 +1,682 @@
+{
+  "date": "2026-11-12",
+  "network": "NEAR testnet + Bitcoin Core regtest",
+  "source": "Otzar film app QA-signer capture",
+  "capture": {
+    "date": "2026-11-12",
+    "id": "otzar-1794462662991",
+    "status": "PASS",
+    "steps": [
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "mint"
+        ],
+        "txHash": "5x57vBMRwPCc7EdkGAfUfzXai3owJyZFdV2Jgqnungnn",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-12T05:51:36.654Z"
+      },
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "register_pq_key"
+        ],
+        "txHash": "F7gMAM5fzPpNrkVpec8NYY2Jx1Hi9Jni7r8GaeaC6amE",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-12T05:51:57.753Z"
+      },
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "register_btc"
+        ],
+        "txHash": "CjYzmBcxNKoXWtJ4qpFTaAt6AFWiTtCr42p5PqqxbvDx",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-12T05:52:23.409Z"
+      },
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "write_call"
+        ],
+        "txHash": "GAxzyCQmaWXtt37YrYNYN39bnH8cVXXVjUQ8pxp7o5J1",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-12T05:53:02.265Z"
+      },
+      {
+        "accountId": "hako-buyer-mw984kqb.testnet",
+        "receiverId": "husdc-3177b477.testnet",
+        "methods": [
+          "ft_transfer_call"
+        ],
+        "txHash": "J1fKnoDMJsQEDYwFoXbXUU1koTEiabtmCU6E1GhjhyvE",
+        "deposit": "1",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-12T05:53:37.664Z"
+      }
+    ],
+    "events": [
+      {
+        "name": "mint-clicked",
+        "actor": "seller",
+        "seconds": 7.871,
+        "at": "2026-11-12T05:51:21.880Z"
+      },
+      {
+        "name": "mint-final",
+        "actor": "seller",
+        "seconds": 22.958,
+        "at": "2026-11-12T05:51:36.967Z"
+      },
+      {
+        "name": "register_pq_key-clicked",
+        "actor": "seller",
+        "seconds": 26.037,
+        "at": "2026-11-12T05:51:40.046Z"
+      },
+      {
+        "name": "register_pq_key-final",
+        "actor": "seller",
+        "seconds": 44.177,
+        "at": "2026-11-12T05:51:58.186Z"
+      },
+      {
+        "name": "register_btc-clicked",
+        "actor": "seller",
+        "seconds": 51.07,
+        "at": "2026-11-12T05:52:05.079Z"
+      },
+      {
+        "name": "register_btc-final",
+        "actor": "seller",
+        "seconds": 69.675,
+        "at": "2026-11-12T05:52:23.684Z"
+      },
+      {
+        "name": "write-start",
+        "actor": "seller",
+        "seconds": 81.387,
+        "at": "2026-11-12T05:52:35.396Z"
+      },
+      {
+        "name": "write_call-clicked",
+        "actor": "seller",
+        "seconds": 90.102,
+        "at": "2026-11-12T05:52:44.111Z"
+      },
+      {
+        "name": "write_call-final",
+        "actor": "seller",
+        "seconds": 108.689,
+        "at": "2026-11-12T05:53:02.698Z"
+      },
+      {
+        "name": "write-end",
+        "actor": "seller",
+        "seconds": 111.095,
+        "at": "2026-11-12T05:53:05.104Z"
+      },
+      {
+        "name": "buy-start",
+        "actor": "buyer",
+        "seconds": 6.13,
+        "at": "2026-11-12T05:53:11.241Z"
+      },
+      {
+        "name": "ft_transfer_call-clicked",
+        "actor": "buyer",
+        "seconds": 15.558,
+        "at": "2026-11-12T05:53:20.669Z"
+      },
+      {
+        "name": "ft_transfer_call-final",
+        "actor": "buyer",
+        "seconds": 32.627,
+        "at": "2026-11-12T05:53:37.738Z"
+      },
+      {
+        "name": "buy-end",
+        "actor": "buyer",
+        "seconds": 35.026,
+        "at": "2026-11-12T05:53:40.137Z"
+      }
+    ],
+    "screenshots": [
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/write-form.png",
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/write-final.png",
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/buy-final.png"
+    ],
+    "before": {
+      "contract": {
+        "amount": "9955487263552323099999956",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "wEXosxToBSRPrPZapy5w5KxGB5GNKa35KMLagqPASTg",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 544929
+      },
+      "seller": {
+        "amount": "4007328752461891300000000",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "11111111111111111111111111111111",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 182
+      },
+      "buyer": {
+        "amount": "9773900945964688399999990",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "11111111111111111111111111111111",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 182
+      },
+      "guardian": {
+        "amount": "5960302308697962200000000",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "11111111111111111111111111111111",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 182
+      }
+    },
+    "previousTake": {
+      "path": "work/take-2026-11-11/live.json",
+      "costNEAR": 0.0389146676005387
+    },
+    "priorFilmReserveNEAR": 0.1,
+    "attempts": [
+      {
+        "started": "2026-11-12T05:51:03.258Z",
+        "previousStatus": "NEW",
+        "previousError": null
+      }
+    ],
+    "tokenId": "film-otzar-1794462662991",
+    "swap": [
+      {
+        "at": "2026-11-12T05:51:03.269Z",
+        "value": "vm.swapusage: total = 5120.00M  used = 3737.56M  free = 1382.44M  (encrypted)"
+      },
+      {
+        "at": "2026-11-12T05:51:05.202Z",
+        "value": "vm.swapusage: total = 5120.00M  used = 3737.56M  free = 1382.44M  (encrypted)"
+      },
+      {
+        "at": "2026-11-12T05:51:06.902Z",
+        "value": "vm.swapusage: total = 5120.00M  used = 3737.56M  free = 1382.44M  (encrypted)"
+      },
+      {
+        "at": "2026-11-12T05:51:08.961Z",
+        "value": "vm.swapusage: total = 5120.00M  used = 3737.56M  free = 1382.44M  (encrypted)"
+      },
+      {
+        "at": "2026-11-12T05:51:13.375Z",
+        "value": "vm.swapusage: total = 5120.00M  used = 3737.56M  free = 1382.44M  (encrypted)"
+      },
+      {
+        "at": "2026-11-12T05:51:13.388Z",
+        "value": "vm.swapusage: total = 5120.00M  used = 3737.56M  free = 1382.44M  (encrypted)"
+      }
+    ],
+    "budget": {
+      "gasNetYocto": "10134050035947300000002",
+      "addedStorageYocto": "65700000000000000000000",
+      "grossDepositsYocto": "0",
+      "totalNEAR": 0.1758340500359473,
+      "includesPreviousTake": true,
+      "priorScriptFilmReserveNEAR": 0.1,
+      "capNEAR": 1,
+      "after": {
+        "contract": {
+          "amount": "9955487263552323099999955",
+          "block_hash": "EQYR6NhbJjyDdxetDni9v7aAC2xFfLPTdik1v6kDsw2W",
+          "block_height": 277322184,
+          "code_hash": "wEXosxToBSRPrPZapy5w5KxGB5GNKa35KMLagqPASTg",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 551499
+        },
+        "seller": {
+          "amount": "3999611568592069100000000",
+          "block_hash": "EQYR6NhbJjyDdxetDni9v7aAC2xFfLPTdik1v6kDsw2W",
+          "block_height": 277322184,
+          "code_hash": "11111111111111111111111111111111",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 182
+        },
+        "buyer": {
+          "amount": "9771484079798563299999989",
+          "block_hash": "EQYR6NhbJjyDdxetDni9v7aAC2xFfLPTdik1v6kDsw2W",
+          "block_height": 277322184,
+          "code_hash": "11111111111111111111111111111111",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 182
+        },
+        "guardian": {
+          "amount": "5960302308697962200000000",
+          "block_hash": "EQYR6NhbJjyDdxetDni9v7aAC2xFfLPTdik1v6kDsw2W",
+          "block_height": 277322184,
+          "code_hash": "11111111111111111111111111111111",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 182
+        }
+      }
+    },
+    "app": "http://127.0.0.1:5737",
+    "proxyPort": 5738,
+    "bitcoinPort": 5739,
+    "bitcoin": {
+      "destination": "bcrt1q835e4q404rs8epmv6d7trgersvxz5fuhfctefj",
+      "address": "bcrt1qn62aagy8sfa8jh7uq3e5wwjg43zwk0qes7xhm0",
+      "fundingTx": "4cb7fa513c66a2e62f0e3ca760d6d470b49985e7f9984370c387db88b11dba9b"
+    },
+    "strikeSource": {
+      "price": "73521.72",
+      "time": "2026-11-12T05:52:34.055248706Z",
+      "source": "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
+    },
+    "call": {
+      "id": 0,
+      "token_id": "film-otzar-1794462662991",
+      "writer": "hako-seller-mw984kqa.testnet",
+      "holder": "hako-buyer-mw984kqb.testnet",
+      "strike_usd_e6": "80874000000",
+      "size_sats": "100000",
+      "collateral_outpoint_hex": "9bba1db188db87c3704398f9e78599b470d4d660a73c0e2fe6a2663c51fab74c01000000",
+      "collateral_sats": "101000",
+      "opening_premium_usdc": "1000",
+      "minimum_premium_usdc": "500",
+      "premium_paid_usdc": "998",
+      "opened_ns": 1794462776100416500,
+      "auction_end_ns": 1794469964000000000,
+      "expiry_ns": 1794469964000000000,
+      "exercise_deadline_ns": null,
+      "oracle_price_usd_e6": null,
+      "exercise_script_hex": null,
+      "exercise_raw_hex": null,
+      "exercise_signature_json": null,
+      "state": "sold",
+      "premium_token": "husdc-3177b477.testnet"
+    },
+    "captureNote": "Five real browser transactions are final. The recorder then stopped on a portfolio test locator because the UI intentionally shortens long vault IDs; no product failure or extra transaction. A read-only verification with the displayed short ID follows.",
+    "postCaptureVerification": {
+      "status": "PASS",
+      "at": "2026-11-12T05:56:21.616Z",
+      "transactions": 0,
+      "displayedToken": "film-otzar-1\u2026662991",
+      "fullTokenConfirmedByDialog": "film-otzar-1794462662991"
+    },
+    "originalRecorderError": "locator.waitFor: Timeout 90000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.rt-row').filter({ hasText: 'film-otzar-1794462662991' }) to be visible\u001b[22m\n",
+    "completed": "2026-11-12T05:56:21.617Z"
+  },
+  "previousTake": {
+    "date": "2026-11-11",
+    "id": "mwci6h5l",
+    "status": "PASS",
+    "steps": [
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "mint"
+        ],
+        "txHash": "4fpmbqVb4Az3GxgkyXf9DNu7xD7bzg49PHi46Cp6YsYz",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-11T19:22:54.260Z"
+      },
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "register_pq_key"
+        ],
+        "txHash": "8BmVTd6xwbdf9Q1u8qz7Jvx4VfsQs3KfV9swjsmNhY2a",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-11T19:23:15.750Z"
+      },
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "register_btc"
+        ],
+        "txHash": "HS87rQJ8aktPSPkpcSfnGwCZypGLyfzFVRc93VuF1Zi1",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-11T19:23:47.491Z"
+      },
+      {
+        "accountId": "hako-seller-mw984kqa.testnet",
+        "receiverId": "hako-contract-mw984kpp.testnet",
+        "methods": [
+          "write_call"
+        ],
+        "txHash": "49YE2LubuinkSS1AQNVM9bMLsLdVDaGrzB1QH6Y4G1EJ",
+        "deposit": "0",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-11T19:24:33.037Z"
+      },
+      {
+        "accountId": "hako-buyer-mw984kqb.testnet",
+        "receiverId": "husdc-3177b477.testnet",
+        "methods": [
+          "ft_transfer_call"
+        ],
+        "txHash": "FFbFnhvgdM6Fg3c23VJqE3CEL5PauQVzjcMYUcSm6oCH",
+        "deposit": "1",
+        "final": true,
+        "success": true,
+        "independentlyVerified": true,
+        "at": "2026-11-11T19:25:09.606Z"
+      }
+    ],
+    "events": [
+      {
+        "name": "mint-clicked",
+        "actor": "seller",
+        "seconds": 7.226,
+        "at": "2026-11-11T19:22:39.734Z"
+      },
+      {
+        "name": "mint-final",
+        "actor": "seller",
+        "seconds": 21.788,
+        "at": "2026-11-11T19:22:54.296Z"
+      },
+      {
+        "name": "register_pq_key-clicked",
+        "actor": "seller",
+        "seconds": 25.494,
+        "at": "2026-11-11T19:22:58.002Z"
+      },
+      {
+        "name": "register_pq_key-final",
+        "actor": "seller",
+        "seconds": 43.519,
+        "at": "2026-11-11T19:23:16.027Z"
+      },
+      {
+        "name": "register_btc-clicked",
+        "actor": "seller",
+        "seconds": 56.388,
+        "at": "2026-11-11T19:23:28.896Z"
+      },
+      {
+        "name": "register_btc-final",
+        "actor": "seller",
+        "seconds": 75.479,
+        "at": "2026-11-11T19:23:47.987Z"
+      },
+      {
+        "name": "write-start",
+        "actor": "seller",
+        "seconds": 93.021,
+        "at": "2026-11-11T19:24:05.529Z"
+      },
+      {
+        "name": "write_call-clicked",
+        "actor": "seller",
+        "seconds": 102.004,
+        "at": "2026-11-11T19:24:14.512Z"
+      },
+      {
+        "name": "write_call-final",
+        "actor": "seller",
+        "seconds": 120.57,
+        "at": "2026-11-11T19:24:33.078Z"
+      },
+      {
+        "name": "write-end",
+        "actor": "seller",
+        "seconds": 123.095,
+        "at": "2026-11-11T19:24:35.603Z"
+      },
+      {
+        "name": "buy-start",
+        "actor": "buyer",
+        "seconds": 7.078,
+        "at": "2026-11-11T19:24:42.867Z"
+      },
+      {
+        "name": "ft_transfer_call-clicked",
+        "actor": "buyer",
+        "seconds": 16.496,
+        "at": "2026-11-11T19:24:52.285Z"
+      },
+      {
+        "name": "ft_transfer_call-final",
+        "actor": "buyer",
+        "seconds": 34.055,
+        "at": "2026-11-11T19:25:09.844Z"
+      },
+      {
+        "name": "buy-end",
+        "actor": "buyer",
+        "seconds": 36.474,
+        "at": "2026-11-11T19:25:12.263Z"
+      },
+      {
+        "name": "profile-end",
+        "actor": "buyer",
+        "seconds": 43.895,
+        "at": "2026-11-11T19:25:19.684Z"
+      }
+    ],
+    "screenshots": [
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/write-form.png",
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/write-final.png",
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/buy-final.png",
+      "/Volumes/Extreme SSD/Projects/grokbot/videos/otzar-near/film/work/qa/buyer-position.png"
+    ],
+    "tokenId": "film-mwci6h5l",
+    "swap": [
+      {
+        "at": "2026-11-11T19:19:34.239Z",
+        "value": "vm.swapusage: total = 7168.00M  used = 6487.50M  free = 680.50M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:19:36.138Z",
+        "value": "vm.swapusage: total = 7168.00M  used = 6487.50M  free = 680.50M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:19:38.362Z",
+        "value": "vm.swapusage: total = 7168.00M  used = 6657.75M  free = 510.25M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:19:40.511Z",
+        "value": "vm.swapusage: total = 7168.00M  used = 6657.75M  free = 510.25M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:19:44.856Z",
+        "value": "vm.swapusage: total = 7168.00M  used = 6742.75M  free = 425.25M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:22:22.132Z",
+        "value": "vm.swapusage: total = 7680.00M  used = 6252.81M  free = 1427.19M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:22:24.032Z",
+        "value": "vm.swapusage: total = 7680.00M  used = 6297.75M  free = 1382.25M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:22:25.402Z",
+        "value": "vm.swapusage: total = 7680.00M  used = 6491.31M  free = 1188.69M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:22:27.292Z",
+        "value": "vm.swapusage: total = 7680.00M  used = 6483.31M  free = 1196.69M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:22:32.040Z",
+        "value": "vm.swapusage: total = 7680.00M  used = 6453.62M  free = 1226.38M  (encrypted)"
+      },
+      {
+        "at": "2026-11-11T19:22:32.046Z",
+        "value": "vm.swapusage: total = 7680.00M  used = 6453.62M  free = 1226.38M  (encrypted)"
+      }
+    ],
+    "before": {
+      "contract": {
+        "amount": "9955487263552323099999956",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "wEXosxToBSRPrPZapy5w5KxGB5GNKa35KMLagqPASTg",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 544929
+      },
+      "seller": {
+        "amount": "4007328752461891300000000",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "11111111111111111111111111111111",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 182
+      },
+      "buyer": {
+        "amount": "9773900945964688399999990",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "11111111111111111111111111111111",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 182
+      },
+      "guardian": {
+        "amount": "5960302308697962200000000",
+        "block_hash": "CQmyfnZBSowsPbBcEYk56dZMsortHokvRVUWWpW1sFay",
+        "block_height": 277257389,
+        "code_hash": "11111111111111111111111111111111",
+        "locked": "0",
+        "storage_paid_at": 0,
+        "storage_usage": 182
+      }
+    },
+    "budget": {
+      "gasNetYocto": "6224667600538700000002",
+      "addedStorageYocto": "32690000000000000000000",
+      "grossDepositsYocto": "1",
+      "totalNEAR": 0.0389146676005387,
+      "capNEAR": 1,
+      "after": {
+        "contract": {
+          "amount": "9955487263552323099999955",
+          "block_hash": "77dAourPFZBqY68XkTuFerV7YYZZmpq3fZNPCb91XMBN",
+          "block_height": 277258006,
+          "code_hash": "wEXosxToBSRPrPZapy5w5KxGB5GNKa35KMLagqPASTg",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 548198
+        },
+        "seller": {
+          "amount": "4003520951027477700000000",
+          "block_hash": "77dAourPFZBqY68XkTuFerV7YYZZmpq3fZNPCb91XMBN",
+          "block_height": 277258006,
+          "code_hash": "11111111111111111111111111111111",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 182
+        },
+        "buyer": {
+          "amount": "9771484079798563299999989",
+          "block_hash": "77dAourPFZBqY68XkTuFerV7YYZZmpq3fZNPCb91XMBN",
+          "block_height": 277258006,
+          "code_hash": "11111111111111111111111111111111",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 182
+        },
+        "guardian": {
+          "amount": "5960302308697962200000000",
+          "block_hash": "77dAourPFZBqY68XkTuFerV7YYZZmpq3fZNPCb91XMBN",
+          "block_height": 277258006,
+          "code_hash": "11111111111111111111111111111111",
+          "locked": "0",
+          "storage_paid_at": 0,
+          "storage_usage": 182
+        }
+      }
+    },
+    "app": "http://127.0.0.1:5737",
+    "proxyPort": 5738,
+    "bitcoinPort": 5739,
+    "attempts": [
+      {
+        "started": "2026-11-11T19:22:22.125Z",
+        "previousStatus": "STOPPED",
+        "previousError": "Swap free below 500 MB; wait two minutes before retry"
+      }
+    ],
+    "bitcoin": {
+      "destination": "bcrt1qxunrm3ftwspqckamnakfz2qlctmpznmcph0fa3",
+      "address": "bcrt1q2jd48ht7vywh4r992vy5c98whe8gec74ln2deg",
+      "fundingTx": "e0cdef60cb3590cff0760c89bb3aa8a550544a5f9b82cfc3f892ff46675edaeb"
+    },
+    "strikeSource": {
+      "price": "74182.62",
+      "time": "2026-11-11T19:24:02.368615320Z",
+      "source": "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
+    },
+    "call": {
+      "id": 0,
+      "token_id": "film-mwci6h5l",
+      "writer": "hako-seller-mw984kqa.testnet",
+      "holder": "hako-buyer-mw984kqb.testnet",
+      "strike_usd_e6": "81601000000",
+      "size_sats": "100000",
+      "collateral_outpoint_hex": "ebda5e6746ff92f8c3cf829b5f4a5450a5a83abb890c76f0cf9035cb60efcde001000000",
+      "collateral_sats": "101000",
+      "opening_premium_usdc": "1000",
+      "minimum_premium_usdc": "500",
+      "premium_paid_usdc": "995",
+      "opened_ns": 1794425066901717200,
+      "auction_end_ns": 1794426855000000000,
+      "expiry_ns": 1794426855000000000,
+      "exercise_deadline_ns": null,
+      "oracle_price_usd_e6": null,
+      "exercise_script_hex": null,
+      "exercise_raw_hex": null,
+      "exercise_signature_json": null,
+      "state": "sold",
+      "premium_token": "husdc-3177b477.testnet"
+    },
+    "completed": "2026-11-11T19:25:20.212Z"
+  }
+}
