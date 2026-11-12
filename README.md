@@ -9,10 +9,10 @@ Run these commands from the repo root. Use Node 22+ and pnpm 10.22.0 on your PAT
 1. Do `pnpm install --frozen-lockfile` — see the workspace dependencies install from the lockfile.
 2. Do `pnpm --filter @hako/sdk build` — see the SDK compile into `packages/sdk/dist`.
 3. Do `VITE_HAKO_CONTRACT=hako-contract-mw984kpp.testnet pnpm web` — see Vite print its local URL (normally `http://127.0.0.1:5173`). Leave this terminal running.
-4. Open that URL at `/app`, then `/vault/call-itm-mw9irlhd` — see vaults and the recorded covered-call state read from NEAR testnet. Reading needs no wallet. Local BTC/ETH/SOL balances need the nodes described in [Run the UI and MCP server](#run-the-ui-and-mcp-server).
+4. Open that URL at `/app`, then `/vault/call-itm-mw9irlhd` — see vaults and the recorded covered-call state read from NEAR testnet. Reading needs no wallet. Local Bitcoin balances need the nodes described in [Run the UI and MCP server](#run-the-ui-and-mcp-server).
 5. Open `/how` — see the covered-call explanation, testnet round, security limits, and public-address exposure scanner. To reproduce transactions yourself, follow the [Judge walkthrough](#judge-walkthrough) and its additional toolchain/setup requirements.
 
-Reading vaults and rounds needs no local chain nodes. The covered-call write and Bitcoin send flows need Bitcoin Core; Anvil and Solana are optional for their own chain panels. Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below. Settlement and Bitcoin exercise are reproduced by `scripts/demo-calls.sh`; the browser does not provide those actions. See [full-flow QA](FLOW-QA.md) for the screen-by-screen results and human sign-in gates.
+Reading vaults and rounds needs no local chain nodes. The covered-call write and Bitcoin send flows need Bitcoin Core. Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below. Settlement and Bitcoin exercise are reproduced by `scripts/demo-calls.sh`; the browser does not provide those actions. See [full-flow QA](FLOW-QA.md) for the screen-by-screen results and human sign-in gates.
 
 ## Live on NEAR testnet
 
@@ -30,7 +30,9 @@ These are recorded NEAR testnet transactions from November 9. Bitcoin delivery w
 
 Sources: [settlement upgrade](deployments/settle-upgrade-2026-11-09.json), [covered-call loop](deployments/calls-live-testnet-2026-11-09-171226.json), and [guardian recovery](deployments/recovery-2026-11-09.json).
 
-Formerly Hako; on-chain account IDs keep the old prefix. Otzar is one wallet for BTC, ETH, and SOL. A vault NFT on NEAR controls addresses on Bitcoin Core regtest, Anvil, and a local Solana validator through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
+Otzar is a Bitcoin vault controlled from NEAR. Formerly Hako; on-chain account IDs keep the old prefix. A vault NFT on NEAR controls its Bitcoin Core regtest address through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
+
+**Also wired on local chains:** ETH (Anvil) and SOL (Solana test validator); not part of the judged flow.
 
 This is a **testnet and local-chain prototype**, not a mainnet vault. “Quantum-safe” refers to NEAR authorization: foreign-chain signatures and MPC root keys remain classical. The vault NFT implements NEP-171 ownership and enumeration views used here; approvals, metadata events, and full marketplace interoperability are not implemented. See [Limits and security boundaries](#limits-and-security-boundaries).
 
@@ -54,8 +56,6 @@ The price is never typed by hand, and the demo chooses strikes from the real spo
 Vault IDs beginning with `qa-` are omitted from public lists, counts, charts and summaries. They remain available at `/vault/<id>` and in their connected owner’s portfolio. This is catalog filtering, not on-chain privacy.
 
 **Verification boundary:** the signed UTXO assertion is checked against Bitcoin Core in the demo and against the live Bitcoin UTXO service in the browser, but the NEAR contract cannot independently prove Bitcoin ownership or balance. The relayer is a single trusted signer on testnet. The option claim uses a custom transfer method and is **not yet a complete NEP-171 NFT**. Mainnet USDC-to-BTC compounding and any-chain funding remain dry [1Click quote](https://docs.near-intents.org/integration/distribution-channels/1click-api/quickstart/making-a-request) previews only. Do not treat this prototype as a collateralised production option. See [BLOCKED.md](BLOCKED.md).
-
-The “Deposit anything” panel gets supported ETH, SOL, and USDC origins from 1Click's live token list and requests `dry: true` quotes into the box's next-epoch native Bitcoin address. A dry quote returns pricing only: it issues no deposit address and sends no asset. `ONECLICK_JWT` is optional; unauthenticated quotes use the published fee schedule. Mainnet execution requires `NEAR_MAINNET_ACCOUNT` and funded assets and is not run by Otzar.
 
 ### It earned: the live covered-call loop (2026-11-09)
 
@@ -126,6 +126,10 @@ NEAR features used: **Chain Signatures** (ECDSA domain 0 for BTC/ETH, EdDSA doma
 The MPC testnet signer is `v1.signer-prod.testnet`. Each box uses `hako/<token_id>/<epoch>` as its path. The SDK computes SHA3-256 epsilon according to the [NEAR MPC implementation](https://github.com/near/mpc/blob/main/crates/near-mpc-crypto-types/src/kdf.rs) and verifies the derived key against the signer's `derived_public_key` view. The contract sends `sign` a `payload_v2.Ecdsa` 32-byte digest, `path`, and `domain_id: 0` with one yoctoNEAR. The [NEAR Chain Signatures documentation](https://docs.near.org/chain-abstraction/chain-signatures/implementation) describes the network and signer; the [MPC repository](https://github.com/near/mpc) describes the request schema.
 
 For Ethereum the contract accepts only simple unsigned EIP-1559 type-2 transfers on chain ID 31337 or 11155111 and hashes their typed bytes with Keccak-256. For Bitcoin it accepts one-input, one- or two-output, unsigned P2WPKH transfers and computes BIP143 SIGHASH_ALL itself. The caller never supplies the MPC payload. Bitcoin change must match the registered next-epoch script and wait two minutes after registration; the current-epoch script cannot receive change. Sale and transfer are blocked after any MPC signature is issued, preventing a seller from signing a withdrawal and then selling the still-funded NFT. A buyer must register their own ML-DSA key and policy after sale; the seller's guardian/recovery policy and Bitcoin registration are cleared.
+
+### Deposit quote preview (not execution)
+
+The “Deposit anything” panel gets supported ETH, SOL, and USDC origins from 1Click's live token list and requests `dry: true` quotes into the box's next-epoch native Bitcoin address. A dry quote returns pricing only: it issues no deposit address and sends no asset. `ONECLICK_JWT` is optional; unauthenticated quotes use the published fee schedule. Mainnet execution requires `NEAR_MAINNET_ACCOUNT` and funded assets and is not run by Otzar.
 
 ## Scanner, recovery, SOL, and inheritance
 
