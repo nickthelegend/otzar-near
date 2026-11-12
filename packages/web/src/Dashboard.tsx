@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useBoxes, useRounds, useTusdc } from './data';
-import { earnedSummary, short, TUSDC_SYMBOL } from './lib';
+import { earnedSummary, isPublicVault, short, summaryYieldLabel, TUSDC_SYMBOL } from './lib';
 import { RoundBars, VaultTable, type VaultFilter } from './cards';
 import { MintSheet } from './mint';
 import { RoundSheet } from './RoundSheet';
@@ -36,8 +36,10 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
   const [filter, setFilter] = useState<VaultFilter>('rounds');
   const [mint, setMint] = useState(false);
   const [sheet, setSheet] = useState<string | null>(null);
-  const s = rounds.data ? earnedSummary(rounds.data) : null;
-  const count = (f: VaultFilter) => (boxes.data || []).filter(b => f === 'all' || (f === 'mine' ? b.owner_id === wallet.account : rounds.data?.some(r => r.token_id === b.token_id))).length;
+  const publicRounds = rounds.data?.filter(r => isPublicVault(r.token_id)) || null;
+  const publicBoxes = boxes.data?.filter(b => isPublicVault(b.token_id)) || null;
+  const s = publicRounds ? earnedSummary(publicRounds) : null;
+  const count = (f: VaultFilter) => (boxes.data || []).filter(b => (f === 'mine' || isPublicVault(b.token_id)) && (f === 'all' || (f === 'mine' ? b.owner_id === wallet.account : publicRounds?.some(r => r.token_id === b.token_id)))).length;
   const open = rounds.data?.find(r => `${r.token_id}#${r.id}` === sheet);
 
   return <div className="page s-app">
@@ -49,12 +51,12 @@ export default function Dashboard({ wallet }: { wallet: Wallet }) {
     <div className="s-top">
       <section className="s-summary" aria-label="What Otzar vaults earned">
         <div className="s-summary-num">
-          <p className="s-k"><Term tip={TERMS.apy}>Realised APY</Term>, all vaults</p>
+          <p className="s-k"><Term tip={TERMS.apy}>{summaryYieldLabel(s)}</Term>, public vaults</p>
           <b className="gold-num">{s && s.blended === null ? '—' : <CountUp value={s ? s.blended : null} decimals={2} suffix="%" />}</b>
-          <p className="s-summary-line">{s ? <><Amount e6={s.earned} unit={TUSDC_SYMBOL} /> premium paid over {s.paid.length} {s.paid.length === 1 ? 'round' : 'rounds'} · {boxes.data ? `${boxes.data.length} vaults` : '…'}</> : rounds.error ? <span className="bad">{rounds.error}</span> : 'Reading the rounds…'}</p>
+          <p className="s-summary-line">{s ? <><Amount e6={s.earned} unit={TUSDC_SYMBOL} /> premium paid over {s.paid.length} {s.paid.length === 1 ? 'round' : 'rounds'} · {boxes.data ? `${publicBoxes?.length ?? 0} vaults` : '…'}</> : rounds.error ? <span className="bad">{rounds.error}</span> : 'Reading the rounds…'}</p>
         </div>
         <div className="s-summary-chart">
-          {rounds.data && rounds.data.length ? <RoundBars rounds={rounds.data} height={132} onPick={k => setSheet(k)} /> : <p className="dim small">{rounds.error || (rounds.data ? 'No rounds yet.' : 'Reading rounds…')}</p>}
+          {publicRounds && publicRounds.length ? <RoundBars rounds={publicRounds} height={132} onPick={k => setSheet(k)} /> : <p className="dim small">{rounds.error || (rounds.data ? 'No rounds yet.' : 'Reading rounds…')}</p>}
         </div>
       </section>
       <StartCard wallet={wallet} onMint={() => setMint(true)} />

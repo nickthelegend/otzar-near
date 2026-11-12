@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useCallConfig, useNow, useTusdc, view } from './data';
-import { annualisedPct, btcFromSats, contractId, e6, nearblocksAccount, nearblocksTx, roundPhase, short, tenorLabel, TUSDC_SYMBOL, utcDay, utcTime, type Round } from './lib';
+import { annualisedPct, btcFromSats, contractId, demoRoundLabel, e6, isDemoRound, nearblocksAccount, nearblocksTx, roundPhase, short, tenorLabel, TUSDC_SYMBOL, utcDay, utcTime, type Round } from './lib';
 import { AprRange, evidenceFor, Loop, pct } from './rounds';
 import { Amount, Icon, Link, Sheet } from './ui';
 import { Obj } from './art';
@@ -32,7 +32,7 @@ export function RoundSheet({ r, wallet, onClose }: { r: Round; wallet: Wallet; o
     <h2 className="sheet-h">Strike ${e6(r.strike_usd_e6, 0)}<span> on {btcFromSats(r.size_sats)} BTC</span></h2>
     <div className={`sheet-verdict tk-${ph.phase}`}>
       <span className={`stamp stamp-${ph.phase}`}>{ph.short}</span>
-      <div><b>{ph.label}</b><span>{r.premium_paid_usdc ? <><Amount e6={r.premium_paid_usdc} unit={TUSDC_SYMBOL} /> premium · {pct(annualisedPct(r))} annualised</> : 'No premium paid'}</span></div>
+      <div><b>{ph.label}</b><span>{r.premium_paid_usdc ? <><Amount e6={r.premium_paid_usdc} unit={TUSDC_SYMBOL} /> premium · {isDemoRound(r) ? demoRoundLabel(r) : `${pct(annualisedPct(r))} annualised`}</> : 'No premium paid'}</span></div>
     </div>
     <AprRange c={r} />
     <Loop c={r} now={now} />

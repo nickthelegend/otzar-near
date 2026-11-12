@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import evidence from './evidence/live-calls.json';
-import { annualisedPct, aprFor, btcFromSats, callTenorSec, e6, nearblocksTx, roundPhase, short, tenorLabel, TUSDC_SYMBOL, utcDay, utcTime, type CoveredCall, type Round } from './lib';
+import { annualisedPct, aprFor, btcFromSats, callTenorSec, demoRoundLabel, e6, isDemoRound, nearblocksTx, roundPhase, short, tenorLabel, TUSDC_SYMBOL, utcDay, utcTime, type CoveredCall, type Round } from './lib';
 import { Amount, Icon, Link } from './ui';
 
 export type EvidenceRow = (typeof evidence.calls)[number];
@@ -12,6 +12,14 @@ export const pct = (v: number | null, d = 1) => (v === null ? '—' : `${v.toFix
 
 /** Auction band (floor → opening premium, as APR) with the premium actually paid marked on it. */
 export function AprRange({ c, compact = false }: { c: CoveredCall; compact?: boolean }) {
+  if (isDemoRound(c)) {
+    const open = Number(c.opening_premium_usdc), floor = Number(c.minimum_premium_usdc), paid = c.premium_paid_usdc ? Number(c.premium_paid_usdc) : null;
+    const at = (v: number) => `${Math.min(100, Math.max(0, v / Math.max(1, open) * 100))}%`;
+    return <div className={`apr ${compact ? 'apr-compact' : ''}`} role="img" aria-label={`${demoRoundLabel(c)}; auction premiums ${e6(c.minimum_premium_usdc, 6)} to ${e6(c.opening_premium_usdc, 6)} ${TUSDC_SYMBOL}; ${paid === null ? 'no premium paid' : `${e6(c.premium_paid_usdc!, 6)} paid`}`}>
+      <div className="apr-track"><span className="apr-band" style={{ left: at(floor), right: 0 }} />{paid !== null && <span className="apr-mark" style={{ left: at(paid) }}><i /></span>}</div>
+      <div className="apr-scale"><span>{e6(c.minimum_premium_usdc, 6)}</span><span className="apr-mid">{demoRoundLabel(c)}</span><span>{e6(c.opening_premium_usdc, 6)} {TUSDC_SYMBOL}</span></div>
+    </div>;
+  }
   const floor = aprFor(c, c.minimum_premium_usdc), open = aprFor(c, c.opening_premium_usdc), paid = annualisedPct(c);
   if (floor === null || open === null) return null;
   if (paid === null && roundPhase(c, Date.now()).phase !== 'live') return <p className="apr-none">Auction closed with no buyer · asked {e6(c.opening_premium_usdc, 2)} → {e6(c.minimum_premium_usdc, 2)} {TUSDC_SYMBOL}</p>;

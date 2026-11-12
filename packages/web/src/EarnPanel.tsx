@@ -1,7 +1,7 @@
 import { Chip, Empty, Field, Icon } from './ui';
 import { useEffect, useMemo, useState } from 'react';
 import { bitcoinAddress, deriveAddresses, dryBitcoinQuote, oneClickTokens, rpcQuery, signAuthorization, verifyAuthorization, type OneClickAsset } from '@hako/sdk';
-import { annualisedPct, ago, callLocksVault, callStateLabel, e6, nearblocksAccount, tenorLabel, TUSDC_SYMBOL, type CallConfig, type CoveredCall, type RelayerPrice } from './lib';
+import { annualisedPct, ago, callTenorSec, callLocksVault, callStateLabel, e6, isDemoRound, nearblocksAccount, tenorLabel, TUSDC_SYMBOL, type CallConfig, type CoveredCall, type RelayerPrice } from './lib';
 
 type Box = {token_id:string;owner_id:string;epoch:number;nonce:number;pq_key:number[]|null};
 type Call = CoveredCall;
@@ -10,7 +10,7 @@ type Props = {box:Box;contractId:string;account:string;busy:boolean;clock:number
 function units(value:string,decimals:number):string {if(!/^\d+(?:\.\d+)?$/.test(value))throw new Error('Enter a positive amount');const [whole,fraction='']=value.split('.');if(fraction.length>decimals)throw new Error(`Maximum ${decimals} decimal places`);const n=BigInt(whole)*10n**BigInt(decimals)+BigInt((fraction+'0'.repeat(decimals)).slice(0,decimals)||'0');if(n<=0n)throw new Error('Amount must be positive');return n.toString();}
 function decimal(value:string|number|bigint,decimals=6):string {const n=BigInt(value);return `${n/10n**BigInt(decimals)}.${(n%10n**BigInt(decimals)).toString().padStart(decimals,'0').replace(/0+$/,'')||'0'}`;}
 function date(ns:number):string{return new Date(ns/1e6).toLocaleString();}
-function annualized(c:Call):string {const y=annualisedPct(c);return y===null?'—':`${y.toFixed(2)}%`;}
+function annualized(c:Call):string {if(isDemoRound(c))return `${Math.max(1,Math.round(callTenorSec(c)/60))} min`;const y=annualisedPct(c);return y===null?'—':`${y.toFixed(2)}%`;}
 
 export default function EarnPanel({box,contractId,account,busy,clock,keyFile,invoke,run}:Props){
   const [call,setCall]=useState<Call|null>(null);const [history,setHistory]=useState<Call[]>([]);const [asking,setAsking]=useState<string|null>(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');
@@ -40,7 +40,7 @@ export default function EarnPanel({box,contractId,account,busy,clock,keyFile,inv
       {!call?<Empty icon="coin" title="No call written on this vault yet">{canWrite?'Write one below.':'The owner can write a call once the vault has an ML-DSA key and a registered Bitcoin UTXO.'}</Empty>:<>
         <div className="metrics">
           <div><span>{asking?'Asking premium':'Premium'}</span><strong>{asking?decimal(asking):call.premium_paid_usdc?decimal(call.premium_paid_usdc):'—'}</strong><small>{asking?`${TUSDC_SYMBOL} · falling`:call.premium_paid_usdc?`${TUSDC_SYMBOL} paid to writer`:'auction closed'}</small></div>
-          <div><span>Annualised yield</span><strong>{annualized(call)}</strong><small>premium ÷ (strike × size) × 365 d ÷ {tenorLabel((call.expiry_ns-call.opened_ns)/1e9)}</small></div>
+          <div><span>{isDemoRound(call)?'Demo round':'Annualised yield'}</span><strong>{annualized(call)}</strong><small>{isDemoRound(call)?'Not annualised':<>premium ÷ (strike × size) × 365 d ÷ {tenorLabel((call.expiry_ns-call.opened_ns)/1e9)}</>}</small></div>
           <div><span>Strike</span><strong>${e6(call.strike_usd_e6,0)}</strong><small>{call.oracle_price_usd_e6?`settled at $${e6(call.oracle_price_usd_e6)}`:relayer?`relayer price (testnet) $${e6(relayer.price_usd_e6)} · ${ago(relayer.publish_time_sec*1e9,clock)}`:'no relayer price yet'}</small></div>
           <div><span>Expiry</span><strong>{call.expiry_ns/1e6>clock?tenorLabel((call.expiry_ns/1e6-clock)/1000):'Expired'}</strong><small>{date(call.expiry_ns)}</small></div>
           <div><span>Collateral</span><strong>{Number(call.size_sats).toLocaleString()}</strong><small>sats {call.state==='signed'?'signed to the holder':locked?'locked':'released'}</small></div>

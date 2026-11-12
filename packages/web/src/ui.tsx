@@ -143,7 +143,7 @@ export function Term({ children, tip }: { children: ReactNode; tip: string }) {
 
 /** Plain-language meanings for the few terms the app cannot avoid. */
 export const TERMS = {
-  apy: 'Realised APY: the premium a vault actually earned, scaled to a year, as a share of the BTC it offered.',
+  apy: 'Realised APY uses paid rounds lasting at least one day. Shorter terms are demo rounds, excluded from blended APY; their actual premiums are still shown.',
   premium: 'Premium: what a buyer pays you up front for the right to buy your BTC at a set price. You keep it either way.',
   strike: 'Strike: the set price a buyer may pay for your BTC when the round ends.',
   call: 'Covered call: you offer to sell BTC you already hold at a set price, and get paid now for the offer.',

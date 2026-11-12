@@ -29,6 +29,9 @@ export function formatNear(yocto: bigint | string) {
 }
 export function short(value: string, head = 6, tail = 4) { return value.length > head + tail + 1 ? `${value.slice(0, head)}…${value.slice(-tail)}` : value; }
 
+/** QA fixtures stay addressable and visible to their owner, but are not a public product catalog. */
+export const isPublicVault = (id: string) => !id.toLowerCase().startsWith('qa-');
+
 export async function loadBoxes(): Promise<Box[]> {
   if (!contractId) throw new Error('Setup required: VITE_HAKO_CONTRACT');
   return await rpcQuery(contractId, 'nft_tokens', { from_index: 0, limit: 100 }) as Box[];
@@ -86,6 +89,7 @@ export type CallConfig = { premium_token: string; relayer_public_key: string | n
 export type RelayerPrice = { pair: string; price_usd_e6: string; publish_time_sec: number; source_url: string; relayer_public_key: string; posted_ns: number; posted_by: string; label: string };
 export const TUSDC_SYMBOL = 'tUSDC';
 export const YEAR_SEC = 365 * 86400;
+export const DAY_SEC = 86400;
 
 /** Fixed-point (6 decimals) to a display string, trimming trailing zeros but keeping at least `min` decimals. */
 export function e6(value: string | number | bigint, min = 2) {
@@ -94,13 +98,20 @@ export function e6(value: string | number | bigint, min = 2) {
   return f ? `${whole.toLocaleString('en-US')}.${f}` : whole.toLocaleString('en-US');
 }
 export const callTenorSec = (c: CoveredCall) => (c.expiry_ns - c.opened_ns) / 1e9;
+export const isDemoRound = (c: CoveredCall) => callTenorSec(c) > 0 && callTenorSec(c) < DAY_SEC;
+export const demoRoundLabel = (c: CoveredCall) => `Demo round (${Math.max(1, Math.round(callTenorSec(c) / 60))} min)`;
+export const roundYieldLabel = (c: CoveredCall, decimals = 1) => {
+  if (isDemoRound(c)) return demoRoundLabel(c);
+  const rate = annualisedPct(c);
+  return rate === null ? '—' : `${rate.toFixed(decimals)}%`;
+};
 /** Strike notional in micro-dollars: strike x size. */
 export const strikeNotionalE6 = (c: CoveredCall) => Number(BigInt(c.strike_usd_e6) * BigInt(c.size_sats) / 100_000_000n);
-/** Annualised yield on strike notional: premium / (strike x size) x 365 d / tenor. Null until a premium is paid. */
+/** Annualised yield on strike notional, only for paid rounds lasting at least one day. */
 export function annualisedPct(c: CoveredCall): number | null {
   if (!c.premium_paid_usdc) return null;
   const tenor = callTenorSec(c), notional = strikeNotionalE6(c);
-  if (!(tenor > 0) || !(notional > 0)) return null;
+  if (!(tenor >= DAY_SEC) || !(notional > 0)) return null;
   return Number(c.premium_paid_usdc) / notional * YEAR_SEC / tenor * 100;
 }
 export function tenorLabel(sec: number) { return sec < 3600 ? `${Math.round(sec / 60)} min` : sec < 172800 ? `${Math.round(sec / 3600)} h` : `${Math.round(sec / 86400)} d`; }
@@ -111,7 +122,7 @@ export type Phase = 'live' | 'sold' | 'itm' | 'otm' | 'unfilled' | 'other';
 /** Annualised yield on strike notional for a given premium (6-decimal tUSDC units). */
 export function aprFor(c: CoveredCall, premiumE6: string | number | bigint): number | null {
   const tenor = callTenorSec(c), notional = strikeNotionalE6(c);
-  if (!(tenor > 0) || !(notional > 0)) return null;
+  if (!(tenor >= DAY_SEC) || !(notional > 0)) return null;
   return Number(premiumE6) / notional * YEAR_SEC / tenor * 100;
 }
 
@@ -137,11 +148,18 @@ export const callLocksVault = (c: CoveredCall | undefined | null) => !!c && ['au
 export function earnedSummary(rounds: CoveredCall[]) {
   const paid = rounds.filter(c => !!c.premium_paid_usdc);
   const earned = paid.reduce((a, c) => a + BigInt(c.premium_paid_usdc!), 0n);
-  const notionalTime = paid.reduce((a, c) => a + strikeNotionalE6(c) * callTenorSec(c), 0);
-  const blended = paid.length && notionalTime > 0 ? Number(earned) / notionalTime * YEAR_SEC * 100 : null;
+  const eligible = paid.filter(c => callTenorSec(c) >= DAY_SEC);
+  const eligibleEarned = eligible.reduce((a, c) => a + BigInt(c.premium_paid_usdc!), 0n);
+  const notionalTime = eligible.reduce((a, c) => a + strikeNotionalE6(c) * callTenorSec(c), 0);
+  const blended = eligible.length && notionalTime > 0 ? Number(eligibleEarned) / notionalTime * YEAR_SEC * 100 : null;
   const tenor = paid.length ? paid.reduce((a, c) => a + callTenorSec(c), 0) / paid.length : 0;
-  return { paid, earned, blended, tenor };
+  const demoOnly = paid.length > 0 && paid.every(isDemoRound);
+  return { paid, earned, blended, tenor, demoOnly };
 }
+
+export const summaryYieldLabel = (s: ReturnType<typeof earnedSummary> | null) => s?.demoOnly
+  ? s.paid.length === 1 ? demoRoundLabel(s.paid[0]) : 'Demo rounds (minutes)'
+  : 'Realised APY';
 
 export const utcTime = (ns: number) => new Date(ns / 1e6).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
 export const utcDay = (ns: number) => new Date(ns / 1e6).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });

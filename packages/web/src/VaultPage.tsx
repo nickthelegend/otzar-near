@@ -5,7 +5,7 @@ import EarnPanel from './EarnPanel';
 import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
-import { annualisedPct, anvilUrl, callLocksVault, contractId, e6, earnedSummary, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, short, solanaUrl, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
+import { anvilUrl, callLocksVault, contractId, demoRoundLabel, e6, earnedSummary, isDemoRound, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, roundYieldLabel, short, summaryYieldLabel, solanaUrl, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Term, TERMS, Timeline } from './ui';
 import { CountUp, Obj } from './art';
 import { useNow, useRelayer, useRounds } from './data';
@@ -130,7 +130,7 @@ export default function VaultPage({ id, wallet }: Props) {
         <p className="s-vhead-say">A NEAR vault for native Bitcoin, Ethereum and Solana. Owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 16, 8)}</a>{sealed ? <>, sealed with a <Term tip={TERMS.mldsa}>post-quantum key</Term>.</> : '. No quantum key yet.'}</p>
       </div>
       <dl className="s-vfigs">
-        <div><dt><Term tip={TERMS.apy}>Earned</Term></dt><dd className="gold-num">{rounds.data ? pct(apy, 2) : '…'}</dd></div>
+        <div><dt><Term tip={TERMS.apy}>{earned.demoOnly ? summaryYieldLabel(earned) : 'Earned'}</Term></dt><dd className="gold-num">{rounds.data ? pct(apy, 2) : '…'}</dd></div>
         <div><dt><Term tip={TERMS.premium}>Premium</Term></dt><dd>{rounds.data ? <Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> : '…'}</dd></div>
         <div><dt><Term tip={TERMS.round}>Rounds</Term></dt><dd>{rounds.data ? boxRounds.length : '…'}</dd></div>
       </dl>
@@ -154,7 +154,7 @@ export default function VaultPage({ id, wallet }: Props) {
           <div className="s-rounds">{boxRounds.map(r => <button key={r.key} className="s-rounds-row" onClick={() => setSheet(r)}>
             <span><b>#{r.id}</b><small>{utcDay(r.opened_ns)} · ${e6(r.strike_usd_e6, 0)}</small></span>
             <PhasePill c={r} now={now} plain />
-            <span className="gold-num">{pct(annualisedPct(r))}</span>
+            <span className="gold-num">{roundYieldLabel(r)}</span>
             <Icon name="arrow" size={15} />
           </button>)}</div>
         </section>}
@@ -308,7 +308,7 @@ export default function VaultPage({ id, wallet }: Props) {
             <span className="s-swap" aria-hidden="true"><Icon name="arrow" size={16} /></span>
             <div className="s-box">
               <div className="s-box-top"><span className="coin coin-jade">%</span><b>The vault earns</b><small>premium in {TUSDC_SYMBOL}</small></div>
-              <p className="s-box-big">{rounds.data && apy === null ? '—' : <CountUp value={apy} decimals={2} suffix="%" />}<small><Term tip={TERMS.apy}>realised APY</Term></small></p>
+              <p className="s-box-big">{rounds.data && apy === null ? '—' : <CountUp value={apy} decimals={2} suffix="%" />}<small><Term tip={TERMS.apy}>{earned.demoOnly ? summaryYieldLabel(earned) : !earned.paid.length && latest && isDemoRound(latest) ? demoRoundLabel(latest) : 'realised APY'}</Term></small></p>
               <p className="s-box-foot"><span>Right now</span><span>{latest ? plainRoundLabel(latest, now) : rounds.error ? 'Round state unavailable' : roundUnknown ? 'Reading rounds…' : 'No round yet'}</span></p>
             </div>
             {!account ? <button className="pill pill-gold pill-block pill-lg" onClick={connect} disabled={!wallet.ready}><Icon name="wallet" size={17} /> Connect wallet</button>

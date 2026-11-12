@@ -3,7 +3,7 @@ import PortfolioTotals from './PortfolioTotals';
 import { ActivityTable, PhasePill, VaultTable } from './cards';
 import { RoundSheet } from './RoundSheet';
 import { useBoxes, useNow, useRounds, useTusdc, useTxns } from './data';
-import { annualisedPct, anvilUrl, btcFromSats, contractId, earnedSummary, esploraUrl, nearblocksAccount, short, TUSDC_SYMBOL, utcDay, type Round } from './lib';
+import { anvilUrl, btcFromSats, contractId, earnedSummary, esploraUrl, nearblocksAccount, roundYieldLabel, short, summaryYieldLabel, TUSDC_SYMBOL, utcDay, type Round } from './lib';
 import { pct } from './rounds';
 import { Amount, Icon, Link, State, Term, TERMS } from './ui';
 import { Obj } from './art';
@@ -36,7 +36,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
       <p className="s-balance-big">{bal.data !== null ? <Amount e6={bal.data} unit={TUSDC_SYMBOL} /> : bal.error ? <span className="dim" title={bal.error}>Unavailable</span> : '…'}</p>
       <dl className="s-balance-kv">
         <div><dt><Term tip={TERMS.premium}>Premium earned</Term></dt><dd>{rounds.data ? <Amount e6={wrote.earned} /> : '…'}</dd></div>
-        <div><dt><Term tip={TERMS.apy}>Realised APY</Term></dt><dd>{pct(wrote.blended, 2)}</dd></div>
+        <div><dt><Term tip={TERMS.apy}>{summaryYieldLabel(wrote)}</Term></dt><dd>{pct(wrote.blended, 2)}</dd></div>
         <div><dt>Vaults</dt><dd>{boxes.data ? mine.length : '…'}</dd></div>
       </dl>
       <button className="pill pill-line pill-sm s-signout" onClick={wallet.disconnect}>Sign out</button>
@@ -57,7 +57,7 @@ export default function Portfolio({ wallet }: { wallet: Wallet }) {
           <span data-label="You were">{r.writer === acct ? 'Seller' : 'Buyer'}</span>
           <span data-label="Strike" className="mono">${(Number(r.strike_usd_e6) / 1e6).toLocaleString()}</span>
           <span data-label="Premium">{r.premium_paid_usdc ? <Amount e6={r.premium_paid_usdc} /> : <span className="dim">—</span>}</span>
-          <span data-label="APY" className="jade">{pct(annualisedPct(r))}</span>
+          <span data-label="APY" className="jade">{roundYieldLabel(r)}</span>
           <span data-label="Outcome"><PhasePill c={r} now={now} plain /></span>
         </button>)}
       </div> : <State kind="empty" title={rounds.data ? 'No rounds with your account yet' : 'Reading rounds…'}>Write a round from one of your vaults, or buy an open one from a vault page.</State>}

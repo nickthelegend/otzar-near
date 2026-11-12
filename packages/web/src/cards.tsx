@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useNow } from './data';
-import { ago, annualisedPct, btcFromSats, e6, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, type Box, type ChainTx, type CoveredCall, type Phase, type Round } from './lib';
+import { ago, annualisedPct, btcFromSats, demoRoundLabel, e6, isDemoRound, isPublicVault, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, type Box, type ChainTx, type CoveredCall, type Phase, type Round } from './lib';
 import { pct } from './rounds';
 import { Icon, Link, State, Term, TERMS } from './ui';
 
@@ -13,7 +13,7 @@ export const PHASE_TONE: Record<Phase, string> = { live: 'gold', sold: 'jade', i
 export const PLAIN: Record<Phase, string> = { live: 'Open for a buyer', sold: 'Sold, running', itm: 'BTC transfer signed', otm: 'Expired, BTC kept', unfilled: 'No buyer', other: 'In progress' };
 export function plainRoundLabel(c: CoveredCall, now: number) {
   const ph = roundPhase(c, now);
-  return ph.phase === 'other' || (ph.phase === 'itm' && c.state !== 'signed') || c.state === 'purchasing' ? ph.label : PLAIN[ph.phase];
+  return ph.phase === 'other' || (ph.phase === 'itm' && c.state !== 'signed') || c.state === 'purchasing' || (ph.phase === 'sold' && c.expiry_ns / 1e6 <= now) ? ph.label : PLAIN[ph.phase];
 }
 export function PhasePill({ c, now, plain = false }: { c: CoveredCall; now: number; plain?: boolean }) {
   const ph = roundPhase(c, now);
@@ -33,22 +33,23 @@ export function roundSentence(c: CoveredCall, now: number): string {
   switch (ph.phase) {
     case 'itm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, above that price. ${c.state === 'signed' ? 'The strike was paid and NEAR signed the BTC transfer; this state does not prove Bitcoin delivery.' : c.state === 'paid' || c.state === 'signing' ? 'The strike was paid; the Bitcoin signature is still pending.' : 'The buyer must finish paying the strike and requesting the BTC signature.'} The vault kept the premium.`;
     case 'otm': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. BTC settled at ${settled}, below that price, so the vault kept its BTC and the premium.`;
-    case 'sold': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. The round is running; the premium is the vault's either way.`;
+    case 'sold': return `A buyer paid ${paid} for the right to buy ${size} at ${strike}. ${c.expiry_ns / 1e6 <= now ? 'The round has ended and is awaiting the signed settlement price' : 'The round is running'}; the premium is the vault's either way.`;
     case 'live': return `The vault is offering ${size} at ${strike}. The asking premium falls until a buyer pays it.`;
     case 'unfilled': return `The vault offered ${size} at ${strike}, but no buyer paid the premium before the auction ended. Nothing was sold.`;
     default: return `${ph.label}: ${size} at ${strike}.`;
   }
 }
 
-/** Annualised yield per round, oldest first; the chosen round is highlighted and labelled. */
+/** Actual premiums when demo rounds are present; day-long rounds may show annualised yield. */
 export function RoundBars({ rounds, selected, onPick, height = 168 }: { rounds: CoveredCall[]; selected?: string; onPick?: (key: string) => void; height?: number }) {
   const root = useRef<HTMLDivElement>(null);
   const [tipEdge, setTipEdge] = useState<'left' | 'right' | ''>('');
   const list = [...rounds].sort((a, b) => a.opened_ns - b.opened_ns);
-  const vals = list.map(r => annualisedPct(r));
-  const top = Math.max(20, ...vals.map(v => v ?? 0));
+  const premiums = list.some(isDemoRound);
+  const vals = list.map(r => premiums ? r.premium_paid_usdc ? Number(r.premium_paid_usdc) / 1e6 : null : annualisedPct(r));
+  const top = Math.max(premiums ? 0.000001 : 20, ...vals.map(v => v ?? 0));
   const key = (r: CoveredCall) => `${r.token_id}#${r.id}`;
-  const sel = selected || key([...list].reverse().find(r => r.premium_paid_usdc) || list[list.length - 1]);
+  const sel = selected || (list.length ? key([...list].reverse().find(r => r.premium_paid_usdc) || list[list.length - 1]) : '');
   useLayoutEffect(() => {
     const tip = root.current?.querySelector<HTMLElement>('.rb-tip');
     if (!tip) { setTipEdge(''); return; }
@@ -64,12 +65,12 @@ export function RoundBars({ rounds, selected, onPick, height = 168 }: { rounds: 
     return () => observer.disconnect();
   }, [rounds, sel]);
   const ticks = [top, top / 2, 0];
-  return <div className="rb" ref={root}>
-    <div className="rb-axis" style={{ height }}>{ticks.map(t => <span key={t}>{t.toFixed(0)}%</span>)}</div>
+  return <div className="rb" ref={root} role="group" aria-label={premiums ? `Premium paid in ${TUSDC_SYMBOL}; short terms are demo rounds` : 'Annualised yield per round'}>
+    <div className="rb-axis" style={{ height }}>{ticks.map(t => <span key={t}>{premiums ? t.toLocaleString('en-US', { maximumFractionDigits: 6 }) : `${t.toFixed(0)}%`}</span>)}</div>
     <div className="rb-plot" style={{ height }}>
       {ticks.map(t => <i key={t} className="rb-grid" style={{ bottom: `${(t / top) * 100}%` }} />)}
-      {list.map((r, i) => { const v = vals[i]; const on = key(r) === sel; return <button key={key(r)} className={`rb-bar ${on ? 'on' : ''} ${v === null ? 'none' : ''} ${(on && tipEdge === 'right') || (i >= list.length - 1 && list.length > 1) ? 'tip-r' : (on && tipEdge === 'left') || (i === 0 && list.length > 1) ? 'tip-l' : ''}`} onClick={() => onPick?.(key(r))} aria-label={`Round ${r.id} on ${r.token_id}: ${v === null ? 'no premium paid' : `${v.toFixed(1)}% annualised`}`}>
-        {on && v !== null && <span className="rb-tip"><small>{short(r.token_id, 9, 4)} · {utcDay(r.opened_ns)}</small><b>{v.toFixed(2)}%</b></span>}
+      {list.map((r, i) => { const v = vals[i]; const on = key(r) === sel; return <button key={key(r)} className={`rb-bar ${on ? 'on' : ''} ${v === null ? 'none' : ''} ${(on && tipEdge === 'right') || (i >= list.length - 1 && list.length > 1) ? 'tip-r' : (on && tipEdge === 'left') || (i === 0 && list.length > 1) ? 'tip-l' : ''}`} onClick={() => onPick?.(key(r))} aria-label={`Round ${r.id} on ${r.token_id}: ${isDemoRound(r) ? `${demoRoundLabel(r)}; ` : ''}${v === null ? 'no premium paid' : premiums ? `${money(r.premium_paid_usdc!)} ${TUSDC_SYMBOL} paid` : `${v.toFixed(1)}% annualised`}`}>
+        {on && v !== null && <span className="rb-tip"><small>{short(r.token_id, 9, 4)} · {utcDay(r.opened_ns)}</small><b>{premiums ? `${money(r.premium_paid_usdc!)} ${TUSDC_SYMBOL}` : `${v.toFixed(2)}%`}</b>{isDemoRound(r) && <small>{demoRoundLabel(r)}</small>}</span>}
         <span className="rb-col" style={{ height: `${v === null ? 2 : Math.max(4, (v / top) * 100)}%` }} />
       </button>; })}
     </div>
@@ -82,7 +83,7 @@ export type VaultFilter = 'all' | 'rounds' | 'mine';
 export function VaultTable({ boxes, rounds, account, filter, limit }: { boxes: Box[]; rounds: Round[] | null; account: string; filter: VaultFilter; limit?: number }) {
   const now = useNow(15000);
   const latest = (id: string) => rounds?.find(r => r.token_id === id);
-  const list = boxes.filter(b => filter === 'all' || (filter === 'mine' ? b.owner_id === account : !!latest(b.token_id)))
+  const list = boxes.filter(b => (filter === 'mine' || isPublicVault(b.token_id)) && (filter === 'all' || (filter === 'mine' ? b.owner_id === account : !!latest(b.token_id))))
     .sort((a, b) => (annualisedPct(latest(b.token_id) || ({} as CoveredCall)) ?? -1) - (annualisedPct(latest(a.token_id) || ({} as CoveredCall)) ?? -1) || Number(!!latest(b.token_id)) - Number(!!latest(a.token_id)));
   if (!list.length) return <State kind="empty" title={filter === 'mine' ? (account ? 'You own no vaults yet' : 'Connect to see your vaults') : 'No vaults here'}>Each vault is an NFT on NEAR that owns a native Bitcoin address through Chain Signatures.</State>;
   return <div className="vt vt-simple" role="table" aria-label="Vaults">
@@ -93,7 +94,7 @@ export function VaultTable({ boxes, rounds, account, filter, limit }: { boxes: B
       const t = vaultType(b.token_id, all.length > 0);
       return <Link key={b.token_id} to={`/vault/${b.token_id}`} className={`vt-row vt-${t} ${b.owner_id === account ? 'mine' : ''}`}>
         <span className="vt-vault" role="cell"><span className="vt-glyph" aria-hidden="true">א</span><span><b>{b.token_id}</b><small>{TYPE_LABEL[t]}{b.owner_id === account ? ' · yours' : ''}{all.length > 1 ? ` · ${all.length} rounds` : ''}</small></span></span>
-        <span className="vt-apy" role="cell" data-label="Earned">{apy === null ? <em>{r ? 'nothing yet' : '—'}</em> : <><b>{apy.toFixed(1)}%</b><small>APY</small></>}</span>
+        <span className="vt-apy" role="cell" data-label="Earned">{r && isDemoRound(r) ? <em>{demoRoundLabel(r)}</em> : apy === null ? <em>{r ? 'nothing yet' : '—'}</em> : <><b>{apy.toFixed(1)}%</b><small>APY</small></>}</span>
         <span role="cell" data-label="Last round">{r ? <PhasePill c={r} now={now} plain /> : <span className="dim">No rounds yet</span>}</span>
         <span className="vt-go" aria-hidden="true"><Icon name="arrow" size={16} /></span>
       </Link>;

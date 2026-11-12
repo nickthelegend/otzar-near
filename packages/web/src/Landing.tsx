@@ -1,6 +1,6 @@
 import { ActivityTable, VaultTable } from './cards';
 import { useBoxes, useRounds, useTxns } from './data';
-import { contractId, earnedSummary, nearblocksAccount, TUSDC_SYMBOL } from './lib';
+import { contractId, earnedSummary, isPublicVault, nearblocksAccount, summaryYieldLabel, TUSDC_SYMBOL } from './lib';
 import { Amount, Icon, Link, State, Term, TERMS } from './ui';
 import { artSrc, CountUp, Wordmark } from './art';
 
@@ -24,7 +24,7 @@ export function SiteFoot() {
 
 export default function Landing() {
   const rounds = useRounds(); const boxes = useBoxes(); const txns = useTxns();
-  const sum = rounds.data ? earnedSummary(rounds.data) : null;
+  const sum = rounds.data ? earnedSummary(rounds.data.filter(r => isPublicVault(r.token_id))) : null;
 
   return <>
     <SiteNav />
@@ -43,7 +43,7 @@ export default function Landing() {
           <aside className="s-proof" aria-label="Live from NEAR testnet" aria-live="polite">
             <p className="s-proof-top"><i className="live-dot" />Live on NEAR testnet</p>
             <b className="s-proof-num">{sum && sum.blended === null ? '—' : <CountUp value={sum?.blended ?? null} decimals={2} suffix="%" />}</b>
-            <p className="s-proof-k"><Term tip={TERMS.apy}>Realised APY</Term></p>
+            <p className="s-proof-k"><Term tip={TERMS.apy}>{summaryYieldLabel(sum)}</Term></p>
             <p className="s-proof-line">{sum ? <><Amount e6={sum.earned} unit={TUSDC_SYMBOL} /> paid over {sum.paid.length} {sum.paid.length === 1 ? 'round' : 'rounds'}</> : rounds.error ? <span className="bad">{rounds.error}</span> : 'Reading the rounds…'}</p>
           </aside>
         </figure>
