@@ -45,7 +45,7 @@ Machine-readable diagnostics: `orchestration/shots/hako/r2/{before,after}/metric
 
 ## Art and remaining boundaries
 
-These five unused files remain untracked and untouched; none was added to `.gitignore`:
+R2 left these five unused files untracked and untouched. R3 later moved them unchanged outside the repo to `unused-art`; none was added to `.gitignore`:
 
 - `packages/web/public/art/otzar2-card-anychain.webp`
 - `packages/web/public/art/otzar2-card-call.webp`

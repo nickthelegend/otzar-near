@@ -173,3 +173,11 @@ The final funded pass preceded test-only screenshot naming/wait improvements and
 Run `node e2e/check-judge-display.mjs` from the repo root. This zero-spend check needs installed workspace dependencies, no credentials or local chain nodes. It verifies duration boundaries below/exactly/above 24 hours, exclusion of demo premiums from blended APY while retaining actual earned amounts, public QA filtering and owner visibility, actual-premium demo charts/bands, and expired-round wording.
 
 Typecheck and production/QA builds passed. Real read-only browser checks passed at 1440 and 375; screenshots, diagnostics and the unchanged-design audit are in [docs/JUDGE-R2-FIXES.md](docs/JUDGE-R2-FIXES.md). No new funded e2e run was needed for these display changes.
+
+## R3 read-only vault checks (2026-11-12)
+
+Executed `pnpm --filter @hako/web test` twice, two production builds (before and after, all optional RPC variables unset), `node e2e/check-local-chain-panels.mjs`, and `node e2e/check-judge-display.mjs`: **PASS**. The local-panel test compiles the actual gate under unset / Ethereum-only / Solana-only / both RPC settings and runs twelve server-render checks per invocation. Both invocations passed (24 render checks total). It makes no network request and does not claim that a local node is running.
+
+Installed Chrome under the shared orchestration lock captured eight before and eight after states on `/vault/call-itm-mw9irlhd`: default, overview, rules and Bitcoin send, each at 1440 and 375. Console errors, page errors, failed requests and overflow: **0**. The eight NEAR-data comparisons were identical. No response was mocked, no wallet connected, no key loaded and no transaction sent. Runtime balances/broadcast against configured local nodes were not retested in this read-only brief.
+
+The first 60 README lines contain one optional-chain note; the submission idea is 895 characters and describes Bitcoin controlled from NEAR. The dead-link grep is empty. Five unused images were moved outside Git, with their hashes recorded in `deployments/r3-2026-11-12.json`. No films or sealed deployment evidence were changed.

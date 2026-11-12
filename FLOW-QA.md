@@ -141,3 +141,20 @@ Diagnostics and limits:
 **PASS:** QA vaults are excluded from public lists, charts, counts and summaries, while direct URLs and owner positions still work. All sub-day terms show demo-duration labels and actual premiums; their annualised rates are excluded from blended APY. Expired sold rounds now say awaiting settlement. How uses the correct five-minute settlement-print window.
 
 The read-only repeat captured 26 before and 26 after states at 1440 and 375, with zero after-state page/console errors, failed requests, raw values or horizontal overflow. No transactions were sent. [Full checks, limits and all before/after screenshots](docs/JUDGE-R2-FIXES.md). The five unused `otzar2-*.webp` files remain untracked, with no ignore-rule change.
+
+## R3 read-only vault verification — 2026-11-12
+
+**PASS:** a node-free vault keeps live NEAR figures, the round sentence and timeline. Unconfigured optional-chain asset, rules and send panels are hidden. Bitcoin shows “Bitcoin runs on local regtest in this demo; balances need a local node (README)”. Configured panels remain available, verified by two test runs, each covering four build-time configurations and twelve actual panel-gate render checks (24 total). There is no new balance or broadcast verification against running local nodes.
+
+Eight before and eight after browser captures cover default / overview / rules / Bitcoin send at 1440 and 375. All eight NEAR-data comparisons match. Console/page/network errors and overflow: **0**. Builds, types and display regression checks pass. Transactions: **0**; hashes: **none**; NEAR spent: **0**. The existing public-Bitcoin and browser-settlement boundaries remain in BLOCKED.md.
+
+Screenshots were captured locally during QA and are not committed.
+
+| Vault state | Before 1440 / 375 | After 1440 / 375 |
+| --- | --- | --- |
+| Default | `1440-vault.png` / `375-vault.png` | `1440-vault.png` / `375-vault.png` |
+| Overview | `1440-overview.png` / `375-overview.png` | `1440-overview.png` / `375-overview.png` |
+| Rules | `1440-rules.png` / `375-rules.png` | `1440-rules.png` / `375-rules.png` |
+| Bitcoin send | `1440-send.png` / `375-send.png` | `1440-send.png` / `375-send.png` |
+
+The old absolute screenshot links are now plain filenames, retaining all historical result rows. The five unused `otzar2-*.webp` files were moved, not deleted, to the external `unused-art` folder. Their hashes and this zero-spend verification are in `deployments/r3-2026-11-12.json`. Nothing was added to `.gitignore`; no films changed.

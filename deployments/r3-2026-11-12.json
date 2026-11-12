@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-12",
+  "network": "NEAR testnet read-only",
+  "contract": "hako-contract-mw984kpp.testnet",
+  "status": "PASS",
+  "transactions": [],
+  "nearSpent": "0",
+  "builds": [
+    "before production, RPCs unset",
+    "after production, RPCs unset"
+  ],
+  "browser": {
+    "channel": "chrome",
+    "viewports": [
+      1440,
+      375
+    ],
+    "beforeCaptures": 8,
+    "afterCaptures": 8,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "failedRequests": 0,
+    "horizontalOverflow": 0,
+    "nearSnapshotComparisons": 8,
+    "nearSnapshotsUnchanged": true
+  },
+  "configuredPanelTest": {
+    "configurations": 4,
+    "renderChecks": 12,
+    "networkRequests": 0,
+    "status": "PASS",
+    "runs": 2,
+    "configurationsPerRun": 4,
+    "renderChecksPerRun": 12,
+    "totalRenderChecks": 24
+  },
+  "movedUnusedArt": [
+    {
+      "file": "otzar2-card-anychain.webp",
+      "sha256": "27f501925594d83ec988080dfa7033b9b86b538330aa2513e9eb828128aac092"
+    },
+    {
+      "file": "otzar2-card-call.webp",
+      "sha256": "964b4d56c7318b319556339fed5ced5a1e2449f0ce8b260008e5a74e19848930"
+    },
+    {
+      "file": "otzar2-card-qsafe.webp",
+      "sha256": "7efd254aa910bd0c9d90eea271468cba92f8e752e8a61811c0804d3b104bcc70"
+    },
+    {
+      "file": "otzar2-cta.webp",
+      "sha256": "b4c8c38d2d9b8308259460af893c99ca2367ad7c4b866fad6a5458ffe7421674"
+    },
+    {
+      "file": "otzar2-security.webp",
+      "sha256": "5f976e49dee1a0595733607fa323f2644a96b6cb0f5bf9a8a2ad89d5e8727d6d"
+    }
+  ],
+  "typecheckRuns": 2
+}
