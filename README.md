@@ -1,6 +1,6 @@
-# Otzar — Bitcoin vaults with post-quantum authorization and covered calls on NEAR
+# Otzar — Earn a premium on your Bitcoin
 
-Bitcoin holders who want option premiums also need clear spending, recovery, and inheritance rules. Managing those rules across chains is hard, and exposed classical public keys face future quantum risk.
+Holding Bitcoin pays no income. Otzar lets you sell a call from a vault you own: a buyer pays the premium on NEAR, and NEAR signs the Bitcoin transfer after they pay the agreed price. You keep the premium and give up gains above that price.
 
 ## Try it
 
@@ -12,7 +12,7 @@ Run these commands from the repo root. Use Node 22+ and pnpm 10.22.0 on your PAT
 4. Open that URL at `/app`, then `/vault/call-itm-mw9irlhd` — see vaults and the recorded covered-call state read from NEAR testnet. Reading needs no wallet. Local BTC/ETH/SOL balances need the nodes described in [Run the UI and MCP server](#run-the-ui-and-mcp-server).
 5. Open `/how` — see the covered-call explanation, testnet round, security limits, and public-address exposure scanner. To reproduce transactions yourself, follow the [Judge walkthrough](#judge-walkthrough) and its additional toolchain/setup requirements.
 
-Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below. Settlement and Bitcoin exercise are reproduced by `scripts/demo-calls.sh`; the browser does not provide those actions. See [full-flow QA](FLOW-QA.md) for the screen-by-screen results and human sign-in gates.
+Reading vaults and rounds needs no local chain nodes. The covered-call write and Bitcoin send flows need Bitcoin Core; Anvil and Solana are optional for their own chain panels. Public RPC or NearBlocks rate limits can interrupt reads. Errors are shown in the app; reload after the service recovers. Browser writes require your own Meteor testnet wallet and the relevant setup below. Settlement and Bitcoin exercise are reproduced by `scripts/demo-calls.sh`; the browser does not provide those actions. See [full-flow QA](FLOW-QA.md) for the screen-by-screen results and human sign-in gates.
 
 ## Live on NEAR testnet
 
@@ -49,7 +49,9 @@ The writer signs the strike, sats, expiry, premium range, and Bitcoin UTXO asser
 
 The price is never typed by hand, and the demo chooses strikes from the real spot price (ITM 2% below, OTM 3% above), so the real price at expiry decides the outcome. **Mainnet design:** read the Rhea price oracle `priceoracle.near` instead of the relayer. A [mainnet read on 2026-11-09](deployments/rhea-oracle-mainnet-2026-11-09.json) found the contract with 17 assets and a 90 s recency window, but every price, including bridged WBTC, was `null` at that block. That path is not yet verified.
 
-**Annualised yield** in the web app is `premium ÷ (strike × size) × 365 d ÷ tenor`, from on-chain call state. The demo calls ran for four minutes, so a tiny premium annualises to a normal-looking rate. The demo auction opened at 20% APR and floored at 5% APR of notional. These are demo terms, not an options-model price, and not a forecast.
+**Yield display.** Rounds shorter than one day show `Demo round (<minutes> min)`, with actual test-token premiums. They show no annualised percentage and do not contribute to blended APY. The chart shows premiums in tUSDC when demo rounds are present. For paid rounds lasting at least one day, annualised yield is `premium ÷ (strike × size) × 365 d ÷ tenor`, from on-chain state. These prototype terms are not an options-model price or a yield forecast.
+
+Vault IDs beginning with `qa-` are omitted from public lists, counts, charts and summaries. They remain available at `/vault/<id>` and in their connected owner’s portfolio. This is catalog filtering, not on-chain privacy.
 
 **Verification boundary:** the signed UTXO assertion is checked against Bitcoin Core in the demo and against the live Bitcoin UTXO service in the browser, but the NEAR contract cannot independently prove Bitcoin ownership or balance. The relayer is a single trusted signer on testnet. The option claim uses a custom transfer method and is **not yet a complete NEP-171 NFT**. Mainnet USDC-to-BTC compounding and any-chain funding remain dry [1Click quote](https://docs.near-intents.org/integration/distribution-channels/1click-api/quickstart/making-a-request) previews only. Do not treat this prototype as a collateralised production option. See [BLOCKED.md](BLOCKED.md).
 
@@ -65,14 +67,14 @@ Contract `hako-contract-mw984kpp.testnet`; writer `hako-seller-mw984kqa.testnet`
 | Write (ML-DSA) | [2fUWxg…](https://testnet.nearblocks.io/txns/2fUWxgkMiXCakivEEjjgXa13HfamxavMR7RAfESGYZAK) | [9PnXft…](https://testnet.nearblocks.io/txns/9PnXfthp1Xg7fMVqcWBd96T3nbA4srUu8pXzX6bgJkos) |
 | Writer spends collateral while live | Rejected [A2FQof…](https://testnet.nearblocks.io/txns/A2FQof1ircJejob64sUrRHejyyhAPszGg4S4VDzcMTMN) | Rejected after sale [op4uf8…](https://testnet.nearblocks.io/txns/op4uf8MXsaBd3jqGd4Zz5khRnDcrbM3hpHeW1hksHrm) |
 | Dutch-auction buy (premium → writer) | 0.010369 tUSDC [LEHEvV…](https://testnet.nearblocks.io/txns/LEHEvVvX9fSEY8u5ZU1adrXcSrvVdYXydJnkKJpBtbe) | 0.009178 tUSDC [GHbcAG…](https://testnet.nearblocks.io/txns/GHbcAGgtbJ4c1opJXJeMx539TgSYcPioKTtNvsU4KWV9) |
-| Annualised yield (strike notional, 238 s / 234 s tenor) | 18.73% | 16.04% |
+| Demo round duration | 238 s | 234 s |
 | Relayer price posted at expiry | [ESEEWV…](https://testnet.nearblocks.io/txns/ESEEWVhwoH85JDvWGHCQ62VHkHT1enBQqnyfZSCkivsq) | same print |
 | Settle | ITM [71gsno…](https://testnet.nearblocks.io/txns/71gsnoXgkW34ByRqNwwvNuUfikxh8aofGaAPixprnnyq) | OTM [DoRKjE…](https://testnet.nearblocks.io/txns/DoRKjEpsLwGhqnYdrnnWqAkeQKGh8p5S5D7QEjCpCzXq) |
 | Buyer pays strike | 7,334.80 tUSDC [8ZKeBr…](https://testnet.nearblocks.io/txns/8ZKeBrXMYe6eSdenyoyXttwrTw9bw6XBPkT9aJeZ68KV) | n/a |
 | MPC signature | Exercise to buyer [EXAL6x…](https://testnet.nearblocks.io/txns/EXAL6x2FCgETk2YoHqGqrxVL6aFhv1cLmjm8X5ccH8w2) | Release accepted [AuGzmi…](https://testnet.nearblocks.io/txns/AuGzmi72Evhn5He9gnRJ65GG6zkQp2Jg86T2yib2ZvgD), signed [9neZbT…](https://testnet.nearblocks.io/txns/9neZbTr3ccK8VkKToqcC32G7y9N28evWDPtAR2yri4DE) |
 | Bitcoin Core regtest | Buyer received 10,000,000 sats in `eb9aa599cde89f606e4144cfa9c193c6ff618e16307c6e904e37ae543249f1b1`; 9,000 sats change to the next-epoch address | Writer got 10,009,000 sats back in `2f0063042853f33e33d2ae1ee4e8a15015d14931c15e487939876493ca7516fe` |
 
-The writer earned **0.019547 tUSDC** in premium, a blended **17.37%** annualised on strike notional. The writer's tUSDC balance went from 0 to the two premiums plus the 7,334.80 tUSDC strike.
+The writer earned **0.019547 tUSDC** in premium. These minute-long rounds are demos, not an annual yield history. The writer's tUSDC balance went from 0 to the two premiums plus the 7,334.80 tUSDC strike.
 
 What went wrong on the way, kept in the record:
 - FastNEAR returned HTTP 429, so the first `settle_call` landed more than 60 s after the print. The first relayer contract required settlement within 60 s, so it [rejected the settle](https://testnet.nearblocks.io/txns/65JCAniykkbS1wXhrF6rSmWyXpwbJPk8YH9hntj8wAhv).
@@ -116,7 +118,7 @@ The web wallet is [Meteor Wallet](https://wallet.meteorwallet.app) on testnet, t
 | --- | --- |
 | `packages/contract` | NFT ownership/sale, BTC/ETH/SOL checks, ML-DSA authorization, guardian recovery, inheritance, covered-call auction/payment/oracle state, and MPC calls. |
 | `packages/sdk` | MPC derivation, BTC/ETH/SOL transaction assembly, scanner reads, ML-DSA signatures, live RPC helpers, and 1Click dry quotes. |
-| `packages/web` | `/` landing (hero with the live realised APY, earning vaults, on-chain activity), `/how` (how it works, a real round, safety rules, the NEAR parts, questions and the exposure scanner), `/app` vault list, `/vault/<id>` vault page (latest round in plain words, deposit/withdraw panel, owner tools for keys, rules, sends, rounds with dry 1Click quotes, recovery and sale) and `/you` portfolio. |
+| `packages/web` | `/` landing (hero with live premiums and demo-duration labels, earning vaults, on-chain activity), `/how` (how it works, a real round, safety rules, the NEAR parts, questions and the exposure scanner), `/app` vault list, `/vault/<id>` vault page (latest round in plain words, deposit/withdraw panel, owner tools for keys, rules, sends, rounds with dry 1Click quotes, recovery and sale) and `/you` portfolio. |
 | `packages/mcp` | stdio `box_info`, `call_info`, `dry_deposit_quote`, `scan_exposure`, `request_spend`, and `list_box`; writes call the same contract checks as the UI. |
 
 NEAR features used: **Chain Signatures** (ECDSA domain 0 for BTC/ETH, EdDSA domain 1 for SOL) to sign foreign transactions; **NEP-171 core ownership/enumeration methods** for the vault NFT; NEAR testnet transactions for sale and vault policy; **`env::ml_dsa_verify`** for owner and guardian authorization. **NEP-141** `ft_transfer_call` pays covered-call premiums and strikes in tUSDC, and **`env::ed25519_verify`** checks the testnet price relayer's signature. 1Click mainnet is used for `dry: true` quotes only; NEAR Intents has no testnet. Sub-accounts, NEP-245, meta transactions, OutLayer TEE, and Sputnik DAO are not used. The option claim is not yet NEP-171 conformant.
@@ -131,7 +133,7 @@ The scanner works without a wallet. Enter a BTC address or P2PK public key, or a
 
 Press **Move it into Otzar** in **Local demo** mode with a selected vault to build an unsigned sweep to that vault's fresh regtest or Anvil address. The source owner must sign and broadcast it. Public mainnet sweep preparation is [blocked](BLOCKED.md): Otzar refuses to build a mainnet spend in this prototype. A regtest source currently needs one UTXO; the builder uses a fixed 500-sat demo fee. The Anvil builder reads the source nonce, balance, and gas price live. The scanner itself requires no NEAR account.
 
-Set 2–5 ML-DSA guardian public keys and a threshold of at least 2 with an owner ML-DSA signature. A guardian recovery requires distinct valid signatures over the vault, owner, recovery nonce, and new key; it waits 2 minutes to 30 days. The owner can cancel. After finalization the old authority key fails. This adapts the ML-DSA recovery pattern from Nick's pre-hackathon `near-qday-recovery` / Phylax library (Q-005 baseline); **Phylax is folded into Otzar and is not another entry**. The NFT's heir policy names a NEAR account and visible deadline plus claim delay. Owner check-in extends the deadline; the owner can cancel; after the delay only the heir may claim. Claim clears the old authority and policies. A signed vault cannot transfer to an heir because an already issued foreign-chain signature could still spend after transfer.
+Set 2–5 ML-DSA guardian public keys and a threshold of at least 2 with an owner ML-DSA signature. A guardian recovery requires distinct valid signatures over the vault, owner, recovery nonce, and new key; it waits 2 minutes to 30 days. The owner can cancel. After finalization the old authority key fails. This adapts the ML-DSA recovery pattern from the earlier October 2026 `near-qday-recovery` / Phylax library (disclosed prior work); **Phylax is folded into Otzar and is not another entry**. The NFT's heir policy names a NEAR account and visible deadline plus claim delay. Owner check-in extends the deadline; the owner can cancel; after the delay only the heir may claim. Claim clears the old authority and policies. A signed vault cannot transfer to an heir because an already issued foreign-chain signature could still spend after transfer.
 
 The signer contract's [EdDSA domain 1](https://github.com/near/mpc/blob/main/crates/near-mpc-crypto-types/src/sign.rs) derives a Solana address per vault. Otzar accepts only a single legacy SystemProgram SOL transfer message, verifies its source and destination fields on NEAR, requires ML-DSA owner authorization, and requests an Ed25519 MPC signature. The SDK verifies the signature against the derived source key before broadcasting. Solana recent blockhashes expire quickly, so this prototype signs SOL immediately; the BTC/ETH delay and daily cap are **not** enforced for SOL. The local validator e2e confirms 0.1 SOL received. The MPC root and Solana Ed25519 signature remain classical.
 
@@ -225,7 +227,7 @@ See [TESTING.md](TESTING.md) for commands, actual counts, gas, and negative case
 
 Built for NEAR HACKATHON 2026 (Nov 1–14).
 
-**Prior work (Q-001–Q-005).** We treat code written before November 1, 2026 as baseline. Nick's MIT-licensed `near-qday-recovery` (renamed Phylax) already had ML-DSA-65 recovery, a TypeScript signing toolchain, and NEAR sandbox tooling in October. Its git history records the recovery contract on October 20 (`a4437ba`) and SDK/sandbox tooling that day (`88f4282`). Otzar adapts that recovery pattern and toolchain; those are prior work, not new hackathon work.
+**Prior work (Q-001–Q-004).** We treat code written before November 1, 2026 as baseline. Nick's MIT-licensed `near-qday-recovery` (renamed Phylax) already had ML-DSA-65 recovery, a TypeScript signing toolchain, and NEAR sandbox tooling in October. Its git history records the recovery contract on October 20 (`a4437ba`) and SDK/sandbox tooling that day (`88f4282`). Otzar adapts that recovery pattern and toolchain; those are prior work, not new hackathon work.
 
 This repo's history begins on November 9, 2026 with the MIT scaffold (`1a17fb0`); it has no commits dated before November 1. Work recorded here on November 9–10 adds the NEAR vault ownership/sale and policy contract, Chain Signatures paths for BTC/ETH/SOL, guardian quorum and heir policies, exposure scanner, SDK/web/MCP clients, and covered-call auction, tUSDC payments, signed-price settlement, and regtest exercise/release. See [TESTING.md](TESTING.md) and [deployments/](deployments/). Review the implementation through the pre-submission commit with `git log --reverse 1a17fb0..494430a` and `git diff 1a17fb0 494430a`. The inherited recovery pattern remains baseline despite appearing in these commits.
 
