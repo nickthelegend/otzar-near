@@ -12,6 +12,7 @@ import { useNow, useRelayer, useRounds } from './data';
 import { PhasePill, plainRoundLabel, roundSentence, StrikeSpot, TYPE_LABEL, vaultType } from './cards';
 import { RoundSheet } from './RoundSheet';
 import { Loop, pct } from './rounds';
+import { bitcoinNodeNote, configuredVaultChains, LocalChain } from './LocalChain';
 import { signAndSend, type Wallet } from './wallet';
 
 const gas = '120000000000000';
@@ -32,13 +33,13 @@ export default function VaultPage({ id, wallet }: Props) {
   const selected = id; const [tab, setTab] = useState<Tab>('overview');
   const [spends, setSpends] = useState<Spend[]>([]);
   const [addresses, setAddresses] = useState<{ ethereum: string; bitcoin: string } | null>(null);
-  const [eth, setEth] = useState<{ v: string; err?: string }>({ v: '' }); const [btc, setBtc] = useState<{ v: string; err?: string }>({ v: '', err: 'Setup required: VITE_BITCOIN_ESPLORA_URL' });
+  const [eth, setEth] = useState<{ v: string; err?: string }>({ v: '' }); const [btc, setBtc] = useState<{ v: string; err?: string }>({ v: '' });
   const [sol, setSol] = useState<{ addr: string; v: string; err?: string }>({ addr: '', v: '' });
   const [status, setStatus] = useState(''); const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [txHash, setTxHash] = useState('');
   const [clock, setClock] = useState(Date.now());
   const [guardian, setGuardian] = useState(''); const [recovery, setRecovery] = useState(''); const [allow, setAllow] = useState(''); const [capEth, setCapEth] = useState('0.01');
   const [price, setPrice] = useState('0.01'); const [sendTo, setSendTo] = useState(''); const [sendAmount, setSendAmount] = useState('0.001');
-  const [chain, setChain] = useState<'ETH' | 'BTC' | 'SOL'>('ETH');
+  const [chain, setChain] = useState<'ETH' | 'BTC' | 'SOL'>(anvilUrl ? 'ETH' : 'BTC');
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const box = useMemo(() => boxes.find(b => b.token_id === selected), [boxes, selected]);
   const mine = box?.owner_id === account && !!account;
@@ -50,10 +51,10 @@ export default function VaultPage({ id, wallet }: Props) {
     if (!box || !contractId) return; let cancelled = false;
     Promise.all([deriveAddresses(contractId, box.token_id, box.epoch), rpcQuery(contractId, 'spends_for_box', { token_id: box.token_id })]).then(async ([a, s]) => {
       if (cancelled) return; setAddresses(a); setSpends(s);
-      try { if (!anvilUrl) throw new Error('not configured'); setEth({ v: formatEth(await ethBalance(a.ethereum, anvilUrl)) }); } catch (e) { setEth({ v: '', err: `Setup required: VITE_ANVIL_RPC_URL (${(e as Error).message})` }); }
+      if (anvilUrl) try { setEth({ v: formatEth(await ethBalance(a.ethereum, anvilUrl)) }); } catch (e) { setEth({ v: '', err: `Setup required: VITE_ANVIL_RPC_URL (${(e as Error).message})` }); }
       if (esploraUrl) { try { const r = await fetch(`${esploraUrl}/address/${a.bitcoin}`); if (!r.ok) throw new Error(`HTTP ${r.status}`); const j = await r.json(); if (j.error) throw new Error(j.error); const sats = j.confirmed_sats !== undefined ? BigInt(j.confirmed_sats) : BigInt(j.chain_stats.funded_txo_sum - j.chain_stats.spent_txo_sum); setBtc({ v: (Number(sats) / 1e8).toFixed(8) }); } catch (e) { setBtc({ v: '', err: (e as Error).message }); } }
     }).catch(e => setError(e.message));
-    solanaAddress(contractId, box.token_id, box.epoch).then(async addr => { if (cancelled) return; try { if (!solanaUrl) throw new Error('not configured'); setSol({ addr, v: (Number(await solanaBalance(addr, solanaUrl)) / 1e9).toFixed(6) }); } catch (e) { setSol({ addr, v: '', err: `Setup required: VITE_SOLANA_RPC_URL (${(e as Error).message})` }); } }).catch(() => {});
+    if (solanaUrl) solanaAddress(contractId, box.token_id, box.epoch).then(async addr => { if (cancelled) return; try { if (!solanaUrl) throw new Error('not configured'); setSol({ addr, v: (Number(await solanaBalance(addr, solanaUrl)) / 1e9).toFixed(6) }); } catch (e) { setSol({ addr, v: '', err: `Setup required: VITE_SOLANA_RPC_URL (${(e as Error).message})` }); } }).catch(() => {});
     return () => { cancelled = true; };
   }, [box?.token_id, box?.epoch, Math.floor(clock / 15000)]);
 
@@ -210,9 +211,9 @@ export default function VaultPage({ id, wallet }: Props) {
               <div className="tab-body" role="tabpanel">
                 {tab === 'overview' && <>
                   <div className="assets">
-                    <div className="asset"><div className="asset-top"><span className="asset-sym">BTC</span><span>Bitcoin · regtest</span></div><strong className={btc.err ? 'dim' : ''}>{btc.v || '—'}</strong>{btc.err && <small className="asset-err">{btc.err}</small>}<Copyable value={addresses?.bitcoin || ''} label="Bitcoin address" /></div>
-                    <div className="asset"><div className="asset-top"><span className="asset-sym">ETH</span><span>Ethereum · Anvil</span></div><strong className={eth.err ? 'dim' : ''}>{eth.v || '—'}</strong>{eth.err && <small className="asset-err">{eth.err}</small>}<Copyable value={addresses?.ethereum || ''} label="Ethereum address" /></div>
-                    <div className="asset"><div className="asset-top"><span className="asset-sym">SOL</span><span>Solana · local validator</span></div><strong className={sol.err ? 'dim' : ''}>{sol.v || '—'}</strong>{sol.err && <small className="asset-err">{sol.err}</small>}<Copyable value={sol.addr} label="Solana address" /></div>
+                    <div className="asset"><div className="asset-top"><span className="asset-sym">BTC</span><span>Bitcoin · regtest</span></div><strong className={!esploraUrl || btc.err ? 'dim' : ''}>{btc.v || '—'}</strong>{esploraUrl && btc.err && <small className="asset-err">{btc.err}</small>}<Copyable value={addresses?.bitcoin || ''} label="Bitcoin address" /></div>
+                    <LocalChain chain="ETH"><div className="asset"><div className="asset-top"><span className="asset-sym">ETH</span><span>Ethereum · Anvil</span></div><strong className={eth.err ? 'dim' : ''}>{eth.v || '—'}</strong>{eth.err && <small className="asset-err">{eth.err}</small>}<Copyable value={addresses?.ethereum || ''} label="Ethereum address" /></div></LocalChain>
+                    <LocalChain chain="SOL"><div className="asset"><div className="asset-top"><span className="asset-sym">SOL</span><span>Solana · local validator</span></div><strong className={sol.err ? 'dim' : ''}>{sol.v || '—'}</strong>{sol.err && <small className="asset-err">{sol.err}</small>}<Copyable value={sol.addr} label="Solana address" /></div></LocalChain>
                   </div>
                   <p className="fineprint">Addresses are derived live from the NEAR signer for the path <code>hako/{box.token_id}/{box.epoch}</code> (an on-chain ID that keeps Otzar's former name). Local test coins have no market value.</p>
                   <div className="card">
@@ -222,7 +223,7 @@ export default function VaultPage({ id, wallet }: Props) {
                 </>}
 
                 {tab === 'rules' && <>
-                  <div className="card">
+                  <LocalChain chain="ETH"><div className="card">
                     <div className="card-head"><div><h3>Ethereum rules</h3><p>Enforced by the contract before any signature is requested.</p></div>{policyActive ? <Chip tone="ok">Active</Chip> : <Chip tone="warn">Not set</Chip>}</div>
                     <dl className="kv">
                       <div><dt>Daily cap</dt><dd>{formatEth(box.policy.daily_eth_wei)} ETH</dd></div>
@@ -243,16 +244,16 @@ export default function VaultPage({ id, wallet }: Props) {
                       </div>
                       <button className="btn btn-primary" onClick={activatePolicy} disabled={busy}>Sign and set rules</button>
                     </div>}
-                  </div>
+                  </div></LocalChain>
                   <BitcoinPanel {...panelProps!} view="rules" bitcoinAddress={addresses?.bitcoin || ''} clock={clock} />
-                  <SolanaPanel {...panelProps!} view="rules" />
+                  <LocalChain chain="SOL"><SolanaPanel {...panelProps!} view="rules" /></LocalChain>
                 </>}
 
                 {tab === 'send' && <>
                   <div className="seg seg-lg" role="radiogroup" aria-label="Chain">
-                    {(['ETH', 'BTC', 'SOL'] as const).map(c => <button key={c} role="radio" aria-checked={chain === c} className={chain === c ? 'on' : ''} onClick={() => setChain(c)}>{c}</button>)}
+                    {configuredVaultChains().map(c => <button key={c} role="radio" aria-checked={chain === c} className={chain === c ? 'on' : ''} onClick={() => setChain(c)}>{c}</button>)}
                   </div>
-                  {chain === 'ETH' && <>
+                  {chain === 'ETH' && <LocalChain chain="ETH">
                     <div className="card">
                       <div className="card-head"><div><h3>Send ETH</h3><p>Your ML-DSA key signs the exact Anvil transaction. The contract checks the cap and starts the delay.</p></div></div>
                       {!mine ? <p className="fineprint">Only the owner can request a spend.</p> : !sealed ? <p className="fineprint">Register an ML-DSA key first.</p> : !policyActive ? <p className="fineprint">Set your rules first (Rules tab).</p> : <div className="form">
@@ -267,9 +268,9 @@ export default function VaultPage({ id, wallet }: Props) {
                       <div className="card-head"><div><h3>ETH spend requests</h3><p>Each request waits out the delay; the guardian can claw it back until then.</p></div><Chip tone={pending.length ? 'warn' : 'idle'}>{pending.length} pending</Chip></div>
                       {spends.length === 0 ? <Empty icon="clock" title="No spend requests yet" /> : <Timeline items={ethTimeline} clock={clock} />}
                     </div>
-                  </>}
+                  </LocalChain>}
                   {chain === 'BTC' && <BitcoinPanel {...panelProps!} view="send" bitcoinAddress={addresses?.bitcoin || ''} clock={clock} />}
-                  {chain === 'SOL' && <SolanaPanel {...panelProps!} view="send" />}
+                  {chain === 'SOL' && <LocalChain chain="SOL"><SolanaPanel {...panelProps!} view="send" /></LocalChain>}
                 </>}
 
                 {tab === 'earn' && <EarnPanel {...panelProps!} clock={clock} />}
@@ -303,7 +304,7 @@ export default function VaultPage({ id, wallet }: Props) {
             <div className="s-box">
               <div className="s-box-top"><span className="coin">BTC</span><b>Bitcoin</b><small>You send</small></div>
               <Copyable value={addresses?.bitcoin || ''} label="Bitcoin deposit address" />
-              <p className="s-box-foot"><span>In the vault</span><span>{btc.v ? `${btc.v} BTC` : <span className="warn">{btc.err || '…'}</span>}</span></p>
+              {esploraUrl ? <p className="s-box-foot"><span>In the vault</span><span>{btc.v ? `${btc.v} BTC` : <span className="warn">{btc.err || '…'}</span>}</span></p> : <p className="panel-note">{bitcoinNodeNote}</p>}
             </div>
             <span className="s-swap" aria-hidden="true"><Icon name="arrow" size={16} /></span>
             <div className="s-box">
