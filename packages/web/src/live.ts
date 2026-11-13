@@ -53,11 +53,11 @@ export function useCandles(granularity = 3600) {
 }
 
 const RPCS = ['https://test.rpc.fastnear.com', 'https://near-testnet.drpc.org'];
-async function rpc<T>(method: string, params: unknown): Promise<T> {
+async function rpc<T>(method: string, params: unknown, prefer = 0): Promise<T> {
   let last = '';
   for (let i = 0; i < 4; i++) {
     try {
-      const r = await fetch(RPCS[i % 2], { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 'otzar', method, params }) });
+      const r = await fetch(RPCS[(i + prefer) % 2], { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 'otzar', method, params }) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const j = await r.json(); if (j.error) throw new Error(JSON.stringify(j.error).slice(0, 160));
       return j.result as T;
@@ -71,9 +71,9 @@ export function useNearBlock() {
   const [b, setB] = useState<{ height: number; time: number; protocol: number | null; error: string }>({ height: 0, time: 0, protocol: null, error: '' });
   useEffect(() => {
     let on = true;
-    const run = () => { if (document.hidden) return; rpc<any>('block', { finality: 'final' }).then(r => on && setB(p => ({ ...p, height: r.header.height, time: r.header.timestamp_nanosec / 1e6, error: '' }))).catch(e => on && setB(p => ({ ...p, error: (e as Error).message }))); };
+    const run = () => { if (document.hidden) return; rpc<any>('block', { finality: 'final' }, 1).then(r => on && setB(p => ({ ...p, height: r.header.height, time: r.header.timestamp_nanosec / 1e6, error: '' }))).catch(e => on && setB(p => ({ ...p, error: (e as Error).message }))); };
     rpc<any>('status', []).then(s => on && setB(p => ({ ...p, protocol: s.protocol_version }))).catch(() => {});
-    run(); const t = setInterval(run, 3000);
+    run(); const t = setInterval(run, 5000);
     return () => { on = false; clearInterval(t); };
   }, []);
   return b;

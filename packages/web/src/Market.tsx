@@ -3,7 +3,7 @@ import { Card, v3art } from './blocks';
 import { PriceChart } from './charts';
 import { useCallConfig, useNow, useRounds, useTusdc, view } from './data';
 import { useBtcPrice, useCandles, usd } from './live';
-import { btcFromSats, contractId, countdown, e6, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, utcTime, type Round } from './lib';
+import { btcFromSats, contractId, countdown, e6, isPublicVault, nearblocksAccount, nearblocksTx, roundPhase, short, TUSDC_SYMBOL, utcDay, utcTime, type Round } from './lib';
 import { PageHead } from './shell';
 import { Icon, Link, State } from './ui';
 import { sendCall, type Wallet } from './wallet';
@@ -54,7 +54,7 @@ export default function Market({ wallet }: { wallet: Wallet }) {
   const open = all.filter(r => roundPhase(r, now).phase === 'live');
   const [pick, setPick] = useState<string>('');
   const sel = open.find(r => r.key === pick) || open[0];
-  const fills = all.filter(r => r.premium_paid_usdc).slice(0, 8);
+  const fills = all.filter(r => r.premium_paid_usdc && isPublicVault(r.token_id)).slice(0, 8);
 
   return <div className="o-page">
     <PageHead title="Buy calls" sub="Pay a premium now for the right to buy BTC at a fixed price later. Each ask falls every second until someone takes it." />

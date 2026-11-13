@@ -217,7 +217,7 @@ a.o-tr:hover, button.o-tr:hover { background: rgba(15,163,107,.05); }
 .pc-gold { stroke: var(--gold-d); } .pc-jade { stroke: var(--jade); } .pc-ink { stroke: var(--line-3); } .pc-blush { stroke: var(--blush); }
 .pc-cross { stroke: var(--line-3); stroke-width: 1; }
 .pc-tick { position: absolute; right: 0; transform: translateY(-50%); font: 500 11px var(--mono); color: var(--muted); }
-.pc-tag { position: absolute; right: 0; transform: translateY(-50%); font: 700 11px var(--mono); padding: 3px 7px; border-radius: 6px; white-space: nowrap; z-index: 2; }
+.pc-tag { position: absolute; left: 0; transform: translateY(-115%); font: 700 11px var(--mono); padding: 3px 7px; border-radius: 6px; white-space: nowrap; z-index: 2; }
 .pc-tag-gold { background: var(--gold); color: var(--ink); } .pc-tag-jade { background: var(--jade-d); color: #fff; } .pc-tag-ink { background: var(--ivory-2); color: var(--ink-2); } .pc-tag-blush { background: var(--blush-l); color: var(--blush-ink); }
 .pc-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--jade-d); box-shadow: 0 0 0 4px rgba(15,163,107,.22); }
 @media (prefers-reduced-motion: no-preference) { .pc-dot { animation: o-pulse 1.8s ease-out infinite; } }
@@ -480,3 +480,13 @@ a.o-tr:hover, button.o-tr:hover { background: rgba(15,163,107,.05); }
   .o-buy-pay b { font-size: 22px; }
 }
 @media (max-width: 400px) { .o-btc-glyph { display: none; } .o-form { grid-template-columns: 1fr; } .o-kpis { grid-template-columns: 1fr 1fr; } }
+
+/* v3 fixes after the first screenshot pass */
+.vault .s-round-say { font-size: 19px; line-height: 1.45; font-weight: 600; letter-spacing: -.01em; margin: 18px 0 6px; }
+.vault .cr-loop { overflow-x: auto; }
+@media (max-width: 1100px) { .vault .v-side { order: 1; } .vault .v-main { order: 0; } }
+.o-vsel { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 12px 14px; border: 1px solid var(--jade-d); border-radius: 16px; box-shadow: 0 0 0 3px rgba(15,163,107,.12); }
+.o-vsel img { border-radius: 10px; }
+.o-vsel .field { margin: 0; }
+.o-vsel select { width: 100%; font-weight: 700; font-size: 16px; }
+@media (max-width: 720px) { .o-vsel { grid-template-columns: auto 1fr; } .o-vsel .o-lock { grid-column: 1 / -1; justify-self: start; } }

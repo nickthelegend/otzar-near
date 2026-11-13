@@ -9,7 +9,7 @@ Run `corepack pnpm install --frozen-lockfile && corepack pnpm test` on macOS arm
 | SDK tests, including live chain scanner reads, EdDSA derivation, live 1Click asset discovery, relayer message/signature and a live Coinbase BTC-USD read | 11 passed, 0 failed, 0 skipped | `pnpm --filter @hako/sdk test` |
 | Live MCP stdio tool and testnet box read | 1 passed, 0 failed, 0 skipped | `pnpm --filter @hako/mcp test` |
 | Web type check | passed; no test cases counted | `pnpm --filter @hako/web test` |
-| NEAR protocol-88 sandbox transactions | 47 passed, including 16 expected on-chain rejections | [sandbox.json](deployments/sandbox.json) |
+| NEAR protocol-88 sandbox transactions | 55 passed, including 21 expected on-chain rejections (Nov 13: +8 for quantum-locked transfer and listing) | [sandbox.json](deployments/sandbox.json) |
 | Covered-call sandbox plus Bitcoin Core regtest transactions | 30 passed, including 13 expected on-chain rejections; 1 real regtest funding transaction; local tUSDC deployment, a real tUSDC premium purchase and a live Coinbase print signed by a fresh relayer key | [calls-sandbox.json](deployments/calls-sandbox.json) |
 | NEAR testnet transactions in demo | 24 independently re-queried, including 10 expected on-chain rejections | [testnet-2026-11-09.json](deployments/testnet-2026-11-09.json) |
 | Anvil receipts | 3 successful: funding, guardian recovery, withdrawal | `scripts/verify-evidence.mjs` |
@@ -76,6 +76,9 @@ The older Pyth evidence in [pyth-testnet-2026-11-09.json](deployments/pyth-testn
 | --- | --- |
 | Spend before buyer installs a new policy | sandbox, on NEAR |
 | Wrong ML-DSA key | sandbox and testnet, on NEAR |
+| Transfer or list a quantum-locked vault with the classical NEAR key only | sandbox and testnet (Nov 13), on NEAR |
+| Transfer with a forged ML-DSA signature | sandbox and testnet (Nov 13), on NEAR |
+| Transfer signature replayed to another receiver; listing signature for another price | sandbox, on NEAR |
 | ETH or BTC amount over daily cap | sandbox ETH and testnet ETH/BTC, on NEAR |
 | Seller calls spend after the sale | sandbox and testnet, on NEAR |
 | Listing while a spend is pending | sandbox and testnet, on NEAR |

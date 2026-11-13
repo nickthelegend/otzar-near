@@ -58,7 +58,7 @@ export default function Security({ wallet }: { wallet: Wallet }) {
           <Stat k="Vaults locked" v={locked !== null && pub ? <><CountUp value={locked} decimals={0} /><small>/{pub.length}</small></> : '…'} />
           <Stat k="Signature checked" v="3,309 B" sub="ML-DSA-65, per action" />
           <Stat k="NEAR protocol" v={block.protocol ?? '…'} sub="ML-DSA host function since 87" />
-          <Stat k="Deployed code" v={code.data ? code.data.hash.slice(0, 8) : '…'} sub={code.data ? (code.data.hash === UPGRADE_HASH ? <span className="o-sub-ok"><Icon name="check" size={12} /> matches the audited upgrade</span> : 'differs from the recorded upgrade') : code.error || 'Reading…'} />
+          <Stat k="Deployed code" v={code.data ? code.data.hash.slice(0, 8) : '…'} sub={code.data ? (code.data.hash === UPGRADE_HASH ? <span className="o-sub-ok"><Icon name="check" size={12} /> matches the verified upgrade</span> : 'differs from the recorded upgrade') : code.error || 'Reading…'} />
         </div>
       </div>
       <img className="o-pq-hero-art" src={v3art('otzar-vault-lock')} alt="A jade vault with a gold dial and a lattice padlock" />

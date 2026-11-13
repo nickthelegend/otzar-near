@@ -91,8 +91,12 @@ export default function Write({ wallet, initial }: { wallet: Wallet; initial: st
     <div className="o-grid o-grid-write">
       <div className="o-stack">
         <Card title="1 · Vault">
-          <div className="o-vpick">{mine.map(b => <button key={b.token_id} className={`o-vpick-i ${b.token_id === box?.token_id ? 'on' : ''}`} onClick={() => { setVault(b.token_id); setStage('idle'); setHash(''); }} aria-pressed={b.token_id === box?.token_id}>
-            <img src={v3art('otzar-icon-128')} alt="" width="34" height="34" /><span><b>{short(b.token_id, 18, 6)}</b><LockBadge box={b} /></span></button>)}</div>
+          {mine.length > 4 ? <div className="o-vsel">
+            <img src={v3art('otzar-icon-128')} alt="" width="44" height="44" />
+            <label className="field"><span className="field-label">Vault</span><select value={box?.token_id || ''} onChange={e => { setVault(e.target.value); setStage('idle'); setHash(''); }}>{[...mine].sort((x, y) => Number(!!y.pq_key) - Number(!!x.pq_key)).map(b => <option key={b.token_id} value={b.token_id}>{b.token_id}{b.pq_key ? '' : ' (not locked)'}</option>)}</select></label>
+            {box && <LockBadge box={box} />}
+          </div> : <div className="o-vpick">{mine.map(b => <button key={b.token_id} className={`o-vpick-i ${b.token_id === box?.token_id ? 'on' : ''}`} onClick={() => { setVault(b.token_id); setStage('idle'); setHash(''); }} aria-pressed={b.token_id === box?.token_id}>
+            <img src={v3art('otzar-icon-128')} alt="" width="34" height="34" /><span><b>{short(b.token_id, 18, 6)}</b><LockBadge box={b} /></span></button>)}</div>}
           {busyVault && <p className="o-warn"><Icon name="clock" size={15} /> This vault already has an active round. You can write the next one after it settles.</p>}
         </Card>
         <Card title="2 · Your post-quantum key" className={key ? 'o-card-ok' : ''}>

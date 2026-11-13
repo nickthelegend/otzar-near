@@ -82,7 +82,7 @@ async function loadRounds(): Promise<Round[]> {
       for (const c of history || []) out.push({ ...c, key: `${c.token_id}#${c.id}` });
     }
   };
-  await Promise.all([worker(0), worker(1), worker(0), worker(1)]);
+  await Promise.all([worker(0), worker(1), worker(1)]);
   return out.sort((a, b) => b.opened_ns - a.opened_ns);
 }
 export const useRounds = () => useLive<Round[]>('rounds', loadRounds, 60000);

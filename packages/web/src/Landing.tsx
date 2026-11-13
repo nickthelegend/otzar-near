@@ -74,9 +74,9 @@ export default function Landing() {
             <p>Most crypto is protected by elliptic-curve keys. A large enough quantum computer could work out a private key from its public key, and every Bitcoin address that has ever spent shows its public key.</p>
             <p>Otzar adds a second lock: <b>ML-DSA-65</b>, the lattice-based signature NIST standardised in 2024. The Otzar contract checks it on NEAR with <code>env::ml_dsa_verify</code> before your Bitcoin, your vault or your rules can change.</p>
             <ol className="l3-pq-steps">
-              <li><b>Your key, made in your browser.</b> A 1,952-byte public key goes on chain; the secret never leaves your file.</li>
-              <li><b>Every action signed.</b> Spend, transfer, list, write a call, change a rule: each needs that signature and a fresh nonce.</li>
-              <li><b>Checked by the contract.</b> NEAR refuses a missing, forged or replayed signature. The rejections are on chain.</li>
+              <li><span><b>Your key, made in your browser.</b> A 1,952-byte public key goes on chain; the secret never leaves your file.</span></li>
+              <li><span><b>Every action signed.</b> Spend, transfer, list, write a call, change a rule: each needs that signature and a fresh nonce.</span></li>
+              <li><span><b>Checked by the contract.</b> NEAR refuses a missing, forged or replayed signature. The rejections are on chain.</span></li>
             </ol>
           </div>
         </div>
