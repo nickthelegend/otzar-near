@@ -111,7 +111,7 @@ export default function Write({ wallet, initial }: { wallet: Wallet; initial: st
           <div className="o-form">
             <Field label="Strike (USD)" hint={above !== null ? `${above >= 0 ? '+' : ''}${above.toFixed(1)}% vs live ${usd(spot, 0)}` : 'Live price loading'}><input value={strike} onChange={e => setStrike(e.target.value)} inputMode="decimal" /></Field>
             <Field label="Size (sats)" hint={utxo.list?.length === 1 ? `Collateral ${utxo.list[0].sats.toLocaleString()} sats` : undefined}><input value={size} onChange={e => setSize(e.target.value)} inputMode="numeric" /></Field>
-            <Field label="Term (hours)"><input value={hours} onChange={e => setHours(e.target.value)} inputMode="decimal" /></Field>
+            <Field label="Term (hours)" hint="Expiry, counted from now"><input value={hours} onChange={e => setHours(e.target.value)} inputMode="decimal" /></Field>
             <Field label={`Opening premium (${TUSDC_SYMBOL})`} hint="The ask starts here"><input value={opening} onChange={e => setOpening(e.target.value)} inputMode="decimal" /></Field>
             <Field label={`Minimum premium (${TUSDC_SYMBOL})`} hint="…and falls to this"><input value={minimum} onChange={e => setMinimum(e.target.value)} inputMode="decimal" /></Field>
           </div>
