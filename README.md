@@ -18,6 +18,8 @@ Until Nov 13 the ML-DSA key gated spends but not ownership: `nft_transfer` and `
 | Owner's NEAR key alone tries to list it for sale | Refused: `quantum lock: ML-DSA signature required` | [ATu4EK8A…](https://testnet.nearblocks.io/txns/ATu4EK8AG6FSJKVEHjTUTQLPkGVBQ9HnnCiEY3Litzk) |
 | Listing signed with the vault's ML-DSA key | Confirmed (then withdrawn in [91MkDqXU…](https://testnet.nearblocks.io/txns/91MkDqXUuYYYkCPdRQKsYSLhHUS3zEuJwPgFv8pkZoTP)) | [FnCLpz6R…](https://testnet.nearblocks.io/txns/FnCLpz6RzsQDRokCdNUaETqtWHa1w5MBDJ9HJkTAffLk) |
 
+**In the app on camera (Nov 13, film v3):** a fresh vault `otzar-q-mwf8nlxm` ([mint](https://testnet.nearblocks.io/txns/878q7sjLJtypC2BiPuz3oLaGHCEh8duBJhxVfwXo4d6U), [ML-DSA key](https://testnet.nearblocks.io/txns/GGwCm6kZrP56r8fGNMcGfFPf7cS9LDCMqaWiN8FJTZcW), [ML-DSA-signed Bitcoin rules](https://testnet.nearblocks.io/txns/Gm6wxaSZFU4ioLR9GvJCdE7ZqNRAzAjKhBCmBb5weXA5)) wrote an ML-DSA-signed covered call from the Write page ([GJzWTCDZ…](https://testnet.nearblocks.io/txns/GJzWTCDZG8k7aBm322ZwGbcDdpUsdjwjRNheYyyAuoXU)) and a buyer paid the premium from Buy calls ([HMRe3zMJ…](https://testnet.nearblocks.io/txns/HMRe3zMJ7Vz8LojJSQkHrEmSbuoTC4dadnhHa8F9e9dd)). [Record](deployments/film-v3-2026-11-13.json).
+
 ML-DSA verification (`ml_dsa_verify`, protocol 87+) is live on both NEAR testnet and mainnet (protocol 88); this build is deployed on testnet only.
 
 ## Try it
@@ -259,7 +261,7 @@ Otzar was formerly Hako. The Phylax recovery, Athanatos wallet, and Tsuna covere
 
 **AI-assisted code (Q-005).** Built with AI coding agents (Claude Code, Codex) under human direction; all code reviewed and tested by the team.
 
-**Art.** 3D art generated with ChatGPT (the polished jade and gold objects in `packages/web/public/art/3d`; kit in [docs/ART-3D.md](docs/ART-3D.md)). The other illustrations in `packages/web/public/art` were also generated with ChatGPT ([docs/ART.md](docs/ART.md)).
+**Art.** The Nov 13 jade-and-gold still-life set in `packages/web/public/art/v3` (hero, vault with lattice lock, key, strike dial, yield bowl, icon) was generated with ChatGPT ([art-incoming/ART.md](art-incoming/ART.md)). 3D art generated with ChatGPT (the polished jade and gold objects in `packages/web/public/art/3d`; kit in [docs/ART-3D.md](docs/ART-3D.md)). The other illustrations in `packages/web/public/art` were also generated with ChatGPT ([docs/ART.md](docs/ART.md)).
 
 **Other projects by the same team in this hackathon (Q-015)**
 

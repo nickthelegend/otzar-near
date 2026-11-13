@@ -1,3 +1,13 @@
+# Otzar v3 report: the quantum-safe Bitcoin vault that earns (2026-11-13)
+
+- **Contract:** `nft_transfer` and `list` now require the vault's ML-DSA-65 signature once a key is registered (hole 1 closed). Sandbox 55 tx (21 refusals) + covered-call sandbox 30 tx (13 refusals) pass; 11 unit tests pass. Testnet upgraded, code hash `2c60b114…3641b` verified; live refusals `3PghCRJx…` (classical-key transfer), `CzDzjh2x…` (forged ML-DSA), `ATu4EK8A…` (classical-key listing); signed listing `FnCLpz6R…`. [Record](deployments/pq-ownership-2026-11-13.json).
+- **Hole 2 (contract full-access key):** not removed. README did not plan a locked contract, and upgrades plus `set_call_config` still need the key; removal is irreversible. Stated in README Limits and shown live on the Security page.
+- **UI:** landing + Vaults, vault detail (strike vs BTC chart), Buy calls, Write call, Positions, Activity, Quantum security, Settings, How; phone layouts. Live BTC-USD (Coinbase, 4 s), falling asks, NEAR block heartbeat, NearBlocks feed. Nov 13 art used. [FLOW-QA](FLOW-QA.md), [UI-JUDGE](UI-JUDGE.md), [JUDGE-R3](JUDGE-R3.md).
+- **Film v3:** `videos/otzar-near/otzar-near-film.mp4` (2:14, 1080p) and `-share.mp4` (720p, 5.7 MB); versions v3a–v3d kept; judge notes `videos/otzar-near/film-v3/JUDGE-v3.md` (9/10). Live in-app write `GJzWTCDZ…` and premium `HMRe3zMJ…`.
+- **Choices made without asking:** headless NearBlocks shows a Cloudflare check, so the film's explorer shot uses NEAR Validate with the archival RPC; QA builds stay read-only without an injected signer instead of showing a banner.
+
+---
+
 # Otzar follow-up 3 report: "it earned" (2026-11-09)
 
 ## What works live
