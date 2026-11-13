@@ -1,6 +1,24 @@
-# Otzar — Earn a premium on your Bitcoin
+# Otzar — the quantum-safe Bitcoin vault that earns
 
-Holding Bitcoin pays no income. Otzar lets you sell a call from a vault you own: a buyer pays the premium on NEAR, and NEAR signs the Bitcoin transfer after they pay the agreed price. You keep the premium and give up gains above that price.
+**A Bitcoin vault only your quantum-safe key can move, and it earns covered-call premium while it waits.**
+
+Each vault is an NFT on NEAR that controls its own Bitcoin address through NEAR Chain Signatures. Its authority key is **ML-DSA-65** (NIST FIPS 204, post-quantum). The Otzar contract verifies that signature on chain with `env::ml_dsa_verify` before any Bitcoin spend, **vault transfer or listing**, rule change, guardian change or covered call. Owners sell covered calls from the vault: a buyer pays a premium on NEAR, the owner keeps it, and gives up gains above the strike.
+
+**Where the guarantee stops:** NEAR checks the post-quantum signature before anything moves. Bitcoin's own ECDSA signature, NEAR's MPC root key and the contract account's ed25519 deploy key are still classical (see [Limits](#limits-and-security-boundaries)). Bitcoin runs on Bitcoin Core regtest; premiums are paid in tUSDC, a no-value test token.
+
+### Quantum-locked ownership (new, Nov 13)
+
+Until Nov 13 the ML-DSA key gated spends but not ownership: `nft_transfer` and `list` checked only the owner's classical NEAR key. Both now require an ML-DSA-65 signature over `transfer:v1:<receiver>` / `list:v1:<price>` once a vault has a key ([contract](packages/contract/src/lib.rs)). Sandbox tests cover classical-only, forged, receiver-replay and wrong-price attempts; the testnet contract was upgraded and the code hash verified ([record](deployments/pq-ownership-2026-11-13.json)).
+
+| Live on NEAR testnet, Nov 13 | Result | Transaction |
+| --- | --- | --- |
+| Upgrade to quantum-locked ownership (code sha256 `2c60b114…3641b`, verified over RPC) | Confirmed | [DYNM8tkz…](https://testnet.nearblocks.io/txns/DYNM8tkz6ss7NvxrsZhX61a8EGu3iA4qRYagA43Mn4ua) |
+| Owner's NEAR key alone tries to transfer a locked vault | Refused: `quantum lock: ML-DSA signature required` | [3PghCRJx…](https://testnet.nearblocks.io/txns/3PghCRJxtpsUXpwsnXmeC64qwqPRFXpAALUApmLwjNpZ) |
+| Transfer with a forged ML-DSA signature | Refused: `bad ML-DSA signature` | [CzDzjh2x…](https://testnet.nearblocks.io/txns/CzDzjh2x4YgKkHTjML4oX63k59getTWdcQT3SgmQ8sSy) |
+| Owner's NEAR key alone tries to list it for sale | Refused: `quantum lock: ML-DSA signature required` | [ATu4EK8A…](https://testnet.nearblocks.io/txns/ATu4EK8AG6FSJKVEHjTUTQLPkGVBQ9HnnCiEY3Litzk) |
+| Listing signed with the vault's ML-DSA key | Confirmed (then withdrawn in [91MkDqXU…](https://testnet.nearblocks.io/txns/91MkDqXUuYYYkCPdRQKsYSLhHUS3zEuJwPgFv8pkZoTP)) | [FnCLpz6R…](https://testnet.nearblocks.io/txns/FnCLpz6RzsQDRokCdNUaETqtWHa1w5MBDJ9HJkTAffLk) |
+
+ML-DSA verification (`ml_dsa_verify`, protocol 87+) is live on both NEAR testnet and mainnet (protocol 88); this build is deployed on testnet only.
 
 ## Try it
 
@@ -30,7 +48,7 @@ These are recorded NEAR testnet transactions from November 9. Bitcoin delivery w
 
 Sources: [settlement upgrade](deployments/settle-upgrade-2026-11-09.json), [covered-call loop](deployments/calls-live-testnet-2026-11-09-171226.json), and [guardian recovery](deployments/recovery-2026-11-09.json).
 
-Otzar is a Bitcoin vault controlled from NEAR. Formerly Hako; on-chain account IDs keep the old prefix. A vault NFT on NEAR controls its Bitcoin Core regtest address through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
+Formerly Hako; on-chain account IDs keep the old prefix. A vault NFT on NEAR controls its Bitcoin Core regtest address through NEAR Chain Signatures. Its authority key is ML-DSA-65; the NFT carries spending rules, M-of-N post-quantum guardians, and an inheritable heir policy. A buyer can acquire a funded vault NFT on NEAR without a foreign-chain transfer at sale time. Public-chain addresses can be inspected without connecting a wallet.
 
 **Also wired on local chains:** ETH (Anvil) and SOL (Solana test validator); not part of the judged flow.
 
@@ -225,6 +243,8 @@ See [TESTING.md](TESTING.md) for commands, actual counts, gas, and negative case
 - SOL signs immediately due to recent-blockhash expiry. It does not inherit the ETH/BTC spending cap or delay. The contract checks only a simple SystemProgram transfer and a registered source; it does not independently prove that the registered Solana key matches the MPC derivation. The SDK checks derivation and signature. A direct caller must check the registered key before funding it.
 - Guardian recovery finalization is live on NEAR testnet. An inheritance claim after a multiday deadline was unit-tested with a later NEAR block timestamp; the sandbox and testnet have not yet naturally advanced to a claim date. The on-chain sandbox rejected early and wrong-heir claims.
 - The no-wallet scanner is an exposure indicator, not a complete cryptographic audit. Bitcoin histories over 500 transactions are marked incomplete. ETH positive nonce remains unknown because of EIP-7702. P2PK output balance is marked unavailable when the public Esplora indexer omits it.
+- **The contract account's full-access key is classical.** `hako-contract-mw984kpp.testnet` holds one ed25519 full-access key (shown live on the app's Security page via `view_access_key_list`). Whoever holds or breaks it can redeploy the code that every vault trusts, and the contract is the MPC predecessor for every vault's Bitcoin path. It is not removed: this testnet build still needs it for upgrades and for the contract-only `set_call_config`, and deleting it is irreversible. A production deployment would lock the account (delete the key in the deploy transaction) or rotate it to a native NEP-645 ML-DSA-65 key after the code is final.
+- A vault is quantum-locked only after its owner registers an ML-DSA key (`register_pq_key`, a one-time classical-key action). Until then the classical NEAR key alone controls it, and the app shows it as "Not locked".
 - This prototype has not had an external security audit. It should not custody valuable funds.
 
 ## Hackathon disclosures

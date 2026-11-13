@@ -5,7 +5,7 @@ import EarnPanel from './EarnPanel';
 import ExposureScanner from './ExposureScanner';
 import SolanaPanel from './SolanaPanel';
 import VaultPolicyPanel from './VaultPolicyPanel';
-import { anvilUrl, callLocksVault, contractId, demoRoundLabel, e6, earnedSummary, isDemoRound, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, roundYieldLabel, short, summaryYieldLabel, solanaUrl, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
+import { anvilUrl, btcFromSats, callLocksVault, contractId, demoRoundLabel, e6, earnedSummary, isDemoRound, esploraUrl, formatEth, formatNear, loadBoxes, nearblocksAccount, nearblocksTx, roundPhase, roundYieldLabel, short, summaryYieldLabel, solanaUrl, TUSDC_SYMBOL, utcDay, ZERO_ETH, type Box, type Round, type Spend } from './lib';
 import { Amount, Chip, Copyable, Empty, Field, Icon, Link, State, Term, TERMS, Timeline } from './ui';
 import { CountUp, Obj } from './art';
 import { useNow, useRelayer, useRounds } from './data';
@@ -14,6 +14,12 @@ import { RoundSheet } from './RoundSheet';
 import { Loop, pct } from './rounds';
 import { bitcoinNodeNote, configuredVaultChains, LocalChain } from './LocalChain';
 import { signAndSend, type Wallet } from './wallet';
+import { LockBadge, RoundPill, Stat, v3art } from './blocks';
+import { PriceChart } from './charts';
+import { useBtcPrice, useCandles } from './live';
+import { BtcTicker } from './shell';
+import { BuyBox } from './Market';
+import { fingerprintOf, keyForVault, loadKeyFile, useKeys } from './keys';
 
 const gas = '120000000000000';
 type Tab = 'overview' | 'rules' | 'send' | 'earn' | 'recovery' | 'sell';
@@ -97,6 +103,11 @@ export default function VaultPage({ id, wallet }: Props) {
   const earned = earnedSummary(boxRounds);
 
   const relayer = useRelayer();
+  const btcLive = useBtcPrice(); const candles = useCandles(900); useKeys();
+  const [fp, setFp] = useState('');
+  useEffect(() => { if (box?.pq_key) fingerprintOf(Uint8Array.from(box.pq_key)).then(setFp); else setFp(''); }, [box?.token_id, box?.pq_key?.length]);
+  const stored = keyForVault(box?.pq_key);
+  useEffect(() => { if (!keyFile && stored) setKeyFile(stored.file); }, [stored?.publicKey]);
   const [side, setSide] = useState<'deposit' | 'withdraw'>('deposit');
   const [sheet, setSheet] = useState<Round | null>(null);
   const [toolsOpen, setToolsOpen] = useState(false);
@@ -122,32 +133,46 @@ export default function VaultPage({ id, wallet }: Props) {
   const type = vaultType(box.token_id, boxRounds.length > 0);
   const sealed = !!box.pq_key?.length;
 
-  return <div className="page vault s-app">
-    <Link to="/app" className="back"><Icon name="back" size={16} /> Vaults</Link>
-    <header className="s-vhead">
-      <div className="s-vhead-copy">
-        <p className="s-k">{TYPE_LABEL[type]}{mine ? ' · your vault' : ''}</p>
+  const btcSpot = btcLive.price;
+  const levels = [
+    ...(latest ? [{ value: Number(latest.strike_usd_e6) / 1e6, label: 'Strike', tone: 'gold' as const }] : []),
+    ...(latest?.oracle_price_usd_e6 ? [{ value: Number(latest.oracle_price_usd_e6) / 1e6, label: 'Settled', tone: 'jade' as const }] : []),
+  ];
+
+  return <div className="o-page vault">
+    <Link to="/app" className="o-back"><Icon name="back" size={15} /> Vaults</Link>
+    <header className="o-vhead">
+      <img className="o-vhead-art" src={v3art('otzar-icon')} alt="" width="76" height="76" />
+      <div className="o-vhead-copy">
+        <p className="o-mute small">{TYPE_LABEL[type]}{mine ? ' · your vault' : ''}</p>
         <h1>{box.token_id}</h1>
-        <p className="s-vhead-say">A NEAR vault for native Bitcoin, Ethereum and Solana. Owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 16, 8)}</a>{sealed ? <>, sealed with a <Term tip={TERMS.mldsa}>post-quantum key</Term>.</> : '. No quantum key yet.'}</p>
+        <p className="o-vhead-say">Owned by <a href={nearblocksAccount(box.owner_id)} target="_blank" rel="noreferrer" className="mono">{short(box.owner_id, 16, 8)}</a> · <LockBadge box={box} />{latest && <> · <RoundPill r={latest} now={now} /></>}</p>
       </div>
-      <dl className="s-vfigs">
-        <div><dt><Term tip={TERMS.apy}>{earned.demoOnly ? summaryYieldLabel(earned) : 'Earned'}</Term></dt><dd className="gold-num">{rounds.data ? pct(apy, 2) : '…'}</dd></div>
-        <div><dt><Term tip={TERMS.premium}>Premium</Term></dt><dd>{rounds.data ? <Amount e6={earned.earned} unit={TUSDC_SYMBOL} /> : '…'}</dd></div>
-        <div><dt><Term tip={TERMS.round}>Rounds</Term></dt><dd>{rounds.data ? boxRounds.length : '…'}</dd></div>
-      </dl>
+      <div className="o-head-actions">
+        {mine && <Link to={`/write?vault=${encodeURIComponent(box.token_id)}`} className="o-btn o-btn-ink">Write a call <Icon name="arrow" size={15} /></Link>}
+        {live && latest && !mine && <a href="#buy" className="o-btn o-btn-gold">Buy this call</a>}
+      </div>
     </header>
+
+    <section className="o-kpis" aria-label="This vault">
+      <Stat k="Strike" v={latest ? `$${e6(latest.strike_usd_e6, 0)}` : '—'} sub={latest && btcSpot ? `${(((Number(latest.strike_usd_e6) / 1e6) - btcSpot) / btcSpot * 100).toFixed(1)}% vs live BTC` : 'No round yet'} />
+      <Stat k="Size" v={latest ? `${btcFromSats(latest.size_sats)} BTC` : '—'} sub={latest ? `${Number(latest.collateral_sats).toLocaleString()} sats collateral` : '—'} />
+      <Stat k="Premium earned" v={rounds.data ? <>{e6(earned.earned.toString(), 6)} <small>{TUSDC_SYMBOL}</small></> : '…'} sub={`${boxRounds.length} ${boxRounds.length === 1 ? 'round' : 'rounds'}`} />
+      <Stat k="Quantum lock" v={sealed ? 'ML-DSA-65' : 'Not set'} sub={sealed ? `${box.nonce} signed actions · key ${fp || '…'}` : 'Only the NEAR key protects it'} />
+    </section>
 
     <div className="v-grid">
       <div className="v-main">
-        <section className="card s-thisround" aria-label="Latest round">
-          <div className="s-list-head"><Obj name="hourglass" size={44} className="head-obj" /><h2>{latest ? `Latest round · ${utcDay(latest.opened_ns)}` : 'Latest round'}</h2>{latest && <><PhasePill c={latest} now={now} plain /><button className="pill pill-line pill-sm" onClick={() => setSheet(latest)}>Details <Icon name="arrow" size={14} /></button></>}</div>
+        <section className="o-card" aria-label="Strike and BTC price">
+          <header className="o-card-h"><h2>{latest ? `Round #${latest.id} · strike vs BTC` : 'BTC-USD'}</h2><BtcTicker /></header>
+          <PriceChart candles={candles.data?.slice(-96) || null} live={btcSpot} levels={levels} height={300} />
           {latest ? <>
             <p className="s-round-say">{roundSentence(latest, now)}</p>
-            <StrikeSpot c={latest} spotE6={spot} spotLabel={latest.oracle_price_usd_e6 ? 'BTC settled' : 'Last relayer price'} />
             <div className="cr-loop"><Loop c={latest} now={now} horizontal /></div>
+            <div className="o-row"><button className="o-btn o-btn-line o-btn-sm" onClick={() => setSheet(latest)}>Round details <Icon name="arrow" size={14} /></button></div>
           </> : rounds.error && !rounds.data ? <State kind="error" title="Could not read the rounds" action={<button className="pill pill-line pill-sm" onClick={rounds.reload}>Retry</button>}>{rounds.error}</State>
             : rounds.loading ? <State kind="loading" title="Reading rounds" />
-            : <State kind="empty" title="No rounds yet" action={mine ? <button className="pill pill-jade pill-sm" onClick={() => goManage('earn')}>Write a covered call</button> : undefined}>The owner writes a round from Owner tools, signed with the vault's quantum key.</State>}
+            : <State kind="empty" title="No rounds yet" action={mine ? <Link to={`/write?vault=${encodeURIComponent(box.token_id)}`} className="o-btn o-btn-ink o-btn-sm">Write a covered call</Link> : undefined}>The owner writes a round signed with the vault's quantum key.</State>}
         </section>
 
         {boxRounds.length > 1 && <section className="card s-list" aria-label="Every round">
@@ -202,7 +227,7 @@ export default function VaultPage({ id, wallet }: Props) {
               <div className="keyslot">
                 <Icon name="key" />
                 <span>{keyFile ? <>Key loaded <code>{short(keyFile.name, 14, 8)}</code></> : sealed ? 'Load your ML-DSA key file to sign actions on this vault' : 'This vault has no ML-DSA key yet'}</span>
-                {sealed ? <label className="pill pill-line pill-sm file-btn">{keyFile ? 'Change' : 'Load key'}<input type="file" accept=".json" onChange={e => setKeyFile(e.target.files?.[0] || null)} /></label> : mine && <button className="pill pill-jade pill-sm" onClick={registerKey} disabled={busy}>Generate and register</button>}
+                {sealed ? <label className="pill pill-line pill-sm file-btn">{keyFile ? 'Change' : 'Load key'}<input type="file" accept=".json" aria-label="Load ML-DSA key file" onChange={e => { const f = e.target.files?.[0] || null; setKeyFile(f); if (f) loadKeyFile(f).catch(() => {}); }} /></label> : mine && <button className="pill pill-jade pill-sm" onClick={registerKey} disabled={busy}>Generate and register</button>}
               </div>
               <nav className="vtabs" role="tablist" aria-label="Owner tools">
                 {TABS.map(t => <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>{t.label}{t.id === 'send' && pending.length > 0 && <i className="tab-dot" />}</button>)}
@@ -294,7 +319,14 @@ export default function VaultPage({ id, wallet }: Props) {
         </div>
       </div>
 
-      <aside className="v-side" aria-label="Deposit and withdraw">
+      <aside className="v-side" aria-label="Buy, deposit and withdraw">
+        {live && latest && <section className="o-card" id="buy"><header className="o-card-h"><h2><i className="o-live" aria-hidden="true" />Buy this call</h2></header><BuyBox r={latest} wallet={wallet} onDone={() => rounds.reload()} /></section>}
+        <section className="o-card o-card-pq">
+          <header className="o-card-h"><h2><Icon name="shield" size={17} /> Quantum lock</h2>{sealed ? <span className="o-ok">On</span> : <span className="o-rej">Off</span>}</header>
+          <p className="o-mute small">{sealed ? 'Spending, transferring, listing, rule changes and every call on this vault need this ML-DSA-65 key. NEAR checks it in the contract.' : 'This vault has no post-quantum key yet, so only the owner’s NEAR key protects it.'}</p>
+          {sealed && <dl className="o-kv"><div><dt>Key fingerprint</dt><dd className="mono">{fp || '…'}</dd></div><div><dt>Signed actions</dt><dd>{box.nonce}</dd></div><div><dt>In this tab</dt><dd>{keyFile ? 'Key file loaded' : 'Not loaded'}</dd></div></dl>}
+          <Link to="/security" className="o-link">What this protects <Icon name="arrow" size={13} /></Link>
+        </section>
         <div className="panel s-panel">
           <div className="seg2" role="tablist" aria-label="Deposit or withdraw">
             <button role="tab" aria-selected={side === 'deposit'} className={side === 'deposit' ? 'on' : ''} onClick={() => setSide('deposit')}>Deposit</button>

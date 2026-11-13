@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import Landing from './Landing';
-import Dashboard from './Dashboard';
+import Vaults from './Vaults';
 import VaultPage from './VaultPage';
-import Portfolio from './Portfolio';
+import Market from './Market';
+import Write from './Write';
+import Positions from './Positions';
+import Activity from './Activity';
+import Security from './Security';
+import Settings from './Settings';
 import How from './How';
-import { contractId, nearblocksAccount, short } from './lib';
-import { Icon, Link, Wordmark, type IconName } from './ui';
-import { useWallet, type Wallet } from './wallet';
+import { AppBar, StatusBar, TabBar, type Page } from './shell';
+import { Icon } from './ui';
+import { useWallet } from './wallet';
 
 function usePath() {
   const [path, setPath] = useState(location.pathname);
@@ -14,38 +19,11 @@ function usePath() {
   return path;
 }
 
-type Page = 'home' | 'how' | 'vaults' | 'vault' | 'you';
-const NAV: { page: Page; to: string; label: string; icon: IconName }[] = [
-  { page: 'vaults', to: '/app', label: 'Vaults', icon: 'grid' },
-  { page: 'you', to: '/you', label: 'Portfolio', icon: 'user' },
+const ROUTES: [RegExp, Page][] = [
+  [/^\/(app|vaults)\/?$/, 'vaults'], [/^\/market/, 'market'], [/^\/write/, 'write'], [/^\/(positions|you)/, 'positions'],
+  [/^\/activity/, 'activity'], [/^\/security/, 'security'], [/^\/settings/, 'settings'], [/^\/how/, 'how'],
 ];
-
-function AppBar({ page, wallet }: { page: Page; wallet: Wallet }) {
-  const on = (p: Page) => (page === p || (p === 'vaults' && page === 'vault') ? 'page' : undefined);
-  return <header className="bar">
-    <div className="bar-row">
-      <Link to="/" className="bar-logo" aria-label="Otzar home"><Wordmark /></Link>
-      <nav className="seg-nav" aria-label="App">
-        {NAV.map(n => <Link key={n.page} to={n.to} aria-current={on(n.page)}>{n.label}</Link>)}
-      </nav>
-      <div className="bar-end">
-        <span className="net"><i />Testnet</span>
-        {wallet.account
-          ? <Link to="/you" className="acct-pill" title={wallet.account}><Icon name="user" size={15} />{short(wallet.account, 10, 6)}</Link>
-          : <button className="pill pill-ink pill-sm" onClick={wallet.connect} disabled={!wallet.ready}>Connect</button>}
-      </div>
-    </div>
-  </header>;
-}
-
-/** Phones: one floating pill of tabs at the bottom, the way Polaris carries its nav. */
-function TabBar({ page }: { page: Page }) {
-  const on = (p: Page) => (page === p || (p === 'vaults' && page === 'vault') ? 'page' : undefined);
-  return <nav className="tabbar" aria-label="App tabs">
-    {NAV.map(n => <Link key={n.page} to={n.to} aria-current={on(n.page)}><Icon name={n.icon} size={20} /><span>{n.label}</span></Link>)}
-    <Link to="/how"><Icon name="spark" size={20} /><span>How it works</span></Link>
-  </nav>;
-}
+const TITLES: Record<Page, string> = { home: 'Otzar · The quantum-safe Bitcoin vault that earns', how: 'Otzar · How it works', vaults: 'Otzar · Vaults', vault: 'Otzar · Vault', market: 'Otzar · Buy calls', write: 'Otzar · Write a call', positions: 'Otzar · Positions', activity: 'Otzar · Activity', security: 'Otzar · Quantum security', settings: 'Otzar · Settings' };
 
 export default function App() {
   const path = usePath();
@@ -54,30 +32,30 @@ export default function App() {
   let vaultId = vaultSegment;
   if (vaultSegment) {
     try { vaultId = decodeURIComponent(vaultSegment); }
-    catch { /* An invalid escape is an unknown token, handled by the existing empty state. */ }
+    catch { /* An invalid escape is an unknown token, handled by the vault page's empty state. */ }
   }
-  const page: Page = vaultId ? 'vault' : path.startsWith('/app') || path.startsWith('/vaults') ? 'vaults' : path.startsWith('/you') ? 'you' : path.startsWith('/how') ? 'how' : 'home';
-  useEffect(() => {
-    const t: Record<Page, string> = { home: 'Otzar · Earn on your Bitcoin', how: 'Otzar · How it works', vaults: 'Otzar · Vaults', vault: `Otzar · ${vaultId}`, you: 'Otzar · Portfolio' };
-    document.title = t[page];
-  }, [page, vaultId]);
+  const page: Page = vaultId ? 'vault' : ROUTES.find(([re]) => re.test(path))?.[1] || 'home';
+  const writeFor = new URLSearchParams(location.search).get('vault') || '';
+  useEffect(() => { document.title = page === 'vault' ? `Otzar · ${vaultId}` : TITLES[page]; }, [page, vaultId]);
 
   const banner = wallet.error && <p className="banner" role="alert">{wallet.error}<button onClick={() => wallet.setError('')} aria-label="Dismiss"><Icon name="x" size={14} /></button></p>;
   if (page === 'home' || page === 'how') return <div className="site"><a className="skip" href="#main">Skip to content</a>{banner}{page === 'home' ? <Landing /> : <How />}</div>;
 
-  return <div className="app">
+  return <div className="o-app">
     <a className="skip" href="#main">Skip to content</a>
     <AppBar page={page} wallet={wallet} />
     {banner}
-    <main id="main" className="app-main">
-      {page === 'vaults' && <Dashboard wallet={wallet} />}
+    <main id="main" className="o-main" key={page + (vaultId || '')}>
+      {page === 'vaults' && <Vaults wallet={wallet} />}
       {page === 'vault' && <VaultPage id={vaultId!} wallet={wallet} />}
-      {page === 'you' && <Portfolio wallet={wallet} />}
+      {page === 'market' && <Market wallet={wallet} />}
+      {page === 'write' && <Write wallet={wallet} initial={writeFor} />}
+      {page === 'positions' && <Positions wallet={wallet} />}
+      {page === 'activity' && <Activity />}
+      {page === 'security' && <Security wallet={wallet} />}
+      {page === 'settings' && <Settings wallet={wallet} />}
     </main>
-    <footer className="app-foot">
-      <span>Otzar · NEAR testnet and local chains · MIT · © 2026 Nivesh Gajengi</span>
-      {contractId && <a href={nearblocksAccount(contractId)} target="_blank" rel="noreferrer" title="Deployed under Otzar's former name, Hako">Contract {contractId} <Icon name="external" size={12} /></a>}
-    </footer>
+    <StatusBar />
     <TabBar page={page} />
   </div>;
 }
