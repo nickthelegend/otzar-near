@@ -90,7 +90,7 @@ async function contextFor(label, base) {
   const credential = JSON.parse(readFileSync(resolve(`.near-credentials/${label}.json`), 'utf8'));
   assert(credential.id === ids[label], 'Credential does not belong to this repo demo account');
   const ctx = await browser.newContext({ viewport: { width: label === 'buyer' ? 375 : 1440, height: 1000 }, acceptDownloads: true });
-  await ctx.addInitScript(data => { window.__OTZAR_QA_SIGNER__ = data; }, { accountId: credential.id, privateKey: credential.key, rpcUrl: RPC });
+  await ctx.addInitScript(data => { window.__OTZAR_QA_SIGNER__ = data; window.__OTZAR_QA_AUTO_APPROVE__ = true; }, { accountId: credential.id, privateKey: credential.key, rpcUrl: RPC });
   credential.key = '';
   const page = await ctx.newPage(); page.qaActor = label; await page.exposeFunction('__OTZAR_QA_BUDGET_CHECK__', guard); await page.exposeFunction('__OTZAR_QA_RECORD__', receipt);
   page.on('pageerror', e => { run.failures.push(safe(e)); save(); });
