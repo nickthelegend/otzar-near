@@ -1,3 +1,33 @@
+# Otzar full-flow QA — v3 overhaul (2026-11-13)
+
+Scope: the rebuilt app at 1440×900 and 390×844, headless installed Chrome under the shared Chrome lock, live NEAR
+testnet, Coinbase and NearBlocks reads. Screenshots (outside Git): `orchestration/shots/otzar-v3/r1` (first pass) and
+`r2` (after fixes); script `e2e/shots-v3.mjs`. Judge notes: [UI-JUDGE.md](UI-JUDGE.md).
+
+| Route | 1440 / 390 screenshot | Overflow | Result |
+| --- | --- | --- | --- |
+| `/` landing | `landing-1440.png` / `landing-390.png` | 0 / 0 | PASS: hero, live stats, quantum section with attacker panel, how it works, vault table + chart, feed, FAQ, footer |
+| `/app` vaults | `vaults-1440.png` / `vaults-390.png` | 0 / 0 | PASS: KPI strip, Earning/All/Yours, ML-DSA badge per vault, live activity |
+| `/vault/<id>` | `vault-1440.png` / `vault-390.png` | 0 / 0 | PASS: strike vs BTC chart, round loop, quantum-lock card, deposit/withdraw, owner tools |
+| `/market` buy calls | `market-1440.png` / `market-390.png` | 0 / 0 | PASS: empty state with art when no auction is open; with one open (film run) the ask falls each second and Buy pays the premium |
+| `/write` | `write-1440.png` / `write-390.png` | 0 / 0 | PASS: disconnected prompt; connected flow verified live in the film run (key file match, +10% strike, ML-DSA signing steps, confirmation) |
+| `/positions` | `positions-1440.png` / `positions-390.png` | 0 / 0 | PASS: disconnected prompt; connected tabs verified in the film run |
+| `/activity` | `activity-1440.png` / `activity-390.png` | 0 / 0 | PASS: filters incl. "Refused by the contract" |
+| `/security` | `security-1440.png` / `security-390.png` | 0 / 0 | PASS: live code hash matches the Nov 13 upgrade, live access keys (ed25519 flagged classical), refused-on-chain proofs |
+| `/settings` | `settings-1440.png` / `settings-390.png` | 0 / 0 | PASS: wallet, in-memory key files, contract config, data-source probes (NearBlocks count endpoint answered 403 in this run and is shown as an error) |
+| `/how` | `how-1440.png` / `how-390.png` | 0 / 0 | PASS (older approved layout) |
+| `/vault/no-such-vault` | `missing-1440.png` / `missing-390.png` | 0 / 0 | PASS: empty state with a way back |
+
+Console: no page errors. Remaining console lines are third-party: FastNEAR HTTP 429 during the per-vault read burst
+(browsers report it as CORS; the app fails over to dRPC and renders), NearBlocks 403 on one probe, and a refused
+connection to the optional local Bitcoin proxy when it is not running (the vault shows the regtest note).
+
+Live in-app transactions (QA build signer, Nov 13): write_call `GJzWTCDZG8k7aBm322ZwGbcDdpUsdjwjRNheYyyAuoXU`, premium
+`HMRe3zMJ7Vz8LojJSQkHrEmSbuoTC4dadnhHa8F9e9dd`; earlier take `6dp3oyqc…`, `Q8fv9wNB…`. Record:
+[deployments/film-v3-2026-11-13.json](deployments/film-v3-2026-11-13.json).
+
+---
+
 # Otzar full-flow QA — 2026-11-11
 
 Scope: production build, real NEAR testnet reads, headless installed Chrome at 1440×1000 and 375×900. Functional fixes only; approved typography, colors, layout and art stay unchanged. The opt-in QA build also completes real authenticated browser transactions at both widths. Its signer shares a cumulative 0.3 NEAR budget with the earlier contract QA. Production uses Meteor. No mainnet writes.

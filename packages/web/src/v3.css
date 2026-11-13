@@ -490,3 +490,5 @@ a.o-tr:hover, button.o-tr:hover { background: rgba(15,163,107,.05); }
 .o-vsel .field { margin: 0; }
 .o-vsel select { width: 100%; font-weight: 700; font-size: 16px; }
 @media (max-width: 720px) { .o-vsel { grid-template-columns: auto 1fr; } .o-vsel .o-lock { grid-column: 1 / -1; justify-self: start; } }
+.o-page.vault .s-round-say { font-size: 19px !important; line-height: 1.45 !important; }
+@media (max-width: 720px) { .o-page.vault .s-round-say { font-size: 17px !important; } }

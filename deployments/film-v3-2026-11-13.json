@@ -1,0 +1,141 @@
+{
+ "date": "2026-11-13",
+ "network": "NEAR testnet + Bitcoin Core regtest",
+ "source": "Otzar film v3: app QA build signer for write/premium, setup by videos/otzar-near/film-v3/setup.mjs",
+ "final": {
+  "vault": "otzar-q-mwf8nlxm",
+  "steps": [
+   {
+    "name": "Mint the vault NFT",
+    "method": "mint",
+    "txHash": "878q7sjLJtypC2BiPuz3oLaGHCEh8duBJhxVfwXo4d6U",
+    "explorer": "https://testnet.nearblocks.io/txns/878q7sjLJtypC2BiPuz3oLaGHCEh8duBJhxVfwXo4d6U",
+    "at": "2026-11-13T17:16:44.091Z"
+   },
+   {
+    "name": "Lock it with a new ML-DSA-65 key",
+    "method": "register_pq_key",
+    "txHash": "GGwCm6kZrP56r8fGNMcGfFPf7cS9LDCMqaWiN8FJTZcW",
+    "explorer": "https://testnet.nearblocks.io/txns/GGwCm6kZrP56r8fGNMcGfFPf7cS9LDCMqaWiN8FJTZcW",
+    "at": "2026-11-13T17:16:48.906Z"
+   },
+   {
+    "name": "Register Bitcoin rules (ML-DSA signed)",
+    "method": "register_btc",
+    "txHash": "Gm6wxaSZFU4ioLR9GvJCdE7ZqNRAzAjKhBCmBb5weXA5",
+    "explorer": "https://testnet.nearblocks.io/txns/Gm6wxaSZFU4ioLR9GvJCdE7ZqNRAzAjKhBCmBb5weXA5",
+    "note": "RPC returned HTTP 500 after submission; hash recovered from NearBlocks"
+   },
+   {
+    "accountId": "hako-seller-mw984kqa.testnet",
+    "receiverId": "hako-contract-mw984kpp.testnet",
+    "methods": [
+     "write_call"
+    ],
+    "txHash": "GJzWTCDZG8k7aBm322ZwGbcDdpUsdjwjRNheYyyAuoXU",
+    "deposit": "0",
+    "source": "app (film)",
+    "explorer": "https://testnet.nearblocks.io/txns/GJzWTCDZG8k7aBm322ZwGbcDdpUsdjwjRNheYyyAuoXU",
+    "final": true,
+    "success": true,
+    "independentlyVerified": true,
+    "at": "2026-11-13T18:06:06.043Z"
+   },
+   {
+    "accountId": "hako-buyer-mw984kqb.testnet",
+    "receiverId": "husdc-3177b477.testnet",
+    "methods": [
+     "ft_transfer_call"
+    ],
+    "txHash": "HMRe3zMJ7Vz8LojJSQkHrEmSbuoTC4dadnhHa8F9e9dd",
+    "deposit": "1",
+    "source": "app (film)",
+    "explorer": "https://testnet.nearblocks.io/txns/HMRe3zMJ7Vz8LojJSQkHrEmSbuoTC4dadnhHa8F9e9dd",
+    "final": true,
+    "success": true,
+    "independentlyVerified": true,
+    "at": "2026-11-13T18:06:45.758Z"
+   }
+  ],
+  "bitcoin": {
+   "destination": "bcrt1qn3vq5sf4z9v85zxffam4d6skxqrq79re0c3mp4",
+   "address": "bcrt1qcfqnh67afdtmkkmlqeekxvm06hknemwspfn4m2",
+   "fundingTx": "6d062fb1dbdc339f0fd5a190cb94ea0a0db0e7c0bc8594256c7be714b9295a39",
+   "utxos": [
+    {
+     "txid": "6d062fb1dbdc339f0fd5a190cb94ea0a0db0e7c0bc8594256c7be714b9295a39",
+     "vout": 1,
+     "sats": 101000
+    }
+   ]
+  }
+ },
+ "take1": {
+  "vault": "otzar-q-mwf6tt9v",
+  "steps": [
+   {
+    "name": "Mint the vault NFT",
+    "method": "mint",
+    "txHash": "6wNKHEPRJ3byzb9aC9UXU15UySoUPrJ8aBHhLqG9tKa6",
+    "explorer": "https://testnet.nearblocks.io/txns/6wNKHEPRJ3byzb9aC9UXU15UySoUPrJ8aBHhLqG9tKa6",
+    "at": "2026-11-13T16:25:10.848Z"
+   },
+   {
+    "name": "Lock it with a new ML-DSA-65 key",
+    "method": "register_pq_key",
+    "txHash": "4nBFoD741RfUF7AnmvEmfbBocuyuniPRF5yyK8wz6fVw",
+    "explorer": "https://testnet.nearblocks.io/txns/4nBFoD741RfUF7AnmvEmfbBocuyuniPRF5yyK8wz6fVw",
+    "at": "2026-11-13T16:25:15.038Z"
+   },
+   {
+    "name": "Register Bitcoin rules (ML-DSA signed)",
+    "method": "register_btc",
+    "txHash": "DpM8saW8hacb8uy8XYtkwUa3hXrL3ppcSb3JkB1fJVF9",
+    "explorer": "https://testnet.nearblocks.io/txns/DpM8saW8hacb8uy8XYtkwUa3hXrL3ppcSb3JkB1fJVF9",
+    "at": "2026-11-13T16:25:20.504Z"
+   },
+   {
+    "accountId": "hako-seller-mw984kqa.testnet",
+    "receiverId": "hako-contract-mw984kpp.testnet",
+    "methods": [
+     "write_call"
+    ],
+    "txHash": "6dp3oyqcSwxhx7hbbex3FgRSjZZ1pyFkB1sJ6khEJqqm",
+    "deposit": "0",
+    "source": "app (film)",
+    "explorer": "https://testnet.nearblocks.io/txns/6dp3oyqcSwxhx7hbbex3FgRSjZZ1pyFkB1sJ6khEJqqm",
+    "final": true,
+    "success": true,
+    "independentlyVerified": true,
+    "at": "2026-11-13T17:11:40.572Z"
+   },
+   {
+    "accountId": "hako-buyer-mw984kqb.testnet",
+    "receiverId": "husdc-3177b477.testnet",
+    "methods": [
+     "ft_transfer_call"
+    ],
+    "txHash": "Q8fv9wNBCvaAtaXULMj4A15zmKvtietbwPCBGgyYYGA",
+    "deposit": "1",
+    "source": "app (film)",
+    "explorer": "https://testnet.nearblocks.io/txns/Q8fv9wNBCvaAtaXULMj4A15zmKvtietbwPCBGgyYYGA",
+    "final": true,
+    "success": true,
+    "independentlyVerified": true,
+    "at": "2026-11-13T17:12:19.750Z"
+   }
+  ],
+  "bitcoin": {
+   "destination": "bcrt1q4vs3e239j9k4xxsf822439j00cqxjh6q8e8jp7",
+   "address": "bcrt1qv8mglprc2q66prp2dumd2urf0djrv5z0ftr0m5",
+   "fundingTx": "832cfa02485798eb2b7169fb5f3442fafd64cffee38602ab65a95739aab097ba",
+   "utxos": [
+    {
+     "txid": "832cfa02485798eb2b7169fb5f3442fafd64cffee38602ab65a95739aab097ba",
+     "vout": 1,
+     "sats": 101000
+    }
+   ]
+  }
+ }
+}
