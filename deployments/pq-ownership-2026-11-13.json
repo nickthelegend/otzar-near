@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-13T16:06:33.027Z",
+  "network": "NEAR testnet",
+  "contract": "hako-contract-mw984kpp.testnet",
+  "vault": "call-mw9c9f1x",
+  "steps": [
+    {
+      "name": "Owner NEAR key alone tries to transfer the vault",
+      "method": "nft_transfer",
+      "signer": "hako-seller-mw984kqa.testnet",
+      "rejected": true,
+      "reason": "quantum lock: ML-DSA signature required",
+      "txHash": "3PghCRJxtpsUXpwsnXmeC64qwqPRFXpAALUApmLwjNpZ",
+      "explorer": "https://testnet.nearblocks.io/txns/3PghCRJxtpsUXpwsnXmeC64qwqPRFXpAALUApmLwjNpZ"
+    },
+    {
+      "name": "Transfer with a forged ML-DSA signature",
+      "method": "nft_transfer",
+      "signer": "hako-seller-mw984kqa.testnet",
+      "rejected": true,
+      "reason": "bad ML-DSA signature",
+      "txHash": "CzDzjh2x4YgKkHTjML4oX63k59getTWdcQT3SgmQ8sSy",
+      "explorer": "https://testnet.nearblocks.io/txns/CzDzjh2x4YgKkHTjML4oX63k59getTWdcQT3SgmQ8sSy"
+    },
+    {
+      "name": "Owner NEAR key alone tries to list the vault for sale",
+      "method": "list",
+      "signer": "hako-seller-mw984kqa.testnet",
+      "rejected": true,
+      "reason": "quantum lock: ML-DSA signature required",
+      "txHash": "ATu4EK8AG6FSJKVEHjTUTQLPkGVBQ9HnnCiEY3Litzk",
+      "explorer": "https://testnet.nearblocks.io/txns/ATu4EK8AG6FSJKVEHjTUTQLPkGVBQ9HnnCiEY3Litzk"
+    },
+    {
+      "name": "Listing signed with the vault ML-DSA key",
+      "method": "list",
+      "signer": "hako-seller-mw984kqa.testnet",
+      "rejected": false,
+      "reason": null,
+      "txHash": "FnCLpz6RzsQDRokCdNUaETqtWHa1w5MBDJ9HJkTAffLk",
+      "explorer": "https://testnet.nearblocks.io/txns/FnCLpz6RzsQDRokCdNUaETqtWHa1w5MBDJ9HJkTAffLk"
+    },
+    {
+      "name": "Withdraw the listing",
+      "method": "unlist",
+      "signer": "hako-seller-mw984kqa.testnet",
+      "rejected": false,
+      "reason": null,
+      "txHash": "91MkDqXUuYYYkCPdRQKsYSLhHUS3zEuJwPgFv8pkZoTP",
+      "explorer": "https://testnet.nearblocks.io/txns/91MkDqXUuYYYkCPdRQKsYSLhHUS3zEuJwPgFv8pkZoTP"
+    }
+  ],
+  "upgrade": {
+    "txHash": "DYNM8tkz6ss7NvxrsZhX61a8EGu3iA4qRYagA43Mn4ua",
+    "explorer": "https://testnet.nearblocks.io/txns/DYNM8tkz6ss7NvxrsZhX61a8EGu3iA4qRYagA43Mn4ua",
+    "wasmSha256": "2c60b11496a1b294aae6f5e29a12fb1682a398e8c81741f1b1d782367cd3641b",
+    "verifiedAtBlock": 277532351
+  },
+  "after": {
+    "owner": "hako-seller-mw984kqa.testnet",
+    "nonce": 3,
+    "listed": null
+  }
+}
