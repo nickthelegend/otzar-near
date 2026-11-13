@@ -67,8 +67,11 @@ async function rpc<T>(method: string, params: unknown, prefer = 0): Promise<T> {
 }
 
 /** The latest final NEAR testnet block, polled every 3 s: the heartbeat in the status bar. */
+type BlockState = { height: number; time: number; protocol: number | null; error: string };
+let lastBlock: BlockState = { height: 0, time: 0, protocol: null, error: '' };
 export function useNearBlock() {
-  const [b, setB] = useState<{ height: number; time: number; protocol: number | null; error: string }>({ height: 0, time: 0, protocol: null, error: '' });
+  const [b, setRaw] = useState<BlockState>(lastBlock);
+  const setB = (f: (p: BlockState) => BlockState) => setRaw(p => (lastBlock = f(p)));
   useEffect(() => {
     let on = true;
     const run = () => { if (document.hidden) return; rpc<any>('block', { finality: 'final' }, 1).then(r => on && setB(p => ({ ...p, height: r.header.height, time: r.header.timestamp_nanosec / 1e6, error: '' }))).catch(e => on && setB(p => ({ ...p, error: (e as Error).message }))); };
