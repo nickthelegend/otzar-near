@@ -285,7 +285,7 @@ export default function VaultPage({ id, wallet }: Props) {
                     <button className="btn btn-primary" onClick={() => run(() => invoke('buy', { token_id: box.token_id }, box.listed_yocto!))} disabled={busy || !account || pending.length > 0}>Buy this vault</button>
                   </div> : mine && !box.ever_signed ? <div className="form">
                     <div className="form-grid"><Field label="Price (NEAR)"><input value={price} onChange={e => setPrice(e.target.value)} inputMode="decimal" /></Field></div>
-                    <button className="btn btn-primary" onClick={() => run(() => invoke('list', { token_id: box.token_id, price: (BigInt(Math.round(Number(price) * 1e6)) * 10n ** 18n).toString() }))} disabled={busy || pending.length > 0}><Icon name="tag" /> List for sale</button>
+                    <button className="btn btn-primary" onClick={() => run(async () => { const yocto = (BigInt(Math.round(Number(price) * 1e6)) * 10n ** 18n).toString(); let pq = {}; if (box.pq_key) { const data = Buffer.from(`list:v1:${yocto}`); const signature = signAuthorization(await secretKey(), box.token_id, box.nonce, data); if (!verifyAuthorization(Uint8Array.from(box.pq_key), signature, box.token_id, box.nonce, data)) throw new Error('Key file does not match this vault'); pq = { nonce: box.nonce, signature: b64(signature) }; } await invoke('list', { token_id: box.token_id, price: yocto, ...pq }); })} disabled={busy || pending.length > 0}><Icon name="tag" /> List for sale</button>
                   </div> : !box.ever_signed && <p className="fineprint">Only the owner can list this vault.</p>}
                 </div>}
               </div>

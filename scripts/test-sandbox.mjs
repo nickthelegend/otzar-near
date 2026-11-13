@@ -43,10 +43,21 @@ async function main(){const [contract,seller,buyer,guardian]=[await child('hako'
   await tx(seller,contract.accountId,call('mint',{token_id:'transfer',policy}),'mint transfer box');
   const transferKey=newQuantumKey();await tx(seller,contract.accountId,call('register_pq_key',{token_id:'transfer',key:Buffer.from(transferKey.publicKey).toString('base64')}),'lock transfer box');
   await tx(seller,contract.accountId,call('request_eth_spend',{token_id:'transfer',raw_unsigned_hex:raw,nonce:0,signature:auth(transferKey.secretKey,'transfer',0,raw)}),'request before transfer');
-  await tx(seller,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'transfer'},120,1n),'transfer voids request');
+  // Ownership is quantum-locked too: with an ML-DSA key registered, the classical NEAR key alone cannot move or list the vault.
+  const signRaw=(secret,tokenId,nonce,text)=>Buffer.from(signAuthorization(secret,tokenId,nonce,Buffer.from(text))).toString('base64');
+  await tx(seller,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'transfer'},120,1n),'classical-key-only transfer rejected',true);
+  await tx(seller,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'transfer',nonce:1,signature:signRaw(newQuantumKey().secretKey,'transfer',1,`transfer:v1:${buyer.accountId}`)},120,1n),'transfer with forged ML-DSA key rejected',true);
+  await tx(seller,contract.accountId,call('nft_transfer',{receiver_id:guardian.accountId,token_id:'transfer',nonce:1,signature:signRaw(transferKey.secretKey,'transfer',1,`transfer:v1:${buyer.accountId}`)},120,1n),'transfer signature replayed to another receiver rejected',true);
+  await tx(seller,contract.accountId,call('nft_transfer',{receiver_id:buyer.accountId,token_id:'transfer',nonce:1,signature:signRaw(transferKey.secretKey,'transfer',1,`transfer:v1:${buyer.accountId}`)},120,1n),'transfer voids request');
   const transferred=await rpcQuery(contract.accountId,'nft_token',{token_id:'transfer'},rpcUrl);const voided=await rpcQuery(contract.accountId,'spends_for_box',{token_id:'transfer'},rpcUrl);
   if(transferred.owner_id!==buyer.accountId||transferred.pq_key!==null||voided[0].state!=='cancelled')throw new Error('transfer did not void request and reset PQ key');
   await tx(buyer,contract.accountId,call('request_eth_spend',{token_id:'transfer',raw_unsigned_hex:raw,nonce:0,signature:auth(transferKey.secretKey,'transfer',0,raw)}),'old PQ key rejected after transfer',true);
+  await tx(seller,contract.accountId,call('mint',{token_id:'pqlist',policy}),'mint quantum-listing box');
+  const listKey=newQuantumKey();await tx(seller,contract.accountId,call('register_pq_key',{token_id:'pqlist',key:Buffer.from(listKey.publicKey).toString('base64')}),'lock quantum-listing box');
+  await tx(seller,contract.accountId,call('list',{token_id:'pqlist',price:'10000000000000000000000'}),'classical-key-only listing rejected',true);
+  await tx(seller,contract.accountId,call('list',{token_id:'pqlist',price:'10000000000000000000000',nonce:0,signature:signRaw(listKey.secretKey,'pqlist',0,'list:v1:1')}),'listing signature for another price rejected',true);
+  await tx(seller,contract.accountId,call('list',{token_id:'pqlist',price:'10000000000000000000000',nonce:0,signature:signRaw(listKey.secretKey,'pqlist',0,'list:v1:10000000000000000000000')}),'ML-DSA-signed listing');
+  if((await rpcQuery(contract.accountId,'nft_token',{token_id:'pqlist'},rpcUrl)).nonce!==1)throw new Error('signed listing did not consume its nonce');
   await tx(seller,contract.accountId,call('mint',{token_id:'recovery',policy}),'mint recovery box');
   const recoveryOwner=newQuantumKey();const recoveryKeys=[newQuantumKey(),newQuantumKey(),newQuantumKey()];
   await tx(seller,contract.accountId,call('register_pq_key',{token_id:'recovery',key:Buffer.from(recoveryOwner.publicKey).toString('base64')}),'lock recovery box');

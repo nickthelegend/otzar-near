@@ -95,7 +95,11 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
       result = { box, addresses: { ...addresses, solana: solAddress }, ethBalanceWei, solBalanceLamports, ethSpends: await rpcQuery(contractId!, 'spends_for_box', { token_id: args.token_id }), btcState: await rpcQuery(contractId!, 'btc_state', { token_id: args.token_id }), solState: await rpcQuery(contractId!, 'sol_state', { token_id: args.token_id }), guardians: await rpcQuery(contractId!, 'guardian_config', { token_id: args.token_id }), inheritance: await rpcQuery(contractId!, 'inheritance', { token_id: args.token_id }) };
     } else if (request.params.name === 'list_box') {
       if (!/^\d+$/.test(args.price_yocto ?? '')) throw new Error('price_yocto must be an integer');
-      result = await submit('list', { token_id: args.token_id, price: args.price_yocto });
+      const box = await rpcQuery(contractId!, 'nft_token', { token_id: args.token_id });
+      if (!box) throw new Error('box not found');
+      // A quantum-locked box can only be listed with its ML-DSA key as well as the owner's NEAR key.
+      const pq = box.pq_key ? { nonce: box.nonce, signature: authorize(box, Buffer.from(`list:v1:${args.price_yocto}`)) } : {};
+      result = await submit('list', { token_id: args.token_id, price: args.price_yocto, ...pq });
     } else if (request.params.name === 'request_spend') {
       if (!/^\d+$/.test(args.amount ?? '') || BigInt(args.amount) <= 0n) throw new Error('positive integer amount required');
       const box = await rpcQuery(contractId!, 'nft_token', { token_id: args.token_id });

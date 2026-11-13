@@ -202,7 +202,9 @@ impl Hako {
         }
     }
 
-    pub fn list(&mut self, token_id: String, price: U128) {
+    /// Listing is an ownership action: once a box has an ML-DSA key, it needs that key's signature too, so a broken
+    /// classical NEAR key alone cannot put the vault up for sale. Signed request: `list:v1:<price yocto>`.
+    pub fn list(&mut self, token_id: String, price: U128, nonce: Option<u64>, signature: Option<Base64VecU8>) {
         require!(!calls::locked(&token_id), "covered call encumbers box");
         require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(price.0 > 0, "price must be positive");
@@ -212,6 +214,11 @@ impl Hako {
         let t = self.token_mut(&token_id);
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(!t.ever_signed, "box has issued a signature; cannot safely resell");
+        if t.pq_key.is_some() {
+            let (n, sig) = pq_args(nonce, signature);
+            verify_pq(t, n, format!("list:v1:{}", price.0).as_bytes(), &sig.0);
+            t.nonce += 1;
+        }
         t.listed_yocto = Some(price);
     }
 
@@ -246,8 +253,12 @@ impl Hako {
         Promise::new(seller).transfer(NearToken::from_yoctonear(price))
     }
 
+    /// NEP-171 transfer. Once a box has an ML-DSA key, transfer also needs that key's signature over
+    /// `transfer:v1:<receiver_id>`, so ownership (not only spending) is quantum-locked. Boxes without a key keep the
+    /// plain NEP-171 call.
     #[payable]
-    pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String) {
+    pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: String, approval_id: Option<u64>, memo: Option<String>, nonce: Option<u64>, signature: Option<Base64VecU8>) {
+        let _ = (approval_id, memo);
         require!(!calls::locked(&token_id), "covered call encumbers box");
         require!(!inheritance_claimable(&token_id), "heir claim window reached");
         require!(env::attached_deposit().as_yoctonear() == 1, "one yocto required");
@@ -258,6 +269,10 @@ impl Hako {
         require!(t.owner_id == env::predecessor_account_id(), "owner only");
         require!(!t.ever_signed, "box has issued a signature; cannot safely transfer");
         require!(receiver_id != t.owner_id, "same owner");
+        if t.pq_key.is_some() {
+            let (n, sig) = pq_args(nonce, signature);
+            verify_pq(t, n, format!("transfer:v1:{}", receiver_id).as_bytes(), &sig.0);
+        }
         for s in self.spends.values_mut().filter(|s|s.token_id==token_id && s.state=="pending") {s.state="cancelled".into();}
         btc::void_pending(&token_id);
         btc::clear(&token_id);
@@ -473,6 +488,7 @@ fn recovery_message(id: &str, owner: &AccountId, nonce: u64, new_key: &[u8]) -> 
 
 fn self_pending_for(id: &str, spends: &BTreeMap<u64, Spend>) -> bool { spends.values().any(|s| s.token_id == id && (s.state == "pending" || s.state == "signing")) }
 fn validate_policy(p: &Policy) { require!(p.delay_sec >= 120 && p.delay_sec <= 7 * 86_400, "delay range 120s..7d"); require!(p.daily_eth_wei.0 > 0, "daily cap required"); require!(is_address(&p.recovery_eth) && p.recovery_eth != "0x0000000000000000000000000000000000000000", "recovery ETH address"); require!(p.allow_eth.len() <= 32 && p.allow_eth.iter().all(|a| is_address(a)), "allowlist ETH address"); if let Some(a) = &p.emergency_migration { require!(!a.is_empty() && a.len() <= 128, "migration destination"); } }
+fn pq_args(nonce: Option<u64>, signature: Option<Base64VecU8>) -> (u64, Base64VecU8) { match (nonce, signature) { (Some(n), Some(sig)) => (n, sig), _ => env::panic_str("quantum lock: ML-DSA signature required") } }
 fn verify_pq(t: &BoxToken, nonce: u64, request: &[u8], signature: &[u8]) { let pk = t.pq_key.as_ref().expect("Setup required: ML_DSA_KEY"); require!(nonce == t.nonce, "bad nonce"); require!(signature.len() == ML_SIG_LEN, "bad signature length"); let message = format!("hako:v1:{}:{}:{}", t.token_id, nonce, hex_encode(&env::sha256(request))); let digest = env::sha256(message.as_bytes()); require!(env::ml_dsa_verify(signature.try_into().unwrap(), &digest, pk.as_slice().try_into().unwrap()), "bad ML-DSA signature"); }
 fn apply_daily_cap(t: &mut BoxToken, amount: u128, now: u64) { let day = now / (86_400 * NS_SEC); if t.day_index != day { t.day_index = day; t.spent_today_wei = U128(0); } let new = t.spent_today_wei.0.checked_add(amount).expect("cap overflow"); require!(new <= t.policy.daily_eth_wei.0, "daily cap exceeded"); t.spent_today_wei = U128(new); }
 fn is_address(s: &str) -> bool { s.len() == 42 && s.starts_with("0x") && s[2..].bytes().all(|c| c.is_ascii_hexdigit()) }
@@ -546,9 +562,17 @@ mod tests {
         c.mint("box1".into(),policy());
         c.register_pq_key("box1".into(),Base64VecU8(vec![1;ML_PK_LEN]));
         c.spends.insert(0,Spend{id:0,token_id:"box1".into(),raw_unsigned_hex:ETH_TX.into(),destination:"x".into(),amount_wei:U128(1),sighash_hex:"x".into(),created_ns:0,ready_ns:1,state:"pending".into(),signature_json:None,clawback:false});
-        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.list("box1".into(),U128(100)))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.list("box1".into(),U128(100),None,None))).is_err());
         c.spends.get_mut(&0).unwrap().state="cancelled".into();
-        c.list("box1".into(),U128(100));
+        // Quantum-locked: the classical NEAR key alone can no longer list (or transfer) the vault.
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.list("box1".into(),U128(100),None,None))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.list("box1".into(),U128(100),Some(0),Some(Base64VecU8(vec![0;ML_SIG_LEN]))))).is_err());
+        context("seller.testnet",1);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.nft_transfer("thief.testnet".parse().unwrap(),"box1".into(),None,None,None,None))).is_err());
+        assert_eq!(c.nft_token("box1".into()).unwrap().owner_id.as_str(),"seller.testnet");
+        context("seller.testnet",0);
+        c.tokens.get_mut("box1").unwrap().pq_key=None;
+        c.list("box1".into(),U128(100),None,None);
         context("buyer.testnet",100);
         let _ = c.buy("box1".into());
         let t=c.nft_token("box1".into()).unwrap();
@@ -569,7 +593,7 @@ mod tests {
         save(&extension_key("inheritance","inherited"),&Inheritance { heir:"heir.testnet".parse().unwrap(), deadline_ns:1_086_400 * NS_SEC, delay_sec:86_400 });
         b.predecessor_account_id("heir.testnet".parse().unwrap()).block_timestamp(1_172_800 * NS_SEC);
         testing_env!(b.build());
-        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.list("inherited".into(),U128(1)))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.list("inherited".into(),U128(1),None,None))).is_err());
         c.claim_inheritance("inherited".into());
         let token=c.nft_token("inherited".into()).unwrap();
         assert_eq!(token.owner_id.as_str(),"heir.testnet");
