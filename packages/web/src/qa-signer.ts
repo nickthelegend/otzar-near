@@ -1,5 +1,6 @@
 // QA_SIGNER_MODULE: imported only in a VITE_QA_SIGNER=1 build. Never stores keys in browser storage.
 import { connect, keyStores, KeyPair, transactions } from 'near-api-js';
+import { approvalSheet } from './qa-sheet';
 
 type Call = { methodName: string; args: object; gas: string | bigint; deposit: string | bigint };
 type FunctionCall = { type?: string; params?: Call; enum?: string; functionCall?: Call };
@@ -8,6 +9,7 @@ type Injection = { accountId: string; privateKey: string; rpcUrl: string };
 type Receipt = { accountId: string; receiverId: string; methods: string[]; hash: string; gas: string; deposit: string; success: boolean; final: boolean };
 declare global {
   interface Window {
+    __OTZAR_QA_AUTO_APPROVE__?: boolean;
     __OTZAR_QA_SIGNER__?: Injection;
     __OTZAR_QA_BUDGET_CHECK__?: (transaction: { accountId: string; receiverId: string; methods: string[]; gas: string; deposit: string }) => Promise<void>;
     __OTZAR_QA_RECORD__?: (receipt: Receipt) => Promise<void>;
@@ -23,10 +25,16 @@ export async function setupQaSelector() {
   if (!injected || !testnet(injected.accountId) || !RPCS.has(injected.rpcUrl)) throw new Error('QA signer requires a .testnet account and an allow-listed testnet RPC');
   if (!window.__OTZAR_QA_BUDGET_CHECK__ || !window.__OTZAR_QA_RECORD__) throw new Error('QA signer requires the e2e budget guard and receipt recorder');
   const { accountId, rpcUrl } = injected;
+  // Headless e2e runs set this flag to skip the approval sheet; the film and manual QA leave it unset and click Approve.
+  const autoApprove = window.__OTZAR_QA_AUTO_APPROVE__ === true;
+  delete window.__OTZAR_QA_AUTO_APPROVE__;
+  let nearKey = '';
   const store = new keyStores.InMemoryKeyStore();
   try {
     if (!/^ed25519:[1-9A-HJ-NP-Za-km-z]{80,100}$/.test(injected.privateKey)) throw new Error();
-    await store.setKey('testnet', accountId, KeyPair.fromString(injected.privateKey as Parameters<typeof KeyPair.fromString>[0]));
+    const pair = KeyPair.fromString(injected.privateKey as Parameters<typeof KeyPair.fromString>[0]);
+    nearKey = pair.getPublicKey().toString();
+    await store.setKey('testnet', accountId, pair);
   }
   catch { throw new Error('QA signer could not load the injected testnet credential'); }
   injected.privateKey = '';
@@ -55,6 +63,7 @@ export async function setupQaSelector() {
     if (gas <= 0n || gas > 200_000_000_000_000n || deposit < 0n || deposit > 10n ** 21n) throw new Error('QA signer transaction exceeds its gas or 0.001 NEAR deposit limit');
     const methods = permitted.map(a => a.methodName);
     await window.__OTZAR_QA_BUDGET_CHECK__!({ accountId, receiverId, methods, gas: gas.toString(), deposit: deposit.toString() });
+    const sheet = autoApprove ? undefined : await approvalSheet({ accountId, receiverId, calls: permitted, nearKey, gas: gas.toString(), deposit: deposit.toString() });
     let hash = '';
     try {
       const result = await account.signAndSendTransaction({ receiverId, returnError: true, actions: permitted.map(a => transactions.functionCall(a.methodName, a.args, BigInt(a.gas), BigInt(a.deposit))) });
@@ -62,8 +71,9 @@ export async function setupQaSelector() {
     } catch (e) {
       // near-api-js retains the signed hash even if the RPC times out after accepting it.
       hash = (e as { context?: { transactionHash?: string } }).context?.transactionHash || '';
-      if (!hash) throw e;
+      if (!hash) { sheet?.close(); throw e; }
     }
+    sheet?.sent(hash);
     await window.__OTZAR_QA_RECORD__!({ accountId, receiverId, methods, hash, gas: gas.toString(), deposit: deposit.toString(), success: false, final: false });
     const endpoints = ['https://testnet-rpc.intea.rs', rpcUrl, ...RPCS];
     for (let attempt = 0; attempt < 24; attempt++) {
