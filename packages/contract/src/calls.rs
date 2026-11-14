@@ -77,7 +77,16 @@ fn key(id:&str)->Vec<u8>{format!("hako:calls:v1:{id}").into_bytes()}
 fn read(id:&str)->Vec<CoveredCall>{stored(&key(id)).unwrap_or_default()}
 fn write(id:&str,calls:&[CoveredCall]){save(&key(id),&calls)}
 fn current(calls:&[CoveredCall])->Option<&CoveredCall>{calls.last()}
-fn active(c:&CoveredCall)->bool{matches!(c.state.as_str(),"auction"|"purchasing"|"sold"|"settling"|"itm"|"paying"|"paid"|"signing"|"signed")}
+fn active(c:&CoveredCall)->bool{matches!(c.state.as_str(),"auction"|"purchasing"|"sold"|"settling"|"itm"|"paying"|"paid"|"signing"|"signed"|"delivering")}
+fn is_nbtc(c:&CoveredCall)->bool{c.collateral_outpoint_hex==nbtc::NBTC_COLLATERAL}
+/// Sats of locked nBTC backing the vault's live covered call.
+pub fn nbtc_encumbered(id:&str)->u128{current(&read(id)).filter(|c|is_nbtc(c)&&active(c)).map(|c|c.size_sats.0 as u128).unwrap_or(0)}
+fn deliver(token_id:&str,c:&mut CoveredCall){
+    let holder=c.holder.clone().expect("holder");let size=c.size_sats.0 as u128;let bal=nbtc::balance(token_id);
+    require!(bal>=size,"locked nBTC below call size");nbtc::set_balance(token_id,bal-size);c.state="delivering".into();
+    Promise::new(nbtc::token()).function_call("ft_transfer",near_sdk::serde_json::to_vec(&near_sdk::serde_json::json!({"receiver_id":holder,"amount":U128(size),"memo":format!("Otzar call exercise {token_id}")})).unwrap(),NearToken::from_yoctonear(1),Gas::from_tgas(20))
+        .then(Promise::new(env::current_account_id()).function_call("on_nbtc_delivered",near_sdk::serde_json::to_vec(&near_sdk::serde_json::json!({"token_id":token_id})).unwrap(),NearToken::from_yoctonear(0),Gas::from_tgas(10)));
+}
 pub fn locked(id:&str)->bool{current(&read(id)).is_some_and(active)}
 
 fn config()->CallConfig{stored(CFG_KEY).unwrap_or_else(||CallConfig{premium_token:DEFAULT_PREMIUM_TOKEN.parse().unwrap(),relayer_public_key:None,price_label:PRICE_LABEL.into()})}
@@ -162,10 +171,38 @@ impl Hako {
         calls.push(c.clone());write(&token_id,&calls);c
     }
 
+    /// A covered call backed by bridged nBTC locked in the vault. Same Dutch auction and settlement as
+    /// `write_call`; on exercise the holder receives the nBTC on NEAR instead of a Bitcoin transaction.
+    /// ML-DSA payload: `["nbtc", strike, expiry, size, opening, minimum]`.
+    pub fn write_call_nbtc(&mut self,token_id:String,strike_usd_e6:U128,expiry_sec:u64,size_sats:U64,opening_premium_usdc:U128,minimum_premium_usdc:U128,nonce:u64,signature:Base64VecU8)->CoveredCall{
+        let now=env::block_timestamp();
+        require!(!locked(&token_id),"covered call already active");
+        let bal=nbtc::balance(&token_id);
+        require!(strike_usd_e6.0>0&&size_sats.0>0&&(size_sats.0 as u128)<=bal,"call size exceeds locked nBTC");
+        require!(opening_premium_usdc.0>=minimum_premium_usdc.0&&minimum_premium_usdc.0>0&&opening_premium_usdc.0<=u64::MAX as u128,"invalid premium range");
+        let expiry_ns=expiry_sec.checked_mul(NS_SEC).expect("expiry overflow");
+        require!(expiry_ns>=now+120*NS_SEC&&expiry_ns<=now+30*86_400*NS_SEC,"expiry must be 2 minutes to 30 days away");
+        let payload=near_sdk::serde_json::to_vec(&(nbtc::NBTC_COLLATERAL,strike_usd_e6,expiry_sec,size_sats,opening_premium_usdc,minimum_premium_usdc)).unwrap();
+        let t=self.token_mut(&token_id);
+        require!(t.owner_id==env::predecessor_account_id()&&t.listed_yocto.is_none(),"unlisted owner only");
+        verify_pq(t,nonce,&payload,&signature.0);t.nonce+=1;
+        let mut calls=read(&token_id);
+        require!(calls.len()<100,"call history limit reached");
+        let c=CoveredCall{id:calls.len() as u64,token_id:token_id.clone(),writer:t.owner_id.clone(),holder:None,strike_usd_e6,size_sats,collateral_outpoint_hex:nbtc::NBTC_COLLATERAL.into(),collateral_sats:U64(bal as u64),opening_premium_usdc,minimum_premium_usdc,premium_paid_usdc:None,opened_ns:now,auction_end_ns:now+(WEEK*NS_SEC).min(expiry_ns-now),expiry_ns,exercise_deadline_ns:None,oracle_price_usd_e6:None,exercise_script_hex:None,exercise_raw_hex:None,exercise_signature_json:None,state:"auction".into(),premium_token:Some(config().premium_token)};
+        calls.push(c.clone());write(&token_id,&calls);c
+    }
+
+    /// Retries delivery of an exercised nBTC call (anyone may call; it pays the recorded holder only).
+    pub fn deliver_nbtc(&mut self,token_id:String){let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");require!(c.state=="paid"&&is_nbtc(c),"nothing to deliver");deliver(&token_id,c);write(&token_id,&calls);}
+
+    #[private]
+    pub fn on_nbtc_delivered(&mut self,token_id:String){let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");require!(c.state=="delivering","not delivering");if env::promise_result_checked(0,1024).is_ok(){c.state="delivered".into();}else{nbtc::set_balance(&token_id,nbtc::balance(&token_id)+c.size_sats.0 as u128);c.state="paid".into();}write(&token_id,&calls);}
+
     pub fn close_unfilled_call(&mut self,token_id:String){let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");require!(c.state=="auction"&&env::block_timestamp()>=c.auction_end_ns,"auction still open");c.state="unfilled".into();write(&token_id,&calls);}
 
     /// NEP-141 transfer_call receiver. Only the token fixed on the call can pay its premium or strike.
     pub fn ft_on_transfer(&mut self,sender_id:AccountId,amount:U128,msg:String)->PromiseOrValue<U128>{
+        if env::predecessor_account_id()==nbtc::token(){return nbtc::lock(self,sender_id,amount,&msg);}
         let parts:Vec<_>=msg.split(':').collect();
         require!((parts.len()==2&&parts[0]=="buy")||(parts.len()==3&&parts[0]=="exercise"),"invalid call payment message");
         let token_id=parts[1].to_string();let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");let now=env::block_timestamp();
@@ -179,7 +216,8 @@ impl Hako {
         }else{
             require!(c.state=="itm"&&c.holder.as_ref()==Some(&sender_id),"option holder only");
             require!(now<=c.exercise_deadline_ns.unwrap(),"exercise window closed");
-            let script=hex_decode(parts[2]);require!(script.len()==22&&script[0]==0&&script[1]==20,"P2WPKH buyer script required");
+            if is_nbtc(c){require!(parts[2]=="near","nBTC call settles on NEAR: use exercise:<vault>:near");}
+            else{let script=hex_decode(parts[2]);require!(script.len()==22&&script[0]==0&&script[1]==20,"P2WPKH buyer script required");}
             let due=(c.strike_usd_e6.0*c.size_sats.0 as u128+99_999_999)/100_000_000;
             require!(amount.0==due,"exact strike payment required");
             c.exercise_script_hex=Some(parts[2].into());c.state="paying".into();
@@ -195,7 +233,7 @@ impl Hako {
         let ok=env::promise_result_checked(0,1024).is_ok();
         let mut calls=read(&token_id);let c=calls.last_mut().expect("call not found");
         if kind=="buy"{require!(c.state=="purchasing","purchase state changed");if ok{c.holder=Some(sender_id);c.premium_paid_usdc=Some(amount);c.state="sold".into();}else{c.state="auction".into();}}
-        else{require!(c.state=="paying","exercise state changed");if ok{c.state="paid".into();}else{c.exercise_script_hex=None;c.state="itm".into();}}
+        else{require!(c.state=="paying","exercise state changed");if ok{c.state="paid".into();if is_nbtc(c){deliver(&token_id,c);}}else{c.exercise_script_hex=None;c.state="itm".into();}}
         write(&token_id,&calls);if ok{U128(0)}else{amount}
     }
 

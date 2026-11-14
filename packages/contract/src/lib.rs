@@ -3,6 +3,7 @@ use near_sdk::{env, near, require, AccountId, Gas, NearToken, PanicOnDefault, Pr
 use std::collections::BTreeMap;
 mod btc;
 mod calls;
+mod nbtc;
 
 const NS_SEC: u64 = 1_000_000_000;
 const MPC_GAS: Gas = Gas::from_tgas(40);
@@ -579,6 +580,32 @@ mod tests {
         assert_eq!(t.owner_id.as_str(),"buyer.testnet");
         assert!(t.pq_key.is_none());
         assert_eq!(t.listed_yocto,None);
+    }
+
+    #[test]
+    fn nbtc_lock_needs_owner_and_quantum_key_and_withdraw_needs_ml_dsa() {
+        let mut b=VMContextBuilder::new();
+        b.predecessor_account_id("owner.testnet".parse().unwrap());testing_env!(b.build());
+        let mut c=Hako::new("v1.signer-prod.testnet".parse().unwrap());
+        c.mint("v1".into(),policy());
+        b.predecessor_account_id("nbtc.n-bridge.testnet".parse().unwrap());testing_env!(b.build());
+        // No ML-DSA key yet: lock refused.
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.ft_on_transfer("owner.testnet".parse().unwrap(),U128(5_000),"lock:v1".into()))).is_err());
+        b.predecessor_account_id("owner.testnet".parse().unwrap());testing_env!(b.build());
+        c.register_pq_key("v1".into(),Base64VecU8(vec![1;ML_PK_LEN]));
+        b.predecessor_account_id("nbtc.n-bridge.testnet".parse().unwrap());testing_env!(b.build());
+        // Someone else's nBTC cannot be locked into this vault.
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.ft_on_transfer("thief.testnet".parse().unwrap(),U128(5_000),"lock:v1".into()))).is_err());
+        let _=c.ft_on_transfer("owner.testnet".parse().unwrap(),U128(5_000),"lock:v1".into());
+        assert_eq!(c.nbtc_vault("v1".into()).balance_sats.0,5_000);
+        // A different token posing as nBTC goes down the covered-call path and is refused.
+        b.predecessor_account_id("fake-nbtc.testnet".parse().unwrap());testing_env!(b.build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.ft_on_transfer("owner.testnet".parse().unwrap(),U128(5_000),"lock:v1".into()))).is_err());
+        // Withdraw with the classical key only, or a forged signature: refused, balance unchanged.
+        b.predecessor_account_id("owner.testnet".parse().unwrap()).attached_deposit(NearToken::from_yoctonear(1));testing_env!(b.build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.withdraw_nbtc("v1".into(),"owner.testnet".parse().unwrap(),U128(1_000),None,None))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||c.withdraw_nbtc("v1".into(),"owner.testnet".parse().unwrap(),U128(1_000),Some(0),Some(Base64VecU8(vec![7;ML_SIG_LEN]))))).is_err());
+        assert_eq!(c.nbtc_vault("v1".into()).balance_sats.0,5_000);
     }
 
     #[test]
