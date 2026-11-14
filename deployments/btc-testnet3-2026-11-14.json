@@ -1,0 +1,16 @@
+{
+  "network": "bitcoin-testnet3",
+  "wallet": "tb1qx5eygvy5rqr887mg98702mgmak8jja5s8f3a5f",
+  "sends": [
+    {
+      "kind": "magen",
+      "to": "tb1qtm9msd7h3fhpm9t6l5gpj3uapfqumztut66ww7",
+      "sats": 4000,
+      "feeSats": 300,
+      "txid": "a4da59b2277db9312b8e871e3e70cb3ea26e285b8db3e06b3ba7193a760f7c7c",
+      "explorer": "https://mempool.space/testnet/tx/a4da59b2277db9312b8e871e3e70cb3ea26e285b8db3e06b3ba7193a760f7c7c",
+      "note": "Bridge deposit for magen-noam.testnet (Magen), requested by the coordinator",
+      "at": "2026-11-14T10:29:15.348Z"
+    }
+  ]
+}
