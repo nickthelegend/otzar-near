@@ -1,0 +1,10 @@
+# Otzar
+
+> A quantum-safe Bitcoin vault on NEAR testnet (formerly Hako). Real Bitcoin testnet3 coins are bridged to nBTC through Omni BTC and locked in a vault NFT whose authority key is ML-DSA-65. The contract verifies that signature on chain (env::ml_dsa_verify) before any spend, transfer, listing or withdrawal. The vault earns premium by selling covered calls; NEAR Chain Signatures signs the foreign-chain transactions.
+
+- [Judge guide](JUDGES.md): verification commands, "do X → see Y" steps, NEAR features used, limits
+- [README](README.md): product, live testnet tables, covered-call loop, build and run
+- [Vault contract](packages/contract/src/lib.rs): ML-DSA verification, nBTC lock, covered calls, recovery, Chain Signatures
+- [Live verifier](scripts/judge-verify.mjs): `node scripts/judge-verify.mjs` re-checks 32 on-chain proofs
+- [Blocked items](BLOCKED.md)
+- [Testing](TESTING.md)

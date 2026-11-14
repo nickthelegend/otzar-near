@@ -1,5 +1,7 @@
 # Otzar — the quantum-safe Bitcoin vault that earns
 
+> **Judges and screening agents:** start at [JUDGES.md](JUDGES.md). `node scripts/judge-verify.mjs` re-checks 32 on-chain proofs with no install and no keys.
+
 **Bridge real BTC to NEAR, lock it in a vault only your quantum-safe key can open, and earn covered-call premium while it waits.**
 
 Each vault is an NFT on NEAR that controls its own Bitcoin address through NEAR Chain Signatures. Its authority key is **ML-DSA-65** (NIST FIPS 204, post-quantum). The Otzar contract verifies that signature on chain with `env::ml_dsa_verify` before any Bitcoin spend, **vault transfer or listing**, rule change, guardian change or covered call. Owners sell covered calls from the vault: a buyer pays a premium on NEAR, the owner keeps it, and gives up gains above the strike.
