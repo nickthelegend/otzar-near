@@ -1,10 +1,25 @@
 # Otzar — the quantum-safe Bitcoin vault that earns
 
-**A Bitcoin vault only your quantum-safe key can move, and it earns covered-call premium while it waits.**
+**Bridge real BTC to NEAR, lock it in a vault only your quantum-safe key can open, and earn covered-call premium while it waits.**
 
 Each vault is an NFT on NEAR that controls its own Bitcoin address through NEAR Chain Signatures. Its authority key is **ML-DSA-65** (NIST FIPS 204, post-quantum). The Otzar contract verifies that signature on chain with `env::ml_dsa_verify` before any Bitcoin spend, **vault transfer or listing**, rule change, guardian change or covered call. Owners sell covered calls from the vault: a buyer pays a premium on NEAR, the owner keeps it, and gives up gains above the strike.
 
 **Where the guarantee stops:** NEAR checks the post-quantum signature before anything moves. Bitcoin's own ECDSA signature, NEAR's MPC root key and the contract account's ed25519 deploy key are still classical (see [Limits](#limits-and-security-boundaries)). Bitcoin runs on Bitcoin Core regtest; premiums are paid in tUSDC, a no-value test token.
+
+### Real BTC in: bridge, lock, earn, withdraw (v5, Nov 14)
+
+**Bridge.** Real Bitcoin testnet3 coins cross to NEAR testnet through the live Omni BTC connector [`btc-connector.n-bridge.testnet`](https://testnet.nearblocks.io/address/btc-connector.n-bridge.testnet) (v0.9.6, chain `BitcoinTestnet`). The connector derives a deposit address per NEAR account from its MPC key (`get_user_deposit_address`; the app checks it matches the Omni API's answer), the Omni relayer proves the Bitcoin transaction to NEAR's Bitcoin light client [`btc-client-v4.testnet`](https://testnet.nearblocks.io/address/btc-client-v4.testnet) with `verify_deposit_v2` after 2 confirmations, and [`nbtc.n-bridge.testnet`](https://testnet.nearblocks.io/address/nbtc.n-bridge.testnet) mints the amount minus a 200-sat bridge fee. Otzar did not build or run the bridge; it uses it.
+
+**Lock.** The owner sends nBTC to the vault with `ft_transfer_call(msg = "lock:<vault>")`. The contract accepts it only from the vault owner and only into a vault that already has its ML-DSA-65 key; anything else is refunded by NEP-141.
+
+**Earn.** `write_call_nbtc` sells a covered call backed by the locked nBTC, signed with the vault's ML-DSA key. A buyer pays the premium in tUSDC (a no-value test token), straight to the owner. That premium is the yield; the APY shown is `premium ÷ (strike × size) × 365 ÷ term`, from the payment on chain. Bridged BTC earns only this way; the bridge itself pays no yield. On exercise the holder pays the strike and receives the nBTC on NEAR.
+
+**Withdraw.** `withdraw_nbtc` needs the owner's NEAR key **and** an ML-DSA-65 signature over `withdraw-nbtc:v1:<receiver>:<amount>` with the vault nonce. The nBTC backing a live call cannot leave.
+
+Contract upgrade with this code: [BriwQEHN…](https://testnet.nearblocks.io/txns/BriwQEHNZVJ5mAF868FsYXmfni2HmqDigHNzSk824cz9), code SHA-256 `251f65c2…` verified over RPC ([record](deployments/nbtc-upgrade-2026-11-14.json)). Sandbox: 39 transactions, 10 attacks refused ([nbtc-sandbox.json](deployments/nbtc-sandbox.json)). Film vault `otzar-btc-mwg7hadd`: [mint](https://testnet.nearblocks.io/txns/BHPHfnTMAFivsuD4XDutiFDMVW8WKsi4hDnP3v54o16b), [ML-DSA key](https://testnet.nearblocks.io/txns/5uNCFYJ1BLnAhpURuf4ZwyVfXgP12jEDwszKTN1XVwyT).
+
+<!-- v5-live:start -->
+<!-- v5-live:end -->
 
 ### Quantum-locked ownership (new, Nov 13)
 

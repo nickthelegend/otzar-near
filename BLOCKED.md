@@ -4,7 +4,7 @@ The local regtest/Anvil and NEAR testnet demo works without a mainnet key or fau
 
 | Item | Exact input Nick must provide | Current behavior |
 | --- | --- | --- |
-| Public Bitcoin testnet4 funding | `BITCOIN_TESTNET4_FUNDED_ADDRESS`, plus access to funded testnet4 UTXOs | `scripts/demo.sh --network testnet4` exits with `Setup required`. No faucet or balance is simulated. |
+| Public Bitcoin testnet funding | Resolved Nov 14 for the bridged path: Nick funded the Otzar Bitcoin testnet3 test wallet (the network the NEAR Omni BTC connector uses) and real tBTC was bridged to nBTC and locked (README, v5 section). Native-UTXO vaults (MPC-controlled Bitcoin address) still run on regtest; `scripts/demo.sh --network testnet4` still exits with `Setup required`. | No faucet balance is simulated. |
 | Sepolia broadcast | `SEPOLIA_RPC_URL` and funded Sepolia ETH at the Otzar derived address | Not exercised; simple EIP-1559 chain ID 11155111 is accepted by the contract. |
 | Public-chain sweep from the scanner | A source-wallet signing integration and Nick's explicit authorization for a public-chain spend; funded testnet4/Sepolia source assets for testnet-only extension | **Move it into Otzar** builds unsigned transactions only on local regtest/Anvil. No mainnet spend or signature is attempted. |
 | P2PK public balance | A public Esplora indexer that includes the queried P2PK script, or a local fully indexed Bitcoin node | The scanner marks the key exposed but shows balance unavailable if the service reports no P2PK outputs. The known block-1 P2PK output is omitted by the public Blockstream scripthash response in this environment. |
