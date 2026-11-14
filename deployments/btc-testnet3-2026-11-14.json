@@ -12,5 +12,29 @@
       "note": "Bridge deposit for magen-noam.testnet (Magen), requested by the coordinator",
       "at": "2026-11-14T10:29:15.348Z"
     }
-  ]
+  ],
+  "funding": {
+    "txid": "64b4ee5549b96ad9b6f2dc29565f118fce8a684ac396b5c84fb10b1ea530eadc",
+    "sats": 155060,
+    "note": "Faucet send arranged by Nick (testnet3)"
+  },
+  "bridgeDeposit": {
+    "txid": "d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e",
+    "vout": 0,
+    "sats": 60000,
+    "feeSats": 300,
+    "to": "tb1qz8zytmnh594j4rk3nuseac64ckcyd63ctdvvly",
+    "recipient": "hako-seller-mw984kqa.testnet",
+    "sentInApp": "film v5 bridge scene, test-wallet approval sheet",
+    "nearMint": {
+      "tx": "Gv3gYvByp4zQ1dMvmaV3NdgJjQtfKg5KisKUKNxqEQqh",
+      "method": "verify_deposit_v2",
+      "relayer": "omni-relayer-testnet.testnet",
+      "connector": "btc-connector.n-bridge.testnet",
+      "lightClient": "btc-client-v4.testnet",
+      "nbtcMinted": 59800,
+      "bridgeFeeSats": 200,
+      "explorer": "https://testnet.nearblocks.io/txns/Gv3gYvByp4zQ1dMvmaV3NdgJjQtfKg5KisKUKNxqEQqh"
+    }
+  }
 }
