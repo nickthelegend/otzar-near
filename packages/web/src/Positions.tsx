@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Card, Feed, RoundPill, Stat, v3art, VaultRows } from './blocks';
-import { useBoxes, useNow, useRounds, useTusdc, useTxns } from './data';
+import { useBoxes, useLive, useNow, useRounds, useTusdc, useTxns, view } from './data';
+import { btc as fmtBtc, useNbtcBalance } from './bridge';
+import { contractId } from './lib';
 import { btcFromSats, e6, earnedSummary, nearblocksAccount, short, TUSDC_SYMBOL, utcDay, type Round } from './lib';
 import { RoundSheet } from './RoundSheet';
 import { PageHead } from './shell';
@@ -28,9 +30,12 @@ export default function Positions({ wallet }: { wallet: Wallet }) {
   const [tab, setTab] = useState<'vaults' | 'wrote' | 'bought' | 'activity'>('vaults');
   const [sheet, setSheet] = useState<Round | null>(null);
   const acct = wallet.account;
-  if (!acct) return <div className="o-page"><PageHead title="Positions" />
-    <div className="o-hero-empty"><img src={v3art('otzar-vault-lock')} alt="A jade vault with a second, lattice padlock" /><div><h2>Your vaults and what they earned</h2><p>Connect a NEAR testnet wallet to see the vaults you own, the calls you wrote or bought and your {TUSDC_SYMBOL} balance.</p><button className="o-btn o-btn-ink o-btn-lg" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button></div></div></div>;
   const mine = (boxes.data || []).filter(b => b.owner_id === acct);
+  const vaultIds = mine.map(b => b.token_id).join(',');
+  const inVaults = useLive<number>(acct && contractId && boxes.data ? `nbtc-sum:${acct}:${vaultIds}` : null, async () => { let n = 0; for (const b of mine) n += Number((await view<{ balance_sats: string }>(contractId!, 'nbtc_vault', { token_id: b.token_id })).balance_sats); return n; }, 15000);
+  const wallet_nbtc = useNbtcBalance(acct);
+  if (!acct) return <div className="o-page"><PageHead title="Portfolio" />
+    <div className="o-hero-empty"><img src={v3art('otzar-vault-lock')} alt="A jade vault with a second, lattice padlock" /><div><h2>Your vaults and what they earned</h2><p>Connect a NEAR testnet wallet to see the vaults you own, the calls you wrote or bought and your {TUSDC_SYMBOL} balance.</p><button className="o-btn o-btn-ink o-btn-lg" onClick={wallet.connect} disabled={!wallet.ready}><Icon name="wallet" size={16} /> Connect wallet</button></div></div></div>;
   const wrote = (rounds.data || []).filter(r => r.writer === acct);
   const bought = (rounds.data || []).filter(r => r.holder === acct);
   const earned = earnedSummary(wrote).earned;
@@ -38,12 +43,12 @@ export default function Positions({ wallet }: { wallet: Wallet }) {
   const tabs = [['vaults', 'Vaults', mine.length], ['wrote', 'Calls written', wrote.length], ['bought', 'Calls bought', bought.length], ['activity', 'Activity', null]] as const;
 
   return <div className="o-page">
-    <PageHead title="Positions" sub={<a href={nearblocksAccount(acct)} target="_blank" rel="noreferrer" className="mono">{acct} <Icon name="external" size={12} /></a>} actions={<Link to="/write" className="o-btn o-btn-ink">Write a call <Icon name="arrow" size={15} /></Link>} />
+    <PageHead title="Portfolio" sub={<a href={nearblocksAccount(acct)} target="_blank" rel="noreferrer" className="mono">{acct} <Icon name="external" size={12} /></a>} actions={<Link to="/app" className="o-btn o-btn-ink">Open vault <Icon name="arrow" size={15} /></Link>} />
     <section className="o-kpis" aria-label="Your totals">
+      <Stat live k="BTC in vaults" v={inVaults.data !== null ? `${fmtBtc(inVaults.data)} BTC` : '…'} sub={<span className="o-sub-ok"><Icon name="shield" size={12} /> quantum-locked</span>} />
+      <Stat live k="nBTC in wallet" v={wallet_nbtc.data !== null ? `${fmtBtc(wallet_nbtc.data)} BTC` : '…'} sub="Bridged from Bitcoin testnet" />
       <Stat live k={`${TUSDC_SYMBOL} balance`} v={bal.data !== null ? e6(bal.data, 2) : bal.error ? 'Unavailable' : '…'} sub="Test token, no value" />
       <Stat k="Premium earned" v={rounds.data ? <>{e6(earned.toString(), 6)}</> : '…'} sub={`${wrote.filter(r => r.premium_paid_usdc).length} paid rounds as writer`} />
-      <Stat k="Premium paid" v={rounds.data ? e6(paid.toString(), 6) : '…'} sub={`${bought.length} calls held`} />
-      <Stat k="Vaults" v={boxes.data ? <CountUp value={mine.length} decimals={0} /> : '…'} sub={<span className="o-sub-ok"><Icon name="shield" size={12} /> {mine.filter(b => b.pq_key).length} quantum-locked</span>} />
     </section>
     <Card className="o-card-flush" title={<div className="o-seg" role="tablist" aria-label="Positions">{tabs.map(([k, l, n]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}{n !== null && <small>{n}</small>}</button>)}</div>}>
       {tab === 'vaults' && (boxes.data ? <VaultRows boxes={boxes.data} rounds={rounds.data} account={acct} filter="mine" /> : <div className="o-table" aria-busy="true">{[0, 1, 2].map(i => <div key={i} className="o-tr skeleton" />)}</div>)}

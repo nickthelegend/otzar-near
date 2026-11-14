@@ -53,7 +53,7 @@ export default function Landing() {
       <SiteNav />
       <div className="l3-hero-copy">
         <span className="l3-badge"><Icon name="shield" size={14} />Live on NEAR testnet</span>
-        <h1>Bring your Bitcoin. Make it quantum&#8209;safe. Let it earn.</h1>
+        <h1>Quantum&#8209;safe Bitcoin that earns.</h1>
         <p className="l3-lede">Bridge BTC to NEAR, lock it in a vault only your quantum-safe key can open, and earn premium while it waits.</p>
         <div className="l3-cta"><Link to="/bridge" className="o-btn o-btn-ink o-btn-lg">Bridge BTC <Icon name="arrow" size={17} /></Link><Link to="/app" className="o-btn o-btn-line o-btn-lg">Open your vault</Link></div>
       </div>
