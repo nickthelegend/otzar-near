@@ -18,7 +18,9 @@ const PAST: [string, string, string][] = [
 /** Quantum security in one picture, plus a live "try to break it" test that sends real attacks to NEAR testnet. */
 export default function SecurityV5({ wallet }: { wallet: Wallet }) {
   const boxes = useBoxes(); const code = useCodeHash(contractId);
-  const box = [...(boxes.data || []).filter(b => b.owner_id === wallet.account && b.pq_key)].reverse()[0];
+  const want = new URLSearchParams(location.search).get('vault');
+  const mine = (boxes.data || []).filter(b => b.owner_id === wallet.account && b.pq_key);
+  const box = mine.find(b => b.token_id === want) || [...mine].reverse()[0];
   const v = useNbtcVault(box?.token_id);
   const [tries, setTries] = useState<Attempt[]>([]); const [busy, setBusy] = useState(''); const [err, setErr] = useState('');
 
