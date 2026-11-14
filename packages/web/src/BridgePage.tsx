@@ -45,6 +45,7 @@ export default function BridgePage({ wallet }: { wallet: Wallet }) {
   return <div className="b5">
     <Head />
     <div className="b5-grid">
+      <div className="b5-left">
       <section className="c5-card b5-route" aria-label="Bridge progress">
         <div className="b5-lanes">
           <Lane chain="Bitcoin testnet" glyph="₿" tone="gold" value={latest ? `${btc(latest.sats)} tBTC` : '—'} sub={latest ? short(latest.txid, 10, 8) : 'Waiting for a deposit'} href={latest ? mempoolTx(latest.txid) : dep.data ? mempoolAddress(dep.data) : undefined} />
@@ -54,6 +55,13 @@ export default function BridgePage({ wallet }: { wallet: Wallet }) {
         <Steps run={latest} p={prog.data} need={CONFIRMATIONS} fee={fee} />
         {prog.data?.stage === 'minted' && <Link to="/app" className="o-btn o-btn-jade o-btn-lg b5-next">Lock it in your vault <Icon name="arrow" size={16} /></Link>}
       </section>
+      <section className="c5-card c5-table" aria-label="Your deposits">
+        <div className="c5-tabs"><b>Deposits</b><span className="c5-count">{runs.data?.length ?? 0}</span><a className="c5-src" href={`https://testnet.nearblocks.io/address/${CONNECTOR}`} target="_blank" rel="noreferrer">{CONNECTOR} <Icon name="external" size={11} /></a></div>
+        {!runs.data ? <p className="c5-empty">{runs.error || 'Reading Bitcoin testnet…'}</p> : !runs.data.length ? <p className="c5-empty">No deposits yet.</p> :
+          <table><thead><tr><th>Bitcoin tx</th><th>Amount</th><th>Minted on NEAR</th><th>Status</th></tr></thead>
+            <tbody>{runs.data.map(r => <DepositRow key={r.txid} r={r} />)}</tbody></table>}
+      </section>
+      </div>
 
       <aside className="c5-card c5-ticket" aria-label="Bridge ticket">
         <h3 className="c5-ticket-h">Bridge BTC</h3>
@@ -76,12 +84,6 @@ export default function BridgePage({ wallet }: { wallet: Wallet }) {
       </aside>
     </div>
 
-    <section className="c5-card c5-table" aria-label="Your deposits">
-      <div className="c5-tabs"><b>Deposits</b><span className="c5-count">{runs.data?.length ?? 0}</span><a className="c5-src" href={`https://testnet.nearblocks.io/address/${CONNECTOR}`} target="_blank" rel="noreferrer">{CONNECTOR} <Icon name="external" size={11} /></a></div>
-      {!runs.data ? <p className="c5-empty">{runs.error || 'Reading Bitcoin testnet…'}</p> : !runs.data.length ? <p className="c5-empty">No deposits yet.</p> :
-        <table><thead><tr><th>Bitcoin tx</th><th>Amount</th><th>Minted on NEAR</th><th>Status</th></tr></thead>
-          <tbody>{runs.data.map(r => <DepositRow key={r.txid} r={r} />)}</tbody></table>}
-    </section>
   </div>;
 }
 

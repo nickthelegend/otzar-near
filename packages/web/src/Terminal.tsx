@@ -134,9 +134,9 @@ function EarnTab({ wallet, box, free, current, spot, onDone }: { wallet: Wallet;
   const n = Number(size) || 0;
   const strike = spot ? Math.round(spot * (1 + otm / 100)) : 0;
   const notional = strike * n / 1e8;
-  // The writer's asking premium: opening 0.9% and floor 0.45% of strike notional per 7 days, scaled by term. The buyer's
+  // The writer’s asking premium: opening 0.5% and floor 0.25% of strike notional per 7 days, scaled by term. The buyer's
   // Dutch-auction payment is what actually lands, and the APY shown elsewhere is computed from that on-chain payment.
-  const opening = Math.round(notional * 0.009 * days / 7 * 1e6), minimum = Math.round(opening / 2);
+  const opening = Math.round(notional * 0.005 * days / 7 * 1e6), minimum = Math.round(opening / 2);
   const apy = notional ? (minimum / 1e6) / notional * 365 / days * 100 : 0;
   if (live(current)) return <div className="c5-form"><div className="c5-live"><b>Call live</b><span>Strike {usd(Number(current!.strike_usd_e6) / 1e6, 0)} · {sats(current!.size_sats)} sats</span><span>{current!.state === 'sold' ? `Premium earned ${e6(current!.premium_paid_usdc || '0', 2)} tUSDC` : `Asking ${e6(current!.opening_premium_usdc, 2)} tUSDC, falling to ${e6(current!.minimum_premium_usdc, 2)}`}</span></div><Link to="/market" className="o-btn o-btn-line o-btn-block">See it in the market <Icon name="arrow" size={15} /></Link></div>;
   const go = () => t.run('earn', async () => {

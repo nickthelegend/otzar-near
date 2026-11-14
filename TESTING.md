@@ -4,12 +4,13 @@ Run `corepack pnpm install --frozen-lockfile && corepack pnpm test` on macOS arm
 
 | Check | Actual result | Source |
 | --- | ---: | --- |
-| Rust contract unit tests | 11 passed, 0 failed, 0 ignored (includes relayer freshness, at-expiry settlement print, and signed-message binding) | `cargo test --manifest-path packages/contract/Cargo.toml` |
+| Rust contract unit tests | 12 passed, 0 failed, 0 ignored (includes relayer freshness, at-expiry settlement print, signed-message binding, and Nov 14: nBTC lock needs owner + ML-DSA key, withdraw refused without or with a forged ML-DSA signature) | `cargo test --manifest-path packages/contract/Cargo.toml` |
 | tUSDC NEP-141 unit tests | 2 passed: labelled metadata and owner mint, outsider mint rejected | `cargo test --manifest-path packages/test-usdc/Cargo.toml` |
 | SDK tests, including live chain scanner reads, EdDSA derivation, live 1Click asset discovery, relayer message/signature and a live Coinbase BTC-USD read | 11 passed, 0 failed, 0 skipped | `pnpm --filter @hako/sdk test` |
 | Live MCP stdio tool and testnet box read | 1 passed, 0 failed, 0 skipped | `pnpm --filter @hako/mcp test` |
 | Web type check | passed; no test cases counted | `pnpm --filter @hako/web test` |
 | NEAR protocol-88 sandbox transactions | 55 passed, including 21 expected on-chain rejections (Nov 13: +8 for quantum-locked transfer and listing) | [sandbox.json](deployments/sandbox.json) |
+| **nBTC vault sandbox (Nov 14)** | 39 passed, including 10 expected on-chain rejections: lock before the ML-DSA key and into someone else's vault (refunded by NEP-141), call larger than locked nBTC, call signed by the wrong key, withdraw with the NEAR key only, with a forged signature, of call-backed nBTC, replayed to another receiver, by a non-owner, replayed after use, vault transfer while a call is live. A local NEP-141 stands in for `nbtc.n-bridge.testnet` in the sandbox | [nbtc-sandbox.json](deployments/nbtc-sandbox.json), `scripts/test-nbtc-sandbox.sh` |
 | Covered-call sandbox plus Bitcoin Core regtest transactions | 30 passed, including 13 expected on-chain rejections; 1 real regtest funding transaction; local tUSDC deployment, a real tUSDC premium purchase and a live Coinbase print signed by a fresh relayer key | [calls-sandbox.json](deployments/calls-sandbox.json) |
 | NEAR testnet transactions in demo | 24 independently re-queried, including 10 expected on-chain rejections | [testnet-2026-11-09.json](deployments/testnet-2026-11-09.json) |
 | Anvil receipts | 3 successful: funding, guardian recovery, withdrawal | `scripts/verify-evidence.mjs` |
