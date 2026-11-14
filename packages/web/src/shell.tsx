@@ -5,12 +5,12 @@ import { useBtcPrice, useCodeHash, useFlash, useNearBlock, usd } from './live';
 import { Icon, Link, Wordmark, type IconName } from './ui';
 import type { Wallet } from './wallet';
 
-export type Page = 'home' | 'how' | 'vaults' | 'vault' | 'market' | 'write' | 'positions' | 'activity' | 'security' | 'settings';
+export type Page = 'terminal' | 'bridge' | 'home' | 'how' | 'vaults' | 'vault' | 'market' | 'write' | 'positions' | 'activity' | 'security' | 'settings';
 export const NAV: { page: Page; to: string; label: string; icon: IconName; phone?: boolean }[] = [
-  { page: 'vaults', to: '/app', label: 'Vaults', icon: 'grid', phone: true },
+  { page: 'terminal', to: '/app', label: 'Vault', icon: 'lock', phone: true },
+  { page: 'bridge', to: '/bridge', label: 'Bridge', icon: 'send', phone: true },
   { page: 'market', to: '/market', label: 'Buy calls', icon: 'coin', phone: true },
-  { page: 'write', to: '/write', label: 'Write call', icon: 'plus', phone: true },
-  { page: 'positions', to: '/positions', label: 'Positions', icon: 'wallet', phone: true },
+  { page: 'positions', to: '/positions', label: 'Portfolio', icon: 'wallet', phone: true },
   { page: 'activity', to: '/activity', label: 'Activity', icon: 'wave' },
   { page: 'security', to: '/security', label: 'Security', icon: 'shield', phone: true },
 ];
@@ -40,7 +40,7 @@ export function ShieldPill({ wallet }: { wallet: Wallet }) {
 }
 
 export function AppBar({ page, wallet }: { page: Page; wallet: Wallet }) {
-  const on = (p: Page) => (page === p || (p === 'vaults' && page === 'vault') ? 'page' : undefined);
+  const on = (p: Page) => (page === p || (p === 'terminal' && (page === 'vault' || page === 'vaults')) ? 'page' : undefined);
   return <header className="o-bar">
     <div className="o-bar-row">
       <Link to="/" className="o-logo" aria-label="Otzar home"><Wordmark /></Link>
@@ -74,7 +74,7 @@ export function StatusBar() {
 }
 
 export function TabBar({ page }: { page: Page }) {
-  const on = (p: Page) => (page === p || (p === 'vaults' && page === 'vault') ? 'page' : undefined);
+  const on = (p: Page) => (page === p || (p === 'terminal' && (page === 'vault' || page === 'vaults')) ? 'page' : undefined);
   return <nav className="o-tabs" aria-label="App tabs">
     {NAV.filter(n => n.phone).map(n => <Link key={n.page} to={n.to} aria-current={on(n.page)}><Icon name={n.icon} size={20} /><span>{n.label.replace(' call', '').replace('Buy calls', 'Buy')}</span></Link>)}
   </nav>;

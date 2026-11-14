@@ -142,7 +142,7 @@ export function roundPhase(c: CoveredCall, now: number): { phase: Phase; label: 
 }
 
 /** Match the contract's active-call encumbrance, including expired auctions and issued signatures. */
-export const callLocksVault = (c: CoveredCall | undefined | null) => !!c && ['auction', 'purchasing', 'sold', 'settling', 'itm', 'paying', 'paid', 'signing', 'signed'].includes(c.state);
+export const callLocksVault = (c: CoveredCall | undefined | null) => !!c && ['auction', 'purchasing', 'sold', 'settling', 'itm', 'paying', 'paid', 'signing', 'signed', 'delivering'].includes(c.state);
 
 /** Total premium paid to writers and the blended annualised yield across those rounds. */
 export function earnedSummary(rounds: CoveredCall[]) {

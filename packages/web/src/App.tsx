@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import Landing from './Landing';
 import Vaults from './Vaults';
 import VaultPage from './VaultPage';
-import Market from './Market';
+import MarketV5 from './MarketV5';
 import Write from './Write';
 import Positions from './Positions';
 import Activity from './Activity';
-import Security from './Security';
+import Security from './SecurityV5';
 import Settings from './Settings';
 import How from './How';
+import Terminal from './Terminal';
+import BridgePage from './BridgePage';
 import { AppBar, StatusBar, TabBar, type Page } from './shell';
 import { Icon } from './ui';
 import { useWallet } from './wallet';
@@ -20,10 +22,10 @@ function usePath() {
 }
 
 const ROUTES: [RegExp, Page][] = [
-  [/^\/(app|vaults)\/?$/, 'vaults'], [/^\/market/, 'market'], [/^\/write/, 'write'], [/^\/(positions|you)/, 'positions'],
+  [/^\/app\/?$/, 'terminal'], [/^\/bridge/, 'bridge'], [/^\/vaults\/?$/, 'vaults'], [/^\/market/, 'market'], [/^\/write/, 'write'], [/^\/(positions|you)/, 'positions'],
   [/^\/activity/, 'activity'], [/^\/security/, 'security'], [/^\/settings/, 'settings'], [/^\/how/, 'how'],
 ];
-const TITLES: Record<Page, string> = { home: 'Otzar · The quantum-safe Bitcoin vault that earns', how: 'Otzar · How it works', vaults: 'Otzar · Vaults', vault: 'Otzar · Vault', market: 'Otzar · Buy calls', write: 'Otzar · Write a call', positions: 'Otzar · Positions', activity: 'Otzar · Activity', security: 'Otzar · Quantum security', settings: 'Otzar · Settings' };
+const TITLES: Record<Page, string> = { terminal: 'Otzar · Vault', bridge: 'Otzar · Bridge BTC', home: 'Otzar · The quantum-safe Bitcoin vault that earns', how: 'Otzar · How it works', vaults: 'Otzar · Vaults', vault: 'Otzar · Vault', market: 'Otzar · Buy calls', write: 'Otzar · Write a call', positions: 'Otzar · Positions', activity: 'Otzar · Activity', security: 'Otzar · Quantum security', settings: 'Otzar · Settings' };
 
 export default function App() {
   const path = usePath();
@@ -46,9 +48,11 @@ export default function App() {
     <AppBar page={page} wallet={wallet} />
     {banner}
     <main id="main" className="o-main" key={page + (vaultId || '')}>
+      {page === 'terminal' && <Terminal wallet={wallet} />}
+      {page === 'bridge' && <BridgePage wallet={wallet} />}
       {page === 'vaults' && <Vaults wallet={wallet} />}
       {page === 'vault' && <VaultPage id={vaultId!} wallet={wallet} />}
-      {page === 'market' && <Market wallet={wallet} />}
+      {page === 'market' && <MarketV5 wallet={wallet} />}
       {page === 'write' && <Write wallet={wallet} initial={writeFor} />}
       {page === 'positions' && <Positions wallet={wallet} />}
       {page === 'activity' && <Activity />}

@@ -21,6 +21,12 @@ function plainWords(c: Call): string {
     const hours = Math.max(0, Math.round((Number(a.expiry_sec) * 1000 - Date.now()) / 360000) / 10);
     return `Write a covered call on vault ${a.token_id}: strike $${e6(a.strike_usd_e6)} on ${Number(a.size_sats).toLocaleString('en-US')} sats, expires in about ${hours} hours.`;
   }
+  if (c.methodName === 'write_call_nbtc') {
+    const days = Math.max(0, Math.round((Number(a.expiry_sec) * 1000 - Date.now()) / 8640000) / 10);
+    return `Sell a covered call on ${Number(a.size_sats).toLocaleString('en-US')} sats of the BTC locked in ${a.token_id}: strike $${e6(a.strike_usd_e6, 0)}, ${days} days. The buyer's premium is your yield.`;
+  }
+  if (c.methodName === 'withdraw_nbtc') return `Withdraw ${Number(a.amount).toLocaleString('en-US')} sats of nBTC from vault ${a.token_id} to ${a.receiver_id}.`;
+  if (c.methodName === 'ft_transfer_call' && String(a.msg).startsWith('lock:')) return `Lock ${Number(a.amount).toLocaleString('en-US')} sats of bridged nBTC into vault ${String(a.msg).slice(5)}. Only its quantum-safe key can take it out.`;
   if (c.methodName === 'ft_transfer_call') return `Pay ${e6(a.amount, 4)} tUSDC (a test token) to the Otzar contract as the premium for the call on ${String(a.msg).replace(/^buy:/, '')}. The contract forwards it to the writer.`;
   return `Call ${c.methodName}.`;
 }
@@ -41,11 +47,13 @@ export function approvalSheet(i: SheetInput): Promise<SheetHandle> {
       return { box, status };
     };
     const mark = (s: { status: HTMLElement }, text: string) => { s.status.textContent = text; s.status.style.color = 'var(--jade-d)'; };
+    // The Security page's "try to break it" test marks its own attack so the sheet never calls a forgery signed.
+    const attack = (window as { __OTZAR_ATTACK__?: string }).__OTZAR_ATTACK__; delete (window as { __OTZAR_ATTACK__?: string }).__OTZAR_ATTACK__;
     const pq = sigBox('Post-quantum signature', 'ML-DSA-65', 'background:var(--jade-l);color:var(--jade-d)',
-      sig ? `${hex(sig.slice(0, 8))}…${hex(sig.slice(-4))} · ${sig.length.toLocaleString('en-US')} bytes` : 'Not part of this payment',
-      sig ? 'Signed in this tab with the vault key. NEAR verifies it inside the contract.' : 'The writer’s ML-DSA-65 signature on these terms was already verified on chain. A payment needs only the buyer’s NEAR key.');
+      sig ? `${hex(sig.slice(0, 8))}…${hex(sig.slice(-4))} · ${sig.length.toLocaleString('en-US')} bytes` : attack ? 'None attached' : 'Not part of this payment',
+      attack === 'forged' ? 'Forged: random bytes, not made with the vault key. This is the attack.' : attack === 'classical' ? 'Only the NEAR key signs. This is the attack.' : sig ? 'Signed in this tab with the vault key. NEAR verifies it inside the contract.' : String(argsOf(call).msg || '').startsWith('lock:') ? 'Locking needs only your NEAR key. Taking it out needs this ML-DSA-65 key.' : 'The writer’s ML-DSA-65 signature on these terms was already verified on chain. A payment needs only the buyer’s NEAR key.');
     const cl = sigBox('NEAR account signature', 'ed25519', 'background:var(--gold-l);color:var(--gold-ink)', short(i.nearKey, 16, 6), 'Classical key. It signs the transaction when you press Approve.');
-    mark(pq, sig ? 'Signed' : 'Already verified');
+    if (attack) { pq.status.textContent = attack === 'forged' ? 'Forged' : 'Missing'; pq.status.style.color = 'var(--red)'; } else mark(pq, sig ? 'Signed' : String(argsOf(call).msg || '').startsWith('lock:') ? 'Not needed to lock' : 'Already verified');
     const approve = el('button', 'flex:1;height:46px;border-radius:999px;border:0;background:var(--ink);color:var(--ivory);font:800 16px var(--sans);cursor:pointer', 'Approve');
     const rejectBtn = el('button', 'height:46px;padding:0 24px;border-radius:999px;border:1px solid var(--line-3);background:var(--paper);color:var(--ink);font:800 16px var(--sans);cursor:pointer', 'Reject');
     approve.setAttribute('aria-label', 'Approve transaction'); rejectBtn.setAttribute('aria-label', 'Reject transaction');
