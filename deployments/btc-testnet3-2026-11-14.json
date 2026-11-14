@@ -11,6 +11,16 @@
       "explorer": "https://mempool.space/testnet/tx/a4da59b2277db9312b8e871e3e70cb3ea26e285b8db3e06b3ba7193a760f7c7c",
       "note": "Bridge deposit for magen-noam.testnet (Magen), requested by the coordinator",
       "at": "2026-11-14T10:29:15.348Z"
+    },
+    {
+      "kind": "return",
+      "to": "tb1qerzrlxcfu24davlur5sqmgzzgsal6wusda40er",
+      "sats": 90160,
+      "feeSats": 300,
+      "txid": "4f97949763fd0d9a4bb8d70aca2e57c6132c4fe4e23d92145c9a5d929f608868",
+      "explorer": "https://mempool.space/testnet/tx/4f97949763fd0d9a4bb8d70aca2e57c6132c4fe4e23d92145c9a5d929f608868",
+      "note": "Leftover returned to the faucet",
+      "at": "2026-11-14T11:24:14.403Z"
     }
   ],
   "funding": {

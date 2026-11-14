@@ -1,0 +1,252 @@
+{
+ "started": "2026-11-14T09:30:54.514Z",
+ "steps": [
+  {
+   "name": "Register hako-contract-mw984kpp.testnet for nBTC",
+   "method": "storage_deposit",
+   "txHash": "EFjJZnsfPyRLx7vJ4JmZSkKJPFj7vNAUMBSBXZZmwjoj",
+   "explorer": "https://testnet.nearblocks.io/txns/EFjJZnsfPyRLx7vJ4JmZSkKJPFj7vNAUMBSBXZZmwjoj",
+   "at": "2026-11-14T09:30:58.839Z"
+  },
+  {
+   "name": "Register hako-seller-mw984kqa.testnet for nBTC",
+   "method": "storage_deposit",
+   "txHash": "J8fBLjqPDJNroWBw6m2R8hUPY1cKjbBQEFzebQgBGf4U",
+   "explorer": "https://testnet.nearblocks.io/txns/J8fBLjqPDJNroWBw6m2R8hUPY1cKjbBQEFzebQgBGf4U",
+   "at": "2026-11-14T09:31:03.102Z"
+  },
+  {
+   "name": "Register hako-buyer-mw984kqb.testnet for nBTC",
+   "method": "storage_deposit",
+   "txHash": "6GkNJ3KL3XFD79V6vmrMVCiradvxpM4bm3XFHZDr2bck",
+   "explorer": "https://testnet.nearblocks.io/txns/6GkNJ3KL3XFD79V6vmrMVCiradvxpM4bm3XFHZDr2bck",
+   "at": "2026-11-14T09:31:07.585Z"
+  },
+  {
+   "name": "Mint the vault NFT",
+   "method": "mint",
+   "txHash": "BHPHfnTMAFivsuD4XDutiFDMVW8WKsi4hDnP3v54o16b",
+   "explorer": "https://testnet.nearblocks.io/txns/BHPHfnTMAFivsuD4XDutiFDMVW8WKsi4hDnP3v54o16b",
+   "at": "2026-11-14T09:31:11.570Z"
+  },
+  {
+   "name": "Lock the vault with a new ML-DSA-65 key",
+   "method": "register_pq_key",
+   "txHash": "5uNCFYJ1BLnAhpURuf4ZwyVfXgP12jEDwszKTN1XVwyT",
+   "explorer": "https://testnet.nearblocks.io/txns/5uNCFYJ1BLnAhpURuf4ZwyVfXgP12jEDwszKTN1XVwyT",
+   "at": "2026-11-14T09:31:15.871Z"
+  },
+  {
+   "accountId": "hako-seller-mw984kqa.testnet",
+   "receiverId": "nbtc.n-bridge.testnet",
+   "methods": [
+    "ft_transfer_call"
+   ],
+   "txHash": "9yTwfrrLqgruaAg4ycSwQRnxrA1PwMefYbwW4dq6j7e6",
+   "source": "app (film v5)",
+   "explorer": "https://testnet.nearblocks.io/txns/9yTwfrrLqgruaAg4ycSwQRnxrA1PwMefYbwW4dq6j7e6",
+   "final": true,
+   "success": true,
+   "onChainSuccess": true,
+   "at": "2026-11-14T10:46:48.001Z"
+  },
+  {
+   "accountId": "hako-seller-mw984kqa.testnet",
+   "receiverId": "hako-contract-mw984kpp.testnet",
+   "methods": [
+    "write_call_nbtc"
+   ],
+   "txHash": "8mAwz8vbTMVk3HdpqP7vSoay5DANaNvSxbwdA8EspYHq",
+   "source": "app (film v5)",
+   "explorer": "https://testnet.nearblocks.io/txns/8mAwz8vbTMVk3HdpqP7vSoay5DANaNvSxbwdA8EspYHq",
+   "final": true,
+   "success": true,
+   "onChainSuccess": true,
+   "at": "2026-11-14T10:48:02.898Z"
+  },
+  {
+   "accountId": "hako-buyer-mw984kqb.testnet",
+   "receiverId": "husdc-3177b477.testnet",
+   "methods": [
+    "ft_transfer_call"
+   ],
+   "txHash": "HQEEMjKzB1YgK8kiKJGUktUrtrxPN63qnFzUxzS37yEY",
+   "source": "app (film v5)",
+   "explorer": "https://testnet.nearblocks.io/txns/HQEEMjKzB1YgK8kiKJGUktUrtrxPN63qnFzUxzS37yEY",
+   "final": true,
+   "success": true,
+   "onChainSuccess": true,
+   "at": "2026-11-14T10:59:19.975Z"
+  },
+  {
+   "accountId": "hako-seller-mw984kqa.testnet",
+   "receiverId": "hako-contract-mw984kpp.testnet",
+   "methods": [
+    "withdraw_nbtc"
+   ],
+   "txHash": "4nWpidvNZ2qREywQNAbn48ESGwmMsq13QW1FQtPLgXg1",
+   "source": "app (film v5)",
+   "explorer": "https://testnet.nearblocks.io/txns/4nWpidvNZ2qREywQNAbn48ESGwmMsq13QW1FQtPLgXg1",
+   "final": true,
+   "success": true,
+   "onChainSuccess": true,
+   "at": "2026-11-14T11:00:50.076Z"
+  },
+  {
+   "accountId": "hako-seller-mw984kqa.testnet",
+   "receiverId": "hako-contract-mw984kpp.testnet",
+   "methods": [
+    "withdraw_nbtc"
+   ],
+   "txHash": "AT9E1ySVJtoyTHKLnkP9WF82rvPaaoHN9Mbz2WqauzdP",
+   "source": "app (film v5)",
+   "explorer": "https://testnet.nearblocks.io/txns/AT9E1ySVJtoyTHKLnkP9WF82rvPaaoHN9Mbz2WqauzdP",
+   "final": true,
+   "success": false,
+   "onChainSuccess": false,
+   "failure": "{\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: bad ML-DSA signature\"}}}}",
+   "at": "2026-11-14T11:01:59.707Z"
+  }
+ ],
+ "tokenId": "otzar-btc-mwg7hadd",
+ "events": [
+  {
+   "scene": "bridge",
+   "name": "bridge-clicked",
+   "seconds": 13.19
+  },
+  {
+   "scene": "bridge",
+   "name": "approve",
+   "seconds": 16.652
+  },
+  {
+   "scene": "bridge",
+   "name": "btc-sent",
+   "seconds": 17.991
+  },
+  {
+   "scene": "lock",
+   "name": "approve",
+   "seconds": 15.855
+  },
+  {
+   "scene": "lock",
+   "name": "locked",
+   "seconds": 22.728
+  },
+  {
+   "scene": "earn",
+   "name": "key",
+   "seconds": 13.935
+  },
+  {
+   "scene": "earn",
+   "name": "approve",
+   "seconds": 20.576
+  },
+  {
+   "scene": "earn",
+   "name": "call-listed",
+   "seconds": 26.6
+  },
+  {
+   "scene": "buy",
+   "name": "approve",
+   "seconds": 14.491
+  },
+  {
+   "scene": "buy",
+   "name": "bought",
+   "seconds": 23.851
+  },
+  {
+   "scene": "withdraw",
+   "name": "approve",
+   "seconds": 14.777
+  },
+  {
+   "scene": "withdraw",
+   "name": "withdrawn",
+   "seconds": 22.165
+  },
+  {
+   "scene": "attack",
+   "name": "approve",
+   "seconds": 14.967
+  },
+  {
+   "scene": "attack",
+   "name": "refused",
+   "seconds": 21.808
+  },
+  {
+   "scene": "attackTx",
+   "name": "reason",
+   "seconds": 10.104
+  }
+ ],
+ "btc": [
+  {
+   "kind": "bridge-deposit",
+   "from": "tb1qx5eygvy5rqr887mg98702mgmak8jja5s8f3a5f",
+   "to": "tb1qz8zytmnh594j4rk3nuseac64ckcyd63ctdvvly",
+   "sats": 60000,
+   "feeSats": 300,
+   "txid": "d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e",
+   "vout": 0,
+   "explorer": "https://mempool.space/testnet/tx/d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e",
+   "at": "2026-11-14T10:11:16.754Z"
+  }
+ ],
+ "mint": {
+  "nearTx": "Gv3gYvByp4zQ1dMvmaV3NdgJjQtfKg5KisKUKNxqEQqh",
+  "transfer": {
+   "transfer_id": {
+    "type": "utxo",
+    "chain": "Btc",
+    "tx_hash": "d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e",
+    "vout": 0
+   },
+   "origin_chain": "Btc",
+   "destination_chain": "Near",
+   "recipient": "near:hako-seller-mw984kqa.testnet",
+   "amount": "60000",
+   "status": "Finalised",
+   "initialised": {
+    "transaction_hash": "d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e",
+    "chain": "Btc",
+    "timestamp_seconds": 1794659327,
+    "details": {
+     "type": "utxo",
+     "block_height": 5347562,
+     "block_hash": "0000000000c75214b0842231f785d60f32e65a1895cc5d657746a6f1cbe8637f"
+    }
+   },
+   "signed": [],
+   "finalised": {
+    "transaction_hash": "Gv3gYvByp4zQ1dMvmaV3NdgJjQtfKg5KisKUKNxqEQqh",
+    "chain": "Near",
+    "timestamp_seconds": 1794652502,
+    "details": {
+     "type": "near",
+     "block_height": 277645256,
+     "receipt_id": "4rh7BpPeLR6doXhnWUKpTddKXjMEpnisYe9QQkqoqCfi"
+    }
+   },
+   "fee_updates": [],
+   "utxo_signs": [],
+   "utxo_meta": {
+    "chain": "Btc",
+    "relayer_fee": "20",
+    "protocol_fee": "180",
+    "relayer_account_id": "omni-relayer-testnet.testnet"
+   },
+   "related_txs": [],
+   "tx_ids": [
+    "d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e",
+    "Gv3gYvByp4zQ1dMvmaV3NdgJjQtfKg5KisKUKNxqEQqh"
+   ]
+  }
+ }
+}

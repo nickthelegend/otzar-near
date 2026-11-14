@@ -19,6 +19,17 @@ Each vault is an NFT on NEAR that controls its own Bitcoin address through NEAR 
 Contract upgrade with this code: [BriwQEHN…](https://testnet.nearblocks.io/txns/BriwQEHNZVJ5mAF868FsYXmfni2HmqDigHNzSk824cz9), code SHA-256 `251f65c2…` verified over RPC ([record](deployments/nbtc-upgrade-2026-11-14.json)). Sandbox: 39 transactions, 10 attacks refused ([nbtc-sandbox.json](deployments/nbtc-sandbox.json)). Film vault `otzar-btc-mwg7hadd`: [mint](https://testnet.nearblocks.io/txns/BHPHfnTMAFivsuD4XDutiFDMVW8WKsi4hDnP3v54o16b), [ML-DSA key](https://testnet.nearblocks.io/txns/5uNCFYJ1BLnAhpURuf4ZwyVfXgP12jEDwszKTN1XVwyT).
 
 <!-- v5-live:start -->
+**Live on camera, Nov 14 (film v5, every step signed in the app's test-wallet sheet):** vault `otzar-btc-mwg7hadd` received 59,800 sats of nBTC (60,000 sent, 200-sat bridge fee), locked all of it, sold a 7-day call on 40,000 sats at a $73,919 strike (10% above spot), and the buyer paid 0.147754 tUSDC: **26.1% APY** on strike notional, from that payment. 10,000 sats were withdrawn with the ML-DSA key; a forged signature was refused. Records: [btc-testnet3-2026-11-14.json](deployments/btc-testnet3-2026-11-14.json), [film-v5-2026-11-14.json](deployments/film-v5-2026-11-14.json). Unused tBTC went back to the faucet ([4f979497…](https://mempool.space/testnet/tx/4f97949763fd0d9a4bb8d70aca2e57c6132c4fe4e23d92145c9a5d929f608868)).
+
+| Step | Result | Transaction |
+| --- | --- | --- |
+| Bitcoin testnet3: 60,000 sats from the Otzar test wallet to the bridge deposit address `tb1qz8zytmnh594j4rk3nuseac64ckcyd63ctdvvly` | Confirmed | [d853d38d28…](https://mempool.space/testnet/tx/d853d38d289f204d87bded02f2dc54575b1a6cce4f03213b64b5535ec70ca35e) |
+| NEAR: Omni relayer `verify_deposit_v2` (BTC light client proof) mints nBTC to the seller | Confirmed | [Gv3gYvBy…](https://testnet.nearblocks.io/txns/Gv3gYvByp4zQ1dMvmaV3NdgJjQtfKg5KisKUKNxqEQqh) |
+| Lock nBTC into the vault (`ft_transfer_call`, msg `lock:<vault>`) | Confirmed | [9yTwfrrL…](https://testnet.nearblocks.io/txns/9yTwfrrLqgruaAg4ycSwQRnxrA1PwMefYbwW4dq6j7e6) |
+| Sell a 7-day covered call on locked nBTC, ML-DSA-65 signed (`write_call_nbtc`) | Confirmed | [8mAwz8vb…](https://testnet.nearblocks.io/txns/8mAwz8vbTMVk3HdpqP7vSoay5DANaNvSxbwdA8EspYHq) |
+| Buyer pays the premium in tUSDC (`ft_transfer_call`, msg `buy:<vault>`) | Confirmed | [HQEEMjKz…](https://testnet.nearblocks.io/txns/HQEEMjKzB1YgK8kiKJGUktUrtrxPN63qnFzUxzS37yEY) |
+| Withdraw free nBTC with the ML-DSA key (`withdraw_nbtc`) | Confirmed | [4nWpidvN…](https://testnet.nearblocks.io/txns/4nWpidvNZ2qREywQNAbn48ESGwmMsq13QW1FQtPLgXg1) |
+| Attack: withdraw with a forged ML-DSA signature (`withdraw_nbtc`) | Refused: bad ML-DSA signature | [AT9E1ySV…](https://testnet.nearblocks.io/txns/AT9E1ySVJtoyTHKLnkP9WF82rvPaaoHN9Mbz2WqauzdP) |
 <!-- v5-live:end -->
 
 ### Quantum-locked ownership (new, Nov 13)
