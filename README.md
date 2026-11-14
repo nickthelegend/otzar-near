@@ -293,7 +293,7 @@ Otzar was formerly Hako. The Phylax recovery, Athanatos wallet, and Tsuna covere
 
 **Other projects by the same team in this hackathon (Q-015)**
 
-Lead: <TBD by Nick>
+Lead: Krishna Yadav. Krishna leads only Otzar in this hackathon; the team's other entries have their own leads.
 
 **License:** [MIT](LICENSE), © 2026 Nivesh Gajengi. This repo has no separate NOTICE file. Runtime/build libraries are declared in the package manifests, Cargo manifests, and lockfiles.
 
