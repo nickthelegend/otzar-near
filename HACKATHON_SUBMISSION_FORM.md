@@ -12,10 +12,10 @@ Draft only. Field names and constraints follow the [official form and submission
 | nearAddress | TBD Nick: NEAR MAINNET payout account (2–64 characters; lowercase NEAR account syntax). Do not use the testnet contract account. |
 | projectUrl | TBD: public GitHub repo URL after push (HTTP(S), max 300 characters; each repo can be submitted only once) |
 | demoUrl | TBD: the public X post URL (HTTP(S), max 300 characters) |
-| idea | Otzar is a quantum-safe Bitcoin vault that earns. Each vault is an NFT on NEAR that controls its own Bitcoin address through NEAR Chain Signatures, and its authority key is ML-DSA-65 (NIST FIPS 204, post-quantum). The contract verifies that signature on chain with env::ml_dsa_verify before any Bitcoin spend, vault transfer or listing, rule change, guardian recovery or covered call, so breaking the owner's classical NEAR key is not enough to move or sell it; those refusals are live NEAR testnet transactions. Owners earn by selling covered calls: a buyer pays a premium on NEAR straight to the owner, a signed price settles the round, and NEAR signs the Bitcoin transfer only if the buyer exercises. The app shows live BTC prices, falling Dutch-auction asks, an on-chain activity feed and a Security page that reads the contract's keys and code hash. Honest limits: Bitcoin runs on regtest, premiums are a no-value test token, Bitcoin collateral is checked off-chain, and Bitcoin's ECDSA, NEAR's MPC root key and the contract's deploy key remain classical. |
+| idea | Otzar makes Bitcoin quantum-safe and lets it earn, on NEAR. Real Bitcoin testnet coins cross to NEAR through the live Omni BTC connector: a deposit address derived for the user's account, a Bitcoin light-client proof (verify_deposit_v2), and nBTC minted on NEAR. The owner locks that nBTC into an Otzar vault, an NFT whose authority key is ML-DSA-65 (NIST FIPS 204, post-quantum). The Otzar contract verifies that signature on chain with env::ml_dsa_verify before the coins can leave, before the vault can be transferred or listed, and before any covered call is written. The vault earns by selling covered calls on the locked BTC: a buyer pays a premium on NEAR, straight to the owner, and the app shows the APY from that real payment. A forged quantum signature is refused on chain. Bitcoin's own signatures, the bridge's MPC key and NEAR account keys are still classical; premiums are paid in tUSDC, a no-value test token. Everything runs live on NEAR testnet and Bitcoin testnet3. |
 | consent | Nick ticks after agreeing verbatim: “I agree that the organizers may use these details to review our submission and contact us about this hackathon.” Submit as boolean `true` only after agreement. |
 
-Idea character count: **1060** (plain text in the `idea` cell; allowed: 20–2000).
+Idea character count: **984** (plain text in the `idea` cell; allowed: 20–2000).
 
 The form fields above exclude the API-only `requestId`. If using the API, generate that UUID once at submission time and reuse it on retries. Do not commit the final payload containing personal data. Nick must confirm the complete payload before it is sent; this document does not send it. A correction to an existing submission goes through the organizers' request-changes process, not a second submission.
 
@@ -24,10 +24,10 @@ The form fields above exclude the API-only `requestId`. If using the API, genera
 The human posts this text with the video attached. The local-only demo requires a video under Q-012.
 
 ```text
-a bitcoin vault only your quantum-safe key can move, and it earns covered-call premium. ML-DSA checked on NEAR. Otzar, built at NEAR HACKATHON (testnet, bitcoin on regtest). @NEARProtocol #NEARHackathon
+real testnet bitcoin bridged to NEAR, locked in a vault only a post-quantum key can open, earning covered-call premium. a forged signature, refused on chain. Otzar, built at NEAR HACKATHON @NEARProtocol #NEARHackathon
 ```
 
-Post character count: **202** (limit: 280; attachment note excluded).
+Post character count: **217** (limit: 280; attachment note excluded).
 
 attach: otzar-near-film-share.mp4
 
